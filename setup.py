@@ -14,4 +14,5 @@ setuptools.setup(
     url="https://github.com/bytecodealliance/wasmtime-py",
     packages=setuptools.find_packages(),
     python_requires='>=2.7',
+    test_suite="tests",
 )
