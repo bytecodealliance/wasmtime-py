@@ -29,7 +29,7 @@ class ValType:
     def __from_ptr__(cls, ptr, owner):
         ty = cls.__new__(cls)
         if not isinstance(ptr, P_wasm_valtype_t):
-            raise RuntimeError("wrong pointer type")
+            raise TypeError("wrong pointer type")
         ty.__ptr__ = ptr
         ty.__owner__ = owner
         return ty
@@ -37,12 +37,15 @@ class ValType:
     def __eq__(self, other):
         if not isinstance(other, ValType):
             return False
+        assert(self.__ptr__ is not None)
+        assert(other.__ptr__ is not None)
         return dll.wasm_valtype_kind(self.__ptr__) == dll.wasm_valtype_kind(other.__ptr__)
 
     def __repr__(self):
         return str(self)
 
     def __str__(self):
+        assert(self.__ptr__ is not None)
         kind = c_uint8(dll.wasm_valtype_kind(self.__ptr__)).value
         if kind == WASM_I32.value:
             return 'i32'
@@ -55,6 +58,8 @@ class ValType:
         return 'ValType(%d)' % kind
 
     def __del__(self):
+        if not hasattr(self, '__owner__'):
+            return
         # If this is owned by another object we don't free it since that object
         # is responsible for freeing the backing memory.
         if self.__owner__ is None and self.__ptr__ is not None:
@@ -67,15 +72,29 @@ class ValType:
             types.append(ValType.__from_ptr__(items.contents.data[i], owner))
         return types
 
+def take_owned_valtype(ty):
+    if not isinstance(ty, ValType):
+        raise TypeError("expected valtype")
+    elif ty.__owner__ is not None:
+        raise RuntimeError("ValType owned by something else")
+    elif ty.__ptr__ is None:
+        raise RuntimeError("ValType already used up")
+    type_ptr = ty.__ptr__
+    ty.__ptr__ = None
+    return type_ptr
 
 class FuncType:
     def __init__(self, params, results):
         for param in params:
             if not isinstance(param, ValType):
-                raise RuntimeError("expected ValType")
+                raise TypeError("expected ValType")
+            elif param.__ptr__ is None:
+                raise RuntimeError("ValType already used up")
         for result in results:
             if not isinstance(param, ValType):
-                raise RuntimeError("expected ValType")
+                raise TypeError("expected ValType")
+            elif result.__ptr__ is None:
+                raise RuntimeError("ValType already used up")
 
         params_ffi = wasm_valtype_vec_t()
         dll.wasm_valtype_vec_new_uninitialized(byref(params_ffi), len(params))
@@ -97,7 +116,7 @@ class FuncType:
     def __from_ptr__(cls, ptr, owner):
         ty = cls.__new__(cls)
         if not isinstance(ptr, P_wasm_functype_t):
-            raise RuntimeError("wrong pointer type")
+            raise TypeError("wrong pointer type")
         ty.__ptr__ = ptr
         ty.__owner__ = owner
         return ty
@@ -118,21 +137,16 @@ class FuncType:
     #     return ExternType(ptr, self.__owner__ or self)
 
     def __del__(self):
-        if self.__owner__ is None:
+        if hasattr(self, '__owner__') and self.__owner__ is None:
             dll.wasm_functype_delete(self.__ptr__)
 
 class GlobalType:
     def __init__(self, valtype, mutable):
-        if not isinstance(valtype, ValType):
-            raise RuntimeError("expected valtype")
-        if not isinstance(mutable, bool):
-            raise RuntimeError("expected bool")
         if mutable:
             mutability = WASM_VAR
         else:
             mutability = WASM_CONST
-        type_ptr = valtype.__ptr__
-        valtype.__ptr__ = None
+        type_ptr = take_owned_valtype(valtype)
         ptr = dll.wasm_globaltype_new(type_ptr, mutability)
         if ptr == 0:
             raise RuntimeError("failed to allocate GlobalType")
@@ -143,7 +157,7 @@ class GlobalType:
     def __from_ptr__(cls, ptr, owner):
         ty = cls.__new__(cls)
         if not isinstance(ptr, P_wasm_globaltype_t):
-            raise RuntimeError("wrong pointer type")
+            raise TypeError("wrong pointer type")
         ty.__ptr__ = ptr
         ty.__owner__ = owner
         return ty
@@ -164,7 +178,7 @@ class GlobalType:
     #     return ExternType(ptr, self.__owner__ or self)
 
     def __del__(self):
-        if self.__owner__ is None:
+        if hasattr(self, '__owner__') and self.__owner__ is None:
             dll.wasm_globaltype_delete(self.__ptr__)
 
 class Limits:
@@ -191,12 +205,9 @@ class Limits:
 
 class TableType:
     def __init__(self, valtype, limits):
-        if not isinstance(valtype, ValType):
-            raise RuntimeError("expected valtype")
         if not isinstance(limits, Limits):
-            raise RuntimeError("expected Limits")
-        type_ptr = valtype.__ptr__
-        valtype.__ptr__ = None
+            raise TypeError("expected Limits")
+        type_ptr = take_owned_valtype(valtype)
         ptr = dll.wasm_tabletype_new(type_ptr, byref(limits.__ffi__()))
         if ptr == 0:
             raise RuntimeError("failed to allocate TableType")
@@ -207,7 +218,7 @@ class TableType:
     def __from_ptr__(cls, ptr, owner):
         ty = cls.__new__(cls)
         if not isinstance(ptr, P_wasm_tabletype_t):
-            raise RuntimeError("wrong pointer type")
+            raise TypeError("wrong pointer type")
         ty.__ptr__ = ptr
         ty.__owner__ = owner
         return ty
@@ -228,13 +239,13 @@ class TableType:
     #     return ExternType(ptr, self.__owner__ or self)
 
     def __del__(self):
-        if self.__owner__ is None:
+        if hasattr(self, '__owner__') and self.__owner__ is None:
             dll.wasm_tabletype_delete(self.__ptr__)
 
 class MemoryType:
     def __init__(self, limits):
         if not isinstance(limits, Limits):
-            raise RuntimeError("expected Limits")
+            raise TypeError("expected Limits")
         ptr = dll.wasm_memorytype_new(byref(limits.__ffi__()))
         if ptr == 0:
             raise RuntimeError("failed to allocate MemoryType")
@@ -252,7 +263,7 @@ class MemoryType:
     #     return ExternType(ptr, self.__owner__ or self)
 
     def __del__(self):
-        if self.__owner__ is None:
+        if hasattr(self, '__owner__') and self.__owner__ is None:
             dll.wasm_memorytype_delete(self.__ptr__)
 
 class ExternType:
@@ -260,7 +271,7 @@ class ExternType:
     def __from_ptr__(cls, ptr, owner):
         ty = cls.__new__(cls)
         if not isinstance(ptr, P_wasm_externtype_t):
-            raise RuntimeError("wrong pointer type")
+            raise TypeError("wrong pointer type")
         ty.__ptr__ = ptr
         ty.__owner__ = owner
         return ty
@@ -298,4 +309,27 @@ class ExternType:
             return None
 
     def __del__(self):
-        dll.wasm_memorytype_delete(self.__ptr__)
+        if hasattr(self, '__owner__') and self.__owner__ is None:
+            dll.wasm_externtype_delete(self.__ptr__)
+
+class ImportType:
+    @classmethod
+    def __from_ptr__(cls, ptr, owner):
+        ty = cls.__new__(cls)
+        if not isinstance(ptr, P_wasm_importtype_t):
+            raise TypeError("wrong pointer type")
+        ty.__ptr__ = ptr
+        ty.__owner__ = owner
+        return ty
+
+    # # Returns the module name this import type refers to
+    # def module(self):
+    #     val = cast(dll.wasm_importtype_module(self.__ptr__), POINTER(wasm_name_t))
+    #     if val:
+    #         return FuncType.__from_ptr__(val, self.__owner__ or self)
+    #     else:
+    #         return None
+
+    def __del__(self):
+        if self.__owner__ is None:
+            dll.wasm_importtype_delete(self.__ptr__)

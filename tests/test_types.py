@@ -46,3 +46,32 @@ class TestTypes(unittest.TestCase):
 
         ty = MemoryType(Limits(1, 2))
         self.assertEqual(ty.limits(), Limits(1, 2))
+
+    def test_invalid(self):
+        with self.assertRaises(TypeError):
+            MemoryType(1)
+        with self.assertRaises(TypeError):
+            TableType(1)
+        with self.assertRaises(TypeError):
+            TableType(ValType.i32())
+
+        ty = ValType.i32()
+        TableType(ty, Limits(1, None))
+        with self.assertRaises(RuntimeError):
+            TableType(ty, Limits(1, None))
+
+        ty = ValType.i32()
+        TableType(ty, Limits(1, None))
+        with self.assertRaises(RuntimeError):
+            GlobalType(ty, True)
+
+        with self.assertRaises(TypeError):
+            FuncType([1], [2])
+
+        ty = ValType.i32()
+        TableType(ty, Limits(1, None))
+        with self.assertRaises(RuntimeError):
+            FuncType([ty], [ty])
+
+        with self.assertRaises(RuntimeError):
+            ValType()
