@@ -17,6 +17,7 @@ class TestTypes(unittest.TestCase):
         ty = FuncType([], [])
         self.assertEqual([], ty.params())
         self.assertEqual([], ty.results())
+
         ty = FuncType([ValType.i32()], [ValType.i64()])
         self.assertEqual([ValType.i32()], ty.params())
         self.assertEqual([ValType.i64()], ty.results())
@@ -29,3 +30,19 @@ class TestTypes(unittest.TestCase):
         ty = GlobalType(ValType.i64(), False)
         self.assertFalse(ty.mutable())
         self.assertEqual(ty.content(), ValType.i64())
+
+    def test_table_type(self):
+        ty = TableType(ValType.i32(), Limits(1, None))
+        self.assertEqual(ty.element(), ValType.i32())
+        self.assertEqual(ty.limits(), Limits(1, None))
+
+        ty = TableType(ValType.f32(), Limits(1, 2))
+        self.assertEqual(ty.element(), ValType.f32())
+        self.assertEqual(ty.limits(), Limits(1, 2))
+
+    def test_memory_type(self):
+        ty = MemoryType(Limits(1, None))
+        self.assertEqual(ty.limits(), Limits(1, None))
+
+        ty = MemoryType(Limits(1, 2))
+        self.assertEqual(ty.limits(), Limits(1, 2))
