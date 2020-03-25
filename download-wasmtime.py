@@ -16,7 +16,8 @@ elif sys.platform == 'darwin':
 else:
     raise RuntimeError("unknown platform: " + sys.platform)
 
-url = 'https://github.com/bytecodealliance/wasmtime/releases/download/dev/' + filename
+url = 'https://github.com/bytecodealliance/wasmtime/releases/download/dev/'
+url += filename
 print('Download', url)
 
 with urllib.request.urlopen(url) as f:
@@ -34,7 +35,9 @@ if is_zip:
 else:
     t = tarfile.open(fileobj=io.BytesIO(contents))
     for member in t.getmembers():
-        if not member.name.endswith('.so') and not member.name.endswith('.dylib'):
+        linux_so = member.name.endswith('.so')
+        macos_dylib = member.name.endswith('.dylib')
+        if not linux_so and not macos_dylib:
             continue
         contents = t.extractfile(member).read()
         with open("wasmtime/wasmtime.pyd", "wb") as f:
