@@ -11,11 +11,11 @@ class Engine:
             self.__ptr__ = dll.wasm_engine_new()
         elif not isinstance(config, Config):
             raise TypeError("expected Config")
-        elif config.__ptr__ is None:
+        elif not hasattr(config, '__ptr__'):
             raise RuntimeError("Config already used")
         else:
             ptr = config.__ptr__
-            config.__ptr__ = None
+            delattr(config, '__ptr__')
             self.__ptr__ = dll.wasm_engine_new_with_config(ptr)
 
     def __del__(self):

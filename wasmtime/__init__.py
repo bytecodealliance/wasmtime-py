@@ -9,3 +9,5 @@ from .value import Val
 from .globals import Global
 from .table import Table
 from .memory import Memory
+from .trap import Trap
+# from .func import Func

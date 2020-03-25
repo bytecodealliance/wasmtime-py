@@ -72,6 +72,14 @@ class wasm_memory_t(Structure):
     pass
 P_wasm_memory_t = POINTER(wasm_memory_t)
 
+class wasm_func_t(Structure):
+    pass
+P_wasm_func_t = POINTER(wasm_func_t)
+
+class wasm_trap_t(Structure):
+    pass
+P_wasm_trap_t = POINTER(wasm_trap_t)
+
 class wasm_valtype_vec_t(Structure):
     _fields_ = [("size", c_size_t), ("data", POINTER(P_wasm_valtype_t))]
 

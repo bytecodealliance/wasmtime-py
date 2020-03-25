@@ -8,5 +8,5 @@ class Config:
         self.__ptr__ = dll.wasm_config_new()
 
     def __del__(self):
-        if self.__ptr__ is not None:
+        if hasattr(self, '__ptr__'):
             dll.wasm_config_delete(self.__ptr__)

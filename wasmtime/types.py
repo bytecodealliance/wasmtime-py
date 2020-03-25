@@ -96,11 +96,11 @@ class ValType:
         return 'ValType(%d)' % kind
 
     def __del__(self):
-        if not hasattr(self, '__owner__'):
+        if not hasattr(self, '__owner__') or not hasattr(self, '__ptr__'):
             return
         # If this is owned by another object we don't free it since that object
         # is responsible for freeing the backing memory.
-        if self.__owner__ is None and self.__ptr__ is not None:
+        if self.__owner__ is None:
             dll.wasm_valtype_delete(self.__ptr__)
 
     @classmethod
@@ -113,12 +113,12 @@ class ValType:
 def take_owned_valtype(ty):
     if not isinstance(ty, ValType):
         raise TypeError("expected valtype")
+    elif not hasattr(ty, '__ptr__'):
+        raise RuntimeError("ValType already used up")
     elif ty.__owner__ is not None:
         raise RuntimeError("ValType owned by something else")
-    elif ty.__ptr__ is None:
-        raise RuntimeError("ValType already used up")
     type_ptr = ty.__ptr__
-    ty.__ptr__ = None
+    delattr(ty, '__ptr__')
     return type_ptr
 
 class FuncType:
@@ -126,12 +126,12 @@ class FuncType:
         for param in params:
             if not isinstance(param, ValType):
                 raise TypeError("expected ValType")
-            elif param.__ptr__ is None:
+            elif not hasattr(param, '__ptr__'):
                 raise RuntimeError("ValType already used up")
         for result in results:
-            if not isinstance(param, ValType):
+            if not isinstance(result, ValType):
                 raise TypeError("expected ValType")
-            elif result.__ptr__ is None:
+            elif not hasattr(result, '__ptr__'):
                 raise RuntimeError("ValType already used up")
 
         params_ffi = wasm_valtype_vec_t()
@@ -288,7 +288,6 @@ class MemoryType:
         if not ptr:
             raise RuntimeError("failed to allocate MemoryType")
         self.__ptr__ = ptr
-        self.__owner__ = None
         self.__owner__ = None
 
     @classmethod
