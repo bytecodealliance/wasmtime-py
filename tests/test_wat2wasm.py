@@ -2,6 +2,7 @@ import unittest
 
 from wasmtime import *
 
+
 class TestWat2Wasm(unittest.TestCase):
     def test_wat2wasm(self):
         engine = Engine()

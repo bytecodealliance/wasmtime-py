@@ -25,6 +25,7 @@ dll.wasm_exporttype_type.restype = P_wasm_externtype_t
 dll.wasm_valtype_kind.restype = c_uint8
 dll.wasm_globaltype_mutability.restype = c_uint8
 
+
 class ValType:
     @classmethod
     def i32(cls):
@@ -110,6 +111,7 @@ class ValType:
             types.append(ValType.__from_ptr__(items.contents.data[i], owner))
         return types
 
+
 def take_owned_valtype(ty):
     if not isinstance(ty, ValType):
         raise TypeError("expected valtype")
@@ -119,6 +121,7 @@ def take_owned_valtype(ty):
     # Trying to expose this as an implementation detail by sneaking out
     # types and having some be "taken" feels pretty weird
     return dll.wasm_valtype_new(dll.wasm_valtype_kind(ty.__ptr__))
+
 
 class FuncType:
     def __init__(self, params, results):
@@ -136,7 +139,8 @@ class FuncType:
         for i, param in enumerate(params):
             params_ffi.data[i] = param.__ptr__
 
-        dll.wasm_valtype_vec_new_uninitialized(byref(results_ffi), len(results))
+        dll.wasm_valtype_vec_new_uninitialized(
+            byref(results_ffi), len(results))
         for i, result in enumerate(results):
             results_ffi.data[i] = result.__ptr__
         ptr = dll.wasm_functype_new(byref(params_ffi), byref(results_ffi))
@@ -172,6 +176,7 @@ class FuncType:
     def __del__(self):
         if hasattr(self, '__owner__') and self.__owner__ is None:
             dll.wasm_functype_delete(self.__ptr__)
+
 
 class GlobalType:
     def __init__(self, valtype, mutable):
@@ -214,6 +219,7 @@ class GlobalType:
         if hasattr(self, '__owner__') and self.__owner__ is None:
             dll.wasm_globaltype_delete(self.__ptr__)
 
+
 class Limits:
     def __init__(self, min, max):
         self.min = min
@@ -235,6 +241,7 @@ class Limits:
         if max == 0xffffffff:
             max = None
         return Limits(min, max)
+
 
 class TableType:
     def __init__(self, valtype, limits):
@@ -275,6 +282,7 @@ class TableType:
         if hasattr(self, '__owner__') and self.__owner__ is None:
             dll.wasm_tabletype_delete(self.__ptr__)
 
+
 class MemoryType:
     def __init__(self, limits):
         if not isinstance(limits, Limits):
@@ -307,6 +315,7 @@ class MemoryType:
     def __del__(self):
         if hasattr(self, '__owner__') and self.__owner__ is None:
             dll.wasm_memorytype_delete(self.__ptr__)
+
 
 class ExternType:
     @classmethod
@@ -354,6 +363,7 @@ class ExternType:
         if hasattr(self, '__owner__') and self.__owner__ is None:
             dll.wasm_externtype_delete(self.__ptr__)
 
+
 class ImportType:
     @classmethod
     def __from_ptr__(cls, ptr, owner):
@@ -384,6 +394,7 @@ class ImportType:
     def __del__(self):
         if self.__owner__ is None:
             dll.wasm_importtype_delete(self.__ptr__)
+
 
 class ExportType:
     @classmethod

@@ -5,6 +5,7 @@ from wasmtime import *
 import faulthandler
 faulthandler.enable()
 
+
 class TestInstance(unittest.TestCase):
     def test_smoke(self):
         module = Module(Store(), '(module)')
@@ -28,7 +29,8 @@ class TestInstance(unittest.TestCase):
         func.call()
 
     def test_export_global(self):
-        module = Module(Store(), '(module (global (export "") i32 (i32.const 3)))')
+        module = Module(
+            Store(), '(module (global (export "") i32 (i32.const 3)))')
         instance = Instance(module, [])
         self.assertEqual(len(instance.exports()), 1)
         extern = instance.exports()[0]
@@ -146,7 +148,7 @@ class TestInstance(unittest.TestCase):
         with self.assertRaises(TypeError):
             Instance(Module(store, '(module (import "" "" (func)))'), [1])
 
-        val = Func(store, FuncType([], []), lambda:None)
+        val = Func(store, FuncType([], []), lambda: None)
         module = Module(store, '(module (import "" "" (func)))')
         Instance(module, [val])
         with self.assertRaises(RuntimeError):

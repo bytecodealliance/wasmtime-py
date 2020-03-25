@@ -2,6 +2,7 @@ import unittest
 
 from wasmtime import *
 
+
 class TestStore(unittest.TestCase):
     def test_smoke(self):
         Store()

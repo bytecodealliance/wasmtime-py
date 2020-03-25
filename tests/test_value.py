@@ -2,6 +2,7 @@ import unittest
 
 from wasmtime import *
 
+
 class TestValue(unittest.TestCase):
     def test_i32(self):
         with self.assertRaises(TypeError):

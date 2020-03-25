@@ -11,6 +11,7 @@ dll.wasm_func_result_arity.restype = c_size_t
 dll.wasm_func_call.restype = P_wasm_trap_t
 dll.wasm_func_as_extern.restype = P_wasm_extern_t
 
+
 class Func:
     # Creates a new func in `store` with the given `ty` which calls the closure
     # given
@@ -20,7 +21,8 @@ class Func:
         if not isinstance(ty, FuncType):
             raise TypeError("expected a FuncType")
         idx = FUNCTIONS.allocate((func, ty.params(), ty.results(), store))
-        ptr = dll.wasm_func_new_with_env(store.__ptr__, ty.__ptr__, trampoline, idx, finalize)
+        ptr = dll.wasm_func_new_with_env(
+            store.__ptr__, ty.__ptr__, trampoline, idx, finalize)
         if not ptr:
             FUNCTIONS.deallocate(idx)
             raise RuntimeError("failed to create func")
@@ -59,7 +61,7 @@ class Func:
     # Returns a list if the func has more than 1 return type
     def call(self, *params):
         ty = self.type()
-        param_tys = ty.params();
+        param_tys = ty.params()
         if len(param_tys) != len(params):
             raise TypeError("wrong number of parameters")
         param_ffi = (wasm_val_t * len(params))()
@@ -67,7 +69,7 @@ class Func:
             val = Val.__convert__(param_tys[i], param)
             param_ffi[i] = val.__raw__
 
-        result_tys = ty.results();
+        result_tys = ty.results()
         result_ffi = (wasm_val_t * len(result_tys))()
 
         trap = dll.wasm_func_call(self.__ptr__, param_ffi, result_ffi)
@@ -94,11 +96,13 @@ class Func:
         if hasattr(self, '__owner__') and self.__owner__ is None:
             dll.wasm_func_delete(self.__ptr__)
 
+
 def extract_val(val):
     a = val.get()
     if a is not None:
         return a
     return val
+
 
 @CFUNCTYPE(c_size_t, c_size_t, POINTER(wasm_val_t), POINTER(wasm_val_t))
 def trampoline(idx, params_ptr, results_ptr):
@@ -111,7 +115,8 @@ def trampoline(idx, params_ptr, results_ptr):
         results = func(*params)
         if len(result_tys) == 0:
             if results is not None:
-                raise RuntimeError("callback produced results when it shouldn't")
+                raise RuntimeError(
+                    "callback produced results when it shouldn't")
         elif len(result_tys) == 1:
             val = Val.__convert__(result_tys[0], results)
             results_ptr[0] = val.__raw__
@@ -131,10 +136,12 @@ def trampoline(idx, params_ptr, results_ptr):
 
     return 0
 
+
 @CFUNCTYPE(None, c_size_t)
 def finalize(idx):
     FUNCTIONS.deallocate(idx)
     pass
+
 
 class Slab:
     def __init__(self):
@@ -159,5 +166,6 @@ class Slab:
     def deallocate(self, idx):
         self.list[idx] = self.next
         self.next = idx
+
 
 FUNCTIONS = Slab()

@@ -4,6 +4,7 @@ from wasmtime import Store
 
 dll.wasm_trap_new.restype = P_wasm_trap_t
 
+
 class Trap:
     # Creates a new trap in `store` with the given `message`
     def __init__(self, store, message):
@@ -40,5 +41,3 @@ class Trap:
     def __del__(self):
         if hasattr(self, '__ptr__'):
             dll.wasm_trap_delete(self.__ptr__)
-
-

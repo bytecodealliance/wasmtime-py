@@ -8,6 +8,7 @@ dll.wasm_extern_as_global.restype = P_wasm_global_t
 dll.wasm_extern_as_memory.restype = P_wasm_memory_t
 dll.wasm_extern_type.restype = P_wasm_externtype_t
 
+
 class Extern:
     @classmethod
     def __from_ptr__(cls, ptr, owner):

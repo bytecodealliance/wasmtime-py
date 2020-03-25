@@ -2,6 +2,7 @@ import unittest
 
 from wasmtime import *
 
+
 class TestMemory(unittest.TestCase):
     def test_new(self):
         store = Store()

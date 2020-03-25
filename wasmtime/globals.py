@@ -6,6 +6,7 @@ dll.wasm_global_new.restype = P_wasm_global_t
 dll.wasm_global_type.restype = P_wasm_globaltype_t
 dll.wasm_global_as_extern.restype = P_wasm_extern_t
 
+
 class Global:
     def __init__(self, store, ty, val):
         if not isinstance(store, Store):
@@ -13,7 +14,8 @@ class Global:
         if not isinstance(ty, GlobalType):
             raise TypeError("expected a GlobalType")
         val = Val.__convert__(ty.content(), val)
-        ptr = dll.wasm_global_new(store.__ptr__, ty.__ptr__, byref(val.__raw__))
+        ptr = dll.wasm_global_new(
+            store.__ptr__, ty.__ptr__, byref(val.__raw__))
         if not ptr:
             raise RuntimeError("failed to create global")
         self.__ptr__ = ptr

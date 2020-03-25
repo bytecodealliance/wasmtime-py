@@ -4,6 +4,7 @@ from wasmtime import Store, wat2wasm, ImportType, ExportType
 
 dll.wasm_module_new.restype = P_wasm_module_t
 
+
 class Module:
     def __init__(self, store, wasm):
         if not isinstance(store, Store):
@@ -57,12 +58,14 @@ class Module:
         if hasattr(self, '__ptr__'):
             dll.wasm_module_delete(self.__ptr__)
 
+
 class ImportTypeList:
     def __init__(self):
         self.vec = wasm_importtype_vec_t(0, None)
 
     def __del__(self):
         dll.wasm_importtype_vec_delete(byref(self.vec))
+
 
 class ExportTypeList:
     def __init__(self):

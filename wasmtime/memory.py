@@ -8,6 +8,7 @@ dll.wasm_memory_new.restype = P_wasm_memory_t
 dll.wasm_memory_type.restype = P_wasm_memorytype_t
 dll.wasm_memory_as_extern.restype = P_wasm_extern_t
 
+
 class Memory:
     # Creates a new memory in `store` with the given `ty`
     def __init__(self, store, ty):
@@ -67,4 +68,3 @@ class Memory:
     def __del__(self):
         if hasattr(self, '__owner__') and self.__owner__ is None:
             dll.wasm_memory_delete(self.__ptr__)
-

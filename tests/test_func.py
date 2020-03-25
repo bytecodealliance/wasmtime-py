@@ -2,11 +2,12 @@ import unittest
 
 from wasmtime import *
 
+
 class TestFunc(unittest.TestCase):
     def test_smoke(self):
         store = Store()
         ty = FuncType([], [])
-        func = Func(store, ty, lambda:None)
+        func = Func(store, ty, lambda: None)
         func.call()
         self.assertEqual(func.param_arity(), 0)
         self.assertEqual(func.result_arity(), 0)
@@ -49,22 +50,22 @@ class TestFunc(unittest.TestCase):
         store = Store()
         ty = FuncType([], [])
         with self.assertRaises(TypeError):
-            Func(1, ty, lambda:None)
+            Func(1, ty, lambda: None)
         with self.assertRaises(TypeError):
-            Func(store, 1, lambda:None)
-        func = Func(store, ty, lambda:None)
+            Func(store, 1, lambda: None)
+        func = Func(store, ty, lambda: None)
         with self.assertRaises(TypeError):
             func.call(2)
 
         ty = FuncType([ValType.i32()], [])
-        func = Func(store, ty, lambda:None)
+        func = Func(store, ty, lambda: None)
         with self.assertRaises(TypeError):
             func.call(3.0)
         with self.assertRaises(TypeError):
             func.call(Val.i64(3))
         ty = FuncType([ValType.i32()], [])
 
-        func = Func(store, ty, lambda x:x)
+        func = Func(store, ty, lambda x: x)
         with self.assertRaises(RuntimeError):
             func.call(1)
 
@@ -85,6 +86,7 @@ class TestFunc(unittest.TestCase):
         f32 = ValType.f32()
         f64 = ValType.f64()
         ty = FuncType([i32, i64, f32, f64], [f64, f32, i64, i32])
+
         def rev(*l):
             l = list(l)
             l.reverse()

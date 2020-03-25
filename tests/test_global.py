@@ -2,6 +2,7 @@ import unittest
 
 from wasmtime import *
 
+
 class TestGlobal(unittest.TestCase):
     def test_new(self):
         store = Store()
@@ -12,7 +13,7 @@ class TestGlobal(unittest.TestCase):
         self.assertTrue(g.type().mutable())
 
         self.assertEqual(g.get(), 1)
-        g.set(Val.i32(2));
+        g.set(Val.i32(2))
         self.assertEqual(g.get(), 2)
         self.assertTrue(g.as_extern().type().global_type() is not None)
         self.assertTrue(g.as_extern().type().memory_type() is None)

@@ -4,6 +4,7 @@ from wasmtime import Module, Extern, Module, Func, Table, Memory, Trap, Global
 
 dll.wasm_instance_new.restype = P_wasm_instance_t
 
+
 class Instance:
     # Creates a new instance by instantiating the `module` given with the
     # `imports` provided.
@@ -38,7 +39,8 @@ class Instance:
                 raise TypeError("expected an external item as an import")
 
         trap = P_wasm_trap_t()
-        ptr = dll.wasm_instance_new(module.store.__ptr__, module.__ptr__, imports_ffi, byref(trap))
+        ptr = dll.wasm_instance_new(
+            module.store.__ptr__, module.__ptr__, imports_ffi, byref(trap))
         if not ptr:
             if trap:
                 trap = Trap.__from_ptr__(trap)
@@ -59,6 +61,7 @@ class Instance:
     def __del__(self):
         if hasattr(self, '__ptr__'):
             dll.wasm_instance_delete(self.__ptr__)
+
 
 class ExternTypeList:
     def __init__(self):

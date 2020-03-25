@@ -2,6 +2,7 @@ import unittest
 
 from wasmtime import *
 
+
 class TestModule(unittest.TestCase):
     def test_smoke(self):
         Module(Store(), '(module)')
@@ -21,12 +22,12 @@ class TestModule(unittest.TestCase):
             Module(Store(), b'\x00')
 
     def test_validate(self):
-        store = Store();
+        store = Store()
         self.assertTrue(Module.validate(store, b'\0asm\x01\0\0\0'))
         self.assertFalse(Module.validate(store, b''))
 
     def test_imports(self):
-        store = Store();
+        store = Store()
         module = Module(store, '(module)')
         self.assertEqual(module.imports(), [])
 
@@ -38,7 +39,7 @@ class TestModule(unittest.TestCase):
                 (import "" "x" (table 1 funcref))
             )
         """)
-        imports = module.imports();
+        imports = module.imports()
         self.assertEqual(len(imports), 4)
         self.assertEqual(imports[0].module(), "")
         self.assertEqual(imports[0].name(), "")
@@ -80,7 +81,7 @@ class TestModule(unittest.TestCase):
         self.assertEqual(ty.element(), ValType.funcref())
 
     def test_exports(self):
-        store = Store();
+        store = Store()
         module = Module(store, '(module)')
         self.assertEqual(module.exports(), [])
 
@@ -93,7 +94,7 @@ class TestModule(unittest.TestCase):
                 (table (export "table") 1 funcref)
             )
         """)
-        exports = module.exports();
+        exports = module.exports()
         self.assertEqual(len(exports), 4)
         self.assertEqual(exports[0].name(), "a")
         ty = exports[0].type()

@@ -2,6 +2,7 @@ from .ffi import *
 from ctypes import *
 from wasmtime import ValType
 
+
 class Val:
     # Create a new 32-bit integer value
     @classmethod
@@ -106,4 +107,3 @@ class Val:
     def type(self):
         ptr = dll.wasm_valtype_new(self.__raw__.kind)
         return ValType.__from_ptr__(ptr, None)
-

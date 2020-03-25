@@ -4,6 +4,7 @@ from wasmtime import Engine
 
 dll.wasmtime_wat2wasm.restype = c_bool
 
+
 def wat2wasm(engine, wat):
     if not isinstance(engine, Engine):
         raise TypeError("expected Engine")
@@ -12,7 +13,8 @@ def wat2wasm(engine, wat):
     wat = wasm_byte_vec_t(len(wat), wat_buffer)
     wasm = wasm_byte_vec_t()
     error = wasm_byte_vec_t()
-    ok = dll.wasmtime_wat2wasm(engine.__ptr__, byref(wat), byref(wasm), byref(error))
+    ok = dll.wasmtime_wat2wasm(
+        engine.__ptr__, byref(wat), byref(wasm), byref(error))
     if ok:
         ret = bytes(wasm.data[:wasm.size])
         dll.wasm_byte_vec_delete(byref(wasm))

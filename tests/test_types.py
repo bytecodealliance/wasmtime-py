@@ -2,6 +2,7 @@ import unittest
 
 from wasmtime import *
 
+
 class TestTypes(unittest.TestCase):
     def test_valtype(self):
         i32 = ValType.i32()
