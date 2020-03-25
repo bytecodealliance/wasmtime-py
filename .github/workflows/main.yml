@@ -12,8 +12,11 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.8
       - run: python download-wasmtime.py
+      - uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
       - run: python setup.py test
 
   flake8:
