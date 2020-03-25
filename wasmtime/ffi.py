@@ -1,6 +1,8 @@
 from ctypes import *
+import os
 
-dll = cdll.LoadLibrary("../wasmtime/target/release/libwasmtime.so")
+filename = os.path.join(os.path.dirname(__file__), 'wasmtime.pyd')
+dll = cdll.LoadLibrary(filename)
 
 WASM_I32 = c_uint8(0)
 WASM_I64 = c_uint8(1)

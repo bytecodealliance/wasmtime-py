@@ -4,3 +4,4 @@ dist
 .eggs
 *.pyc
 __pycache__
+*.pyd
