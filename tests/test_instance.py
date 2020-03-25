@@ -59,7 +59,7 @@ class TestInstance(unittest.TestCase):
         instance = Instance(module, [])
         self.assertEqual(len(instance.exports()), 1)
         extern = instance.exports()[0]
-        t = extern.table()
+        extern.table()
 
     def test_multiple_exports(self):
         module = Module(Store(), """

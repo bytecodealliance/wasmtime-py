@@ -1,6 +1,6 @@
 from .ffi import *
 from ctypes import *
-from wasmtime import Module, Extern, Module, Func, Table, Memory, Trap, Global
+from wasmtime import Module, Extern, Func, Table, Memory, Trap, Global
 
 dll.wasm_instance_new.restype = P_wasm_instance_t
 

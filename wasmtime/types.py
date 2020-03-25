@@ -74,7 +74,9 @@ class ValType:
             return False
         assert(self.__ptr__ is not None)
         assert(other.__ptr__ is not None)
-        return dll.wasm_valtype_kind(self.__ptr__) == dll.wasm_valtype_kind(other.__ptr__)
+        kind1 = dll.wasm_valtype_kind(self.__ptr__)
+        kind2 = dll.wasm_valtype_kind(other.__ptr__)
+        return kind1 == kind2
 
     def __repr__(self):
         return str(self)
@@ -168,11 +170,6 @@ class FuncType:
         ptr = dll.wasm_functype_results(self.__ptr__)
         return ValType.__from_list__(ptr, self)
 
-    # # Returns this type as an `ExternType` instance
-    # def as_extern(self):
-    #     ptr = cast(dll.wasm_functype_as_externtype(self.__ptr__), P_wasm_externtype_t)
-    #     return ExternType(ptr, self.__owner__ or self)
-
     def __del__(self):
         if hasattr(self, '__owner__') and self.__owner__ is None:
             dll.wasm_functype_delete(self.__ptr__)
@@ -209,11 +206,6 @@ class GlobalType:
     def mutable(self):
         val = dll.wasm_globaltype_mutability(self.__ptr__)
         return val == WASM_VAR.value
-
-    # # Returns this type as an `ExternType` instance
-    # def as_extern(self):
-    #     ptr = cast(dll.wasm_globaltype_as_externtype(self.__ptr__), P_wasm_externtype_t)
-    #     return ExternType(ptr, self.__owner__ or self)
 
     def __del__(self):
         if hasattr(self, '__owner__') and self.__owner__ is None:
@@ -273,11 +265,6 @@ class TableType:
         val = dll.wasm_tabletype_limits(self.__ptr__)
         return Limits.__from_ffi__(val)
 
-    # # Returns this type as an `ExternType` instance
-    # def as_extern(self):
-    #     ptr = cast(dll.wasm_tabletype_as_externtype(self.__ptr__), P_wasm_externtype_t)
-    #     return ExternType(ptr, self.__owner__ or self)
-
     def __del__(self):
         if hasattr(self, '__owner__') and self.__owner__ is None:
             dll.wasm_tabletype_delete(self.__ptr__)
@@ -306,11 +293,6 @@ class MemoryType:
     def limits(self):
         val = dll.wasm_memorytype_limits(self.__ptr__)
         return Limits.__from_ffi__(val)
-
-    # # Returns this type as an `ExternType` instance
-    # def as_extern(self):
-    #     ptr = cast(dll.wasm_memorytype_as_externtype(self.__ptr__), P_wasm_externtype_t)
-    #     return ExternType(ptr, self.__owner__ or self)
 
     def __del__(self):
         if hasattr(self, '__owner__') and self.__owner__ is None:

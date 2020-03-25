@@ -87,9 +87,10 @@ class TestFunc(unittest.TestCase):
         f64 = ValType.f64()
         ty = FuncType([i32, i64, f32, f64], [f64, f32, i64, i32])
 
-        def rev(*l):
-            l = list(l)
-            l.reverse()
-            return l
+        def rev(*args):
+            ret = list(args)
+            ret.reverse()
+            return ret
+
         func = Func(store, ty, rev)
         self.assertEqual(func.call(1, 2, 3.0, 4.0), [4.0, 3.0, 2, 1])

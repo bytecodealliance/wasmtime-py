@@ -1,6 +1,6 @@
 from .ffi import *
 from ctypes import *
-from wasmtime import Store, FuncType, Val, Trap, ValType, Extern
+from wasmtime import Store, FuncType, Val, Trap, Extern
 import sys
 import traceback
 
