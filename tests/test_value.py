@@ -19,6 +19,7 @@ class TestValue(unittest.TestCase):
         self.assertEqual(None, i.get_i64())
         self.assertEqual(None, i.get_f32())
         self.assertEqual(None, i.get_f64())
+        self.assertEqual(i.type(), ValType.i32())
 
     def test_i64(self):
         with self.assertRaises(TypeError):
@@ -40,6 +41,7 @@ class TestValue(unittest.TestCase):
         self.assertEqual(None, i.get_i32())
         self.assertEqual(None, i.get_f32())
         self.assertEqual(None, i.get_f64())
+        self.assertEqual(i.type(), ValType.i64())
 
     def test_f32(self):
         with self.assertRaises(TypeError):
@@ -52,6 +54,7 @@ class TestValue(unittest.TestCase):
         self.assertEqual(None, i.get_i64())
         self.assertEqual(None, i.get_i32())
         self.assertEqual(None, i.get_f64())
+        self.assertEqual(i.type(), ValType.f32())
 
     def test_f64(self):
         with self.assertRaises(TypeError):
@@ -64,3 +67,4 @@ class TestValue(unittest.TestCase):
         self.assertEqual(None, i.get_i32())
         self.assertEqual(None, i.get_i64())
         self.assertEqual(None, i.get_f32())
+        self.assertEqual(i.type(), ValType.f64())

@@ -25,11 +25,6 @@ class TestModule(unittest.TestCase):
         self.assertTrue(Module.validate(store, b'\0asm\x01\0\0\0'))
         self.assertFalse(Module.validate(store, b''))
 
-    def test_validate(self):
-        store = Store();
-        self.assertTrue(Module.validate(store, b'\0asm\x01\0\0\0'))
-        self.assertFalse(Module.validate(store, b''))
-
     def test_imports(self):
         store = Store();
         module = Module(store, '(module)')

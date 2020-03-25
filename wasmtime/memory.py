@@ -1,11 +1,12 @@
 from .ffi import *
 from ctypes import *
-from wasmtime import Store, MemoryType
+from wasmtime import Store, MemoryType, Extern
 
 dll.wasm_memory_data.restype = POINTER(c_uint8)
 dll.wasm_memory_data_size.restype = c_size_t
 dll.wasm_memory_new.restype = P_wasm_memory_t
 dll.wasm_memory_type.restype = P_wasm_memorytype_t
+dll.wasm_memory_as_extern.restype = P_wasm_extern_t
 
 class Memory:
     # Creates a new memory in `store` with the given `ty`
@@ -18,7 +19,16 @@ class Memory:
         if not ptr:
             raise RuntimeError("failed to create memory")
         self.__ptr__ = ptr
-        self.store = store
+        self.__owner__ = None
+
+    @classmethod
+    def __from_ptr__(cls, ptr, owner):
+        ty = cls.__new__(cls)
+        if not isinstance(ptr, P_wasm_memory_t):
+            raise TypeError("wrong pointer type")
+        ty.__ptr__ = ptr
+        ty.__owner__ = owner
+        return ty
 
     # Gets the type of this memory as a `MemoryType`
     def type(self):
@@ -49,7 +59,12 @@ class Memory:
     def data_len(self):
         return dll.wasm_memory_data_size(self.__ptr__)
 
+    # Returns this type as an instance of `Extern`
+    def as_extern(self):
+        ptr = dll.wasm_memory_as_extern(self.__ptr__)
+        return Extern.__from_ptr__(ptr, self.__owner__ or self)
+
     def __del__(self):
-        if hasattr(self, '__ptr__'):
+        if hasattr(self, '__owner__') and self.__owner__ is None:
             dll.wasm_memory_delete(self.__ptr__)
 

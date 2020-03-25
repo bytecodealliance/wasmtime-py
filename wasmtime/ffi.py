@@ -80,6 +80,14 @@ class wasm_trap_t(Structure):
     pass
 P_wasm_trap_t = POINTER(wasm_trap_t)
 
+class wasm_extern_t(Structure):
+    pass
+P_wasm_extern_t = POINTER(wasm_extern_t)
+
+class wasm_instance_t(Structure):
+    pass
+P_wasm_instance_t = POINTER(wasm_instance_t)
+
 class wasm_valtype_vec_t(Structure):
     _fields_ = [("size", c_size_t), ("data", POINTER(P_wasm_valtype_t))]
 
@@ -95,6 +103,9 @@ class wasm_exporttype_vec_t(Structure):
 
 class wasm_importtype_vec_t(Structure):
     _fields_ = [("size", c_size_t), ("data", POINTER(P_wasm_importtype_t))]
+
+class wasm_extern_vec_t(Structure):
+    _fields_ = [("size", c_size_t), ("data", POINTER(P_wasm_extern_t))]
 
 class wasm_val_union(Union):
     _fields_ = [

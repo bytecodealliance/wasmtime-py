@@ -19,7 +19,14 @@ class Trap:
         if not ptr:
             raise RuntimeError("failed to create trap")
         self.__ptr__ = ptr
-        self.store = store
+
+    @classmethod
+    def __from_ptr__(cls, ptr):
+        if not isinstance(ptr, P_wasm_trap_t):
+            raise TypeError("wrong pointer type")
+        trap = cls.__new__(cls)
+        trap.__ptr__ = ptr
+        return trap
 
     # Returns the message for this trap
     def message(self):

@@ -113,26 +113,21 @@ class ValType:
 def take_owned_valtype(ty):
     if not isinstance(ty, ValType):
         raise TypeError("expected valtype")
-    elif not hasattr(ty, '__ptr__'):
-        raise RuntimeError("ValType already used up")
-    elif ty.__owner__ is not None:
-        raise RuntimeError("ValType owned by something else")
-    type_ptr = ty.__ptr__
-    delattr(ty, '__ptr__')
-    return type_ptr
+
+    # Need to allocate a new type because we need to take ownership.
+    #
+    # Trying to expose this as an implementation detail by sneaking out
+    # types and having some be "taken" feels pretty weird
+    return dll.wasm_valtype_new(dll.wasm_valtype_kind(ty.__ptr__))
 
 class FuncType:
     def __init__(self, params, results):
         for param in params:
             if not isinstance(param, ValType):
                 raise TypeError("expected ValType")
-            elif not hasattr(param, '__ptr__'):
-                raise RuntimeError("ValType already used up")
         for result in results:
             if not isinstance(result, ValType):
                 raise TypeError("expected ValType")
-            elif not hasattr(result, '__ptr__'):
-                raise RuntimeError("ValType already used up")
 
         params_ffi = wasm_valtype_vec_t()
         dll.wasm_valtype_vec_new_uninitialized(byref(params_ffi), len(params))
@@ -396,7 +391,7 @@ class ExportType:
         ty = cls.__new__(cls)
         if not isinstance(ptr, P_wasm_exporttype_t):
             raise TypeError("wrong pointer type")
-        ty.__ptr__ = ptr
+        ty.__ptr__ = cast(cast(ptr, c_void_p).value, P_wasm_exporttype_t)
         ty.__owner__ = owner
         return ty
 

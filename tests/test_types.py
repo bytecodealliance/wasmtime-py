@@ -8,10 +8,18 @@ class TestTypes(unittest.TestCase):
         i64 = ValType.i64()
         f32 = ValType.f32()
         f64 = ValType.f64()
+        anyref = ValType.anyref()
+        funcref = ValType.funcref()
         self.assertEqual(i32, i32)
         self.assertNotEqual(i32, f32)
+        self.assertNotEqual(i32, 1.0)
         self.assertEqual(i32, ValType.i32())
-        self.assertEqual(str(ValType.i32()), 'i32')
+        self.assertEqual(str(i32), 'i32')
+        self.assertEqual(str(i64), 'i64')
+        self.assertEqual(str(f32), 'f32')
+        self.assertEqual(str(f64), 'f64')
+        self.assertEqual(str(anyref), 'anyref')
+        self.assertEqual(str(funcref), 'funcref')
 
     def test_func_type(self):
         ty = FuncType([], [])
@@ -21,6 +29,8 @@ class TestTypes(unittest.TestCase):
         ty = FuncType([ValType.i32()], [ValType.i64()])
         self.assertEqual([ValType.i32()], ty.params())
         self.assertEqual([ValType.i64()], ty.results())
+
+        GlobalType(ty.params()[0], True)
 
     def test_global_type(self):
         ty = GlobalType(ValType.i32(), True)
@@ -57,21 +67,23 @@ class TestTypes(unittest.TestCase):
 
         ty = ValType.i32()
         TableType(ty, Limits(1, None))
-        with self.assertRaises(RuntimeError):
-            TableType(ty, Limits(1, None))
+        TableType(ty, Limits(1, None))
 
         ty = ValType.i32()
         TableType(ty, Limits(1, None))
-        with self.assertRaises(RuntimeError):
-            GlobalType(ty, True)
+        GlobalType(ty, True)
+        with self.assertRaises(TypeError):
+            GlobalType(1, True)
 
         with self.assertRaises(TypeError):
-            FuncType([1], [2])
+            FuncType([1], [])
+        with self.assertRaises(TypeError):
+            FuncType([], [2])
 
         ty = ValType.i32()
         TableType(ty, Limits(1, None))
-        with self.assertRaises(RuntimeError):
-            FuncType([ty], [ty])
+        FuncType([ty], [])
+        FuncType([], [ty])
 
         with self.assertRaises(RuntimeError):
             ValType()
