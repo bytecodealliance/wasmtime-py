@@ -1,26 +1,60 @@
 from .ffi import *
 from ctypes import *
 
+dll.wasm_valtype_new.restype = P_wasm_valtype_t
+dll.wasm_functype_new.restype = P_wasm_functype_t
+dll.wasm_functype_params.restype = POINTER(wasm_valtype_vec_t)
+dll.wasm_functype_results.restype = POINTER(wasm_valtype_vec_t)
+dll.wasm_globaltype_new.restype = P_wasm_globaltype_t
+dll.wasm_globaltype_content.restype = P_wasm_valtype_t
+dll.wasm_tabletype_new.restype = P_wasm_tabletype_t
+dll.wasm_tabletype_element.restype = P_wasm_valtype_t
+dll.wasm_tabletype_limits.restype = POINTER(wasm_limits_t)
+dll.wasm_memorytype_new.restype = P_wasm_memorytype_t
+dll.wasm_memorytype_limits.restype = POINTER(wasm_limits_t)
+dll.wasm_externtype_as_functype_const.restype = P_wasm_functype_t
+dll.wasm_externtype_as_tabletype_const.restype = P_wasm_tabletype_t
+dll.wasm_externtype_as_memorytype_const.restype = P_wasm_memorytype_t
+dll.wasm_externtype_as_globaltype_const.restype = P_wasm_globaltype_t
+dll.wasm_importtype_module.restype = POINTER(wasm_name_t)
+dll.wasm_importtype_name.restype = POINTER(wasm_name_t)
+dll.wasm_importtype_type.restype = P_wasm_externtype_t
+dll.wasm_exporttype_name.restype = POINTER(wasm_name_t)
+dll.wasm_exporttype_type.restype = P_wasm_externtype_t
+
+dll.wasm_valtype_kind.restype = c_uint8
+dll.wasm_globaltype_mutability.restype = c_uint8
+
 class ValType:
     @classmethod
     def i32(cls):
         ptr = dll.wasm_valtype_new(WASM_I32)
-        return ValType.__from_ptr__(cast(ptr, P_wasm_valtype_t), None)
+        return ValType.__from_ptr__(ptr, None)
 
     @classmethod
     def i64(cls):
         ptr = dll.wasm_valtype_new(WASM_I64)
-        return ValType.__from_ptr__(cast(ptr, P_wasm_valtype_t), None)
+        return ValType.__from_ptr__(ptr, None)
 
     @classmethod
     def f32(cls):
         ptr = dll.wasm_valtype_new(WASM_F32)
-        return ValType.__from_ptr__(cast(ptr, P_wasm_valtype_t), None)
+        return ValType.__from_ptr__(ptr, None)
 
     @classmethod
     def f64(cls):
         ptr = dll.wasm_valtype_new(WASM_F64)
-        return ValType.__from_ptr__(cast(ptr, P_wasm_valtype_t), None)
+        return ValType.__from_ptr__(ptr, None)
+
+    @classmethod
+    def anyref(cls):
+        ptr = dll.wasm_valtype_new(WASM_ANYREF)
+        return ValType.__from_ptr__(ptr, None)
+
+    @classmethod
+    def funcref(cls):
+        ptr = dll.wasm_valtype_new(WASM_FUNCREF)
+        return ValType.__from_ptr__(ptr, None)
 
     def __init__(self):
         raise RuntimeError("cannot construct directly")
@@ -46,7 +80,7 @@ class ValType:
 
     def __str__(self):
         assert(self.__ptr__ is not None)
-        kind = c_uint8(dll.wasm_valtype_kind(self.__ptr__)).value
+        kind = dll.wasm_valtype_kind(self.__ptr__)
         if kind == WASM_I32.value:
             return 'i32'
         if kind == WASM_I64.value:
@@ -55,6 +89,10 @@ class ValType:
             return 'f32'
         if kind == WASM_F64.value:
             return 'f64'
+        if kind == WASM_ANYREF.value:
+            return 'anyref'
+        if kind == WASM_FUNCREF.value:
+            return 'funcref'
         return 'ValType(%d)' % kind
 
     def __del__(self):
@@ -107,9 +145,9 @@ class FuncType:
         for i, result in enumerate(results):
             results_ffi.data[i] = result.__ptr__
         ptr = dll.wasm_functype_new(byref(params_ffi), byref(results_ffi))
-        if ptr == 0:
+        if not ptr:
             raise RuntimeError("failed to allocate FuncType")
-        self.__ptr__ = cast(ptr, P_wasm_functype_t)
+        self.__ptr__ = ptr
         self.__owner__ = None
 
     @classmethod
@@ -123,12 +161,12 @@ class FuncType:
 
     # Returns the list of parameter types for this function type
     def params(self):
-        ptr = cast(dll.wasm_functype_params(self.__ptr__), POINTER(wasm_valtype_vec_t))
+        ptr = dll.wasm_functype_params(self.__ptr__)
         return ValType.__from_list__(ptr, self)
 
     # Returns the list of result types for this function type
     def results(self):
-        ptr = cast(dll.wasm_functype_results(self.__ptr__), POINTER(wasm_valtype_vec_t))
+        ptr = dll.wasm_functype_results(self.__ptr__)
         return ValType.__from_list__(ptr, self)
 
     # # Returns this type as an `ExternType` instance
@@ -150,7 +188,7 @@ class GlobalType:
         ptr = dll.wasm_globaltype_new(type_ptr, mutability)
         if ptr == 0:
             raise RuntimeError("failed to allocate GlobalType")
-        self.__ptr__ = cast(ptr, P_wasm_globaltype_t)
+        self.__ptr__ = ptr
         self.__owner__ = None
 
     @classmethod
@@ -164,13 +202,13 @@ class GlobalType:
 
     # Returns the type this global contains
     def content(self):
-        ptr = cast(dll.wasm_globaltype_content(self.__ptr__), POINTER(wasm_valtype_t))
+        ptr = dll.wasm_globaltype_content(self.__ptr__)
         return ValType.__from_ptr__(ptr, self)
 
     # Returns whether this global is mutable or not
     def mutable(self):
-        val = c_uint8(dll.wasm_globaltype_mutability(self.__ptr__))
-        return val.value == WASM_VAR.value
+        val = dll.wasm_globaltype_mutability(self.__ptr__)
+        return val == WASM_VAR.value
 
     # # Returns this type as an `ExternType` instance
     # def as_extern(self):
@@ -209,9 +247,9 @@ class TableType:
             raise TypeError("expected Limits")
         type_ptr = take_owned_valtype(valtype)
         ptr = dll.wasm_tabletype_new(type_ptr, byref(limits.__ffi__()))
-        if ptr == 0:
+        if not ptr:
             raise RuntimeError("failed to allocate TableType")
-        self.__ptr__ = cast(ptr, P_wasm_tabletype_t)
+        self.__ptr__ = ptr
         self.__owner__ = None
 
     @classmethod
@@ -225,12 +263,12 @@ class TableType:
 
     # Returns the type of this table's elements
     def element(self):
-        ptr = cast(dll.wasm_tabletype_element(self.__ptr__), POINTER(wasm_valtype_t))
+        ptr = dll.wasm_tabletype_element(self.__ptr__)
         return ValType.__from_ptr__(ptr, self)
 
     # Returns the limits on the size of thi stable
     def limits(self):
-        val = cast(dll.wasm_tabletype_limits(self.__ptr__), POINTER(wasm_limits_t))
+        val = dll.wasm_tabletype_limits(self.__ptr__)
         return Limits.__from_ffi__(val)
 
     # # Returns this type as an `ExternType` instance
@@ -247,14 +285,24 @@ class MemoryType:
         if not isinstance(limits, Limits):
             raise TypeError("expected Limits")
         ptr = dll.wasm_memorytype_new(byref(limits.__ffi__()))
-        if ptr == 0:
+        if not ptr:
             raise RuntimeError("failed to allocate MemoryType")
-        self.__ptr__ = cast(ptr, P_wasm_memorytype_t)
+        self.__ptr__ = ptr
         self.__owner__ = None
+        self.__owner__ = None
+
+    @classmethod
+    def __from_ptr__(cls, ptr, owner):
+        ty = cls.__new__(cls)
+        if not isinstance(ptr, P_wasm_memorytype_t):
+            raise TypeError("wrong pointer type")
+        ty.__ptr__ = ptr
+        ty.__owner__ = owner
+        return ty
 
     # Returns the limits on the size of thi stable
     def limits(self):
-        val = cast(dll.wasm_memorytype_limits(self.__ptr__), POINTER(wasm_limits_t))
+        val = dll.wasm_memorytype_limits(self.__ptr__)
         return Limits.__from_ffi__(val)
 
     # # Returns this type as an `ExternType` instance
@@ -278,7 +326,7 @@ class ExternType:
 
     # Returns this type as a `FuncType` or `None` if it's not a function
     def func_type(self):
-        val = cast(dll.wasm_externtype_as_functype_const(self.__ptr__), P_wasm_functype_t)
+        val = dll.wasm_externtype_as_functype_const(self.__ptr__)
         if val:
             return FuncType.__from_ptr__(val, self.__owner__ or self)
         else:
@@ -286,7 +334,7 @@ class ExternType:
 
     # Returns this type as a `TableType` or `None` if it's not a table
     def table_type(self):
-        val = cast(dll.wasm_externtype_as_tabletype_const(self.__ptr__), P_wasm_tabletype_t)
+        val = dll.wasm_externtype_as_tabletype_const(self.__ptr__)
         if val:
             return TableType.__from_ptr__(val, self.__owner__ or self)
         else:
@@ -294,7 +342,7 @@ class ExternType:
 
     # Returns this type as a `GlobalType` or `None` if it's not a global
     def global_type(self):
-        val = cast(dll.wasm_externtype_as_globaltype_const(self.__ptr__), P_wasm_globaltype_t)
+        val = dll.wasm_externtype_as_globaltype_const(self.__ptr__)
         if val:
             return GlobalType.__from_ptr__(val, self.__owner__ or self)
         else:
@@ -302,7 +350,7 @@ class ExternType:
 
     # Returns this type as a `MemoryType` or `None` if it's not a memory
     def memory_type(self):
-        val = cast(dll.wasm_externtype_as_memorytype_const(self.__ptr__), P_wasm_memorytype_t)
+        val = dll.wasm_externtype_as_memorytype_const(self.__ptr__)
         if val:
             return MemoryType.__from_ptr__(val, self.__owner__ or self)
         else:
@@ -322,14 +370,48 @@ class ImportType:
         ty.__owner__ = owner
         return ty
 
-    # # Returns the module name this import type refers to
-    # def module(self):
-    #     val = cast(dll.wasm_importtype_module(self.__ptr__), POINTER(wasm_name_t))
-    #     if val:
-    #         return FuncType.__from_ptr__(val, self.__owner__ or self)
-    #     else:
-    #         return None
+    # Returns the module this import type refers to
+    def module(self):
+        ptr = dll.wasm_importtype_module(self.__ptr__)
+        contents = ptr.contents
+        return bytes(contents.data[:contents.size]).decode('utf-8')
+
+    # Returns the name in the modulethis import type refers to
+    def name(self):
+        ptr = dll.wasm_importtype_name(self.__ptr__)
+        contents = ptr.contents
+        return bytes(contents.data[:contents.size]).decode('utf-8')
+
+    # Returns the type that this import refers to
+    def type(self):
+        ptr = dll.wasm_importtype_type(self.__ptr__)
+        return ExternType.__from_ptr__(ptr, self.__owner__ or self)
 
     def __del__(self):
         if self.__owner__ is None:
             dll.wasm_importtype_delete(self.__ptr__)
+
+class ExportType:
+    @classmethod
+    def __from_ptr__(cls, ptr, owner):
+        ty = cls.__new__(cls)
+        if not isinstance(ptr, P_wasm_exporttype_t):
+            raise TypeError("wrong pointer type")
+        ty.__ptr__ = ptr
+        ty.__owner__ = owner
+        return ty
+
+    # Returns the name in the modulethis export type refers to
+    def name(self):
+        ptr = dll.wasm_exporttype_name(self.__ptr__)
+        contents = ptr.contents
+        return bytes(contents.data[:contents.size]).decode('utf-8')
+
+    # Returns the type that this export refers to
+    def type(self):
+        ptr = dll.wasm_exporttype_type(self.__ptr__)
+        return ExternType.__from_ptr__(ptr, self.__owner__ or self)
+
+    def __del__(self):
+        if self.__owner__ is None:
+            dll.wasm_exporttype_delete(self.__ptr__)

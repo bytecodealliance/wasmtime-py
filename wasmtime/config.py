@@ -1,9 +1,11 @@
 from .ffi import *
 from ctypes import *
 
+dll.wasm_config_new.restype = P_wasm_config_t
+
 class Config:
     def __init__(self):
-        self.__ptr__ = cast(dll.wasm_config_new(), P_wasm_config_t)
+        self.__ptr__ = dll.wasm_config_new()
 
     def __del__(self):
         if self.__ptr__ is not None:
