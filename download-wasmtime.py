@@ -12,7 +12,7 @@ elif sys.platform == 'win32':
     filename = 'wasmtime-dev-x86_64-windows-c-api.zip'
     is_zip = True
 elif sys.platform == 'darwin':
-    filename = 'wasmtime-dev-x86_64-macos-c-api.xz'
+    filename = 'wasmtime-dev-x86_64-macos-c-api.tar.xz'
 else:
     raise RuntimeError("unknown platform: " + sys.platform)
 
