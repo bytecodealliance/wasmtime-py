@@ -3,6 +3,7 @@ from ctypes import *
 from wasmtime import Store, wat2wasm, ImportType, ExportType
 
 dll.wasm_module_new.restype = P_wasm_module_t
+dll.wasm_module_validate.restype = c_bool
 
 
 class Module(object):
@@ -37,7 +38,10 @@ class Module(object):
         if not isinstance(wasm, (bytes, bytearray)):
             raise TypeError("expected wasm bytes")
 
-        binary = wasm_byte_vec_t(len(wasm), cast(wasm, POINTER(c_uint8)))
+        # TODO: can the copy be avoided here? I can't for the life of me
+        # figure this out.
+        c_ty = c_uint8 * len(wasm)
+        binary = wasm_byte_vec_t(len(wasm), c_ty.from_buffer_copy(wasm))
         ok = dll.wasm_module_validate(store.__ptr__, byref(binary))
         if ok:
             return True

@@ -7,6 +7,7 @@ dll.wasm_memory_data_size.restype = c_size_t
 dll.wasm_memory_new.restype = P_wasm_memory_t
 dll.wasm_memory_type.restype = P_wasm_memorytype_t
 dll.wasm_memory_as_extern.restype = P_wasm_extern_t
+dll.wasm_memory_grow.restype = c_bool
 
 
 class Memory(object):
