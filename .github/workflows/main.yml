@@ -11,11 +11,11 @@ jobs:
         # Looks like pypy on Windows is 32-bit, so don't test it since we
         # only work with 64-bit builds
         exclude:
-	- os: windows-latest
-	  python-version: pypy2
-	- os: windows-latest
-	  python-version: pypy3
-      fail-fast: false
+        - os: windows-latest
+          python-version: pypy2
+        - os: windows-latest
+          python-version: pypy3
+        fail-fast: false
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
