@@ -142,12 +142,12 @@ class FuncType(object):
 
         results_ffi = wasm_valtype_vec_t()
         for i, param in enumerate(params):
-            params_ffi.data[i] = param.__ptr__
+            params_ffi.data[i] = take_owned_valtype(param)
 
         dll.wasm_valtype_vec_new_uninitialized(
             byref(results_ffi), len(results))
         for i, result in enumerate(results):
-            results_ffi.data[i] = result.__ptr__
+            results_ffi.data[i] = take_owned_valtype(result)
         ptr = dll.wasm_functype_new(byref(params_ffi), byref(results_ffi))
         if not ptr:
             raise RuntimeError("failed to allocate FuncType")

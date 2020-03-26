@@ -16,7 +16,7 @@ class Module(object):
         # if the first byte in the string is 0, meaning this is actually a wasm
         # module.
         if isinstance(wasm, str) and len(wasm) > 0 and ord(wasm[0]) != 0:
-            wasm = wat2wasm(store.engine, wasm)
+            wasm = wat2wasm(wasm)
 
         if not isinstance(wasm, (bytes, bytearray)):
             raise TypeError("expected wasm bytes")
