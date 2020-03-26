@@ -1,13 +1,21 @@
 from .ffi import *
 from ctypes import *
 from wasmtime import ValType
+import sys
 
 
-class Val:
+def is_integer(val):
+    if sys.version_info >= (3, 0):
+        return isinstance(val, int)
+    else:
+        return isinstance(val, (int, long))
+
+
+class Val(object):
     # Create a new 32-bit integer value
     @classmethod
     def i32(cls, val):
-        if not isinstance(val, int):
+        if not is_integer(val):
             raise TypeError("expected an integer")
         ffi = wasm_val_t(WASM_I32)
         ffi.of.i32 = val
@@ -16,7 +24,7 @@ class Val:
     # Create a new 64-bit integer value
     @classmethod
     def i64(cls, val):
-        if not isinstance(val, int):
+        if not is_integer(val):
             raise TypeError("expected an integer")
         ffi = wasm_val_t(WASM_I64)
         ffi.of.i64 = val

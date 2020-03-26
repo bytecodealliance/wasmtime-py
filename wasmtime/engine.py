@@ -6,7 +6,7 @@ dll.wasm_engine_new.restype = P_wasm_engine_t
 dll.wasm_engine_new_with_config.restype = P_wasm_engine_t
 
 
-class Engine:
+class Engine(object):
     def __init__(self, config=None):
         if config is None:
             self.__ptr__ = dll.wasm_engine_new()

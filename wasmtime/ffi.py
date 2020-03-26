@@ -159,6 +159,13 @@ class wasm_limits_t(Structure):
 class wasm_byte_vec_t(Structure):
     _fields_ = [("size", c_size_t), ("data", POINTER(c_uint8))]
 
+    def to_bytes(self):
+        ty = c_uint8 * self.size
+        return bytearray(ty.from_address(addressof(self.data.contents)))
+
+    def to_str(self):
+        return self.to_bytes().decode("utf-8")
+
 
 wasm_name_t = wasm_byte_vec_t
 

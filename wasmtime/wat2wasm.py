@@ -16,9 +16,8 @@ def wat2wasm(engine, wat):
     ok = dll.wasmtime_wat2wasm(
         engine.__ptr__, byref(wat), byref(wasm), byref(error))
     if ok:
-        ret = bytes(wasm.data[:wasm.size])
+        ret = wasm.to_bytes()
         dll.wasm_byte_vec_delete(byref(wasm))
         return ret
     else:
-        error = bytes(error.data[:error.size]).decode("utf-8")
-        raise RuntimeError(error)
+        raise RuntimeError(error.to_str())

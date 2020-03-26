@@ -5,7 +5,7 @@ from wasmtime import Engine
 dll.wasm_store_new.restype = P_wasm_store_t
 
 
-class Store:
+class Store(object):
     def __init__(self, engine=None):
         if engine is None:
             engine = Engine()

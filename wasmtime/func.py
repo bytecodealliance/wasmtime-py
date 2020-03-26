@@ -12,7 +12,7 @@ dll.wasm_func_call.restype = P_wasm_trap_t
 dll.wasm_func_as_extern.restype = P_wasm_extern_t
 
 
-class Func:
+class Func(object):
     # Creates a new func in `store` with the given `ty` which calls the closure
     # given
     def __init__(self, store, ty, func):
@@ -143,7 +143,7 @@ def finalize(idx):
     pass
 
 
-class Slab:
+class Slab(object):
     def __init__(self):
         self.list = []
         self.next = 0

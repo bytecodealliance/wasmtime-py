@@ -7,7 +7,7 @@ dll.wasm_table_type.restype = P_wasm_tabletype_t
 dll.wasm_table_size.restype = c_uint32
 
 
-class Table:
+class Table(object):
     @classmethod
     def __from_ptr__(cls, ptr, owner):
         ty = cls.__new__(cls)

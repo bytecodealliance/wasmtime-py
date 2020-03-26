@@ -7,7 +7,7 @@ dll.wasm_global_type.restype = P_wasm_globaltype_t
 dll.wasm_global_as_extern.restype = P_wasm_extern_t
 
 
-class Global:
+class Global(object):
     def __init__(self, store, ty, val):
         if not isinstance(store, Store):
             raise TypeError("expected a Store")

@@ -6,6 +6,8 @@ from wasmtime import *
 class TestModule(unittest.TestCase):
     def test_smoke(self):
         Module(Store(), '(module)')
+        Module(Store(), bytes(b'\0asm\x01\0\0\0'))
+        Module(Store(), bytearray(b'\0asm\x01\0\0\0'))
 
     def test_invalid(self):
         with self.assertRaises(TypeError):

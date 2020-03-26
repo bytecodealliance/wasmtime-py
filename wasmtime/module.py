@@ -5,17 +5,25 @@ from wasmtime import Store, wat2wasm, ImportType, ExportType
 dll.wasm_module_new.restype = P_wasm_module_t
 
 
-class Module:
+class Module(object):
     def __init__(self, store, wasm):
         if not isinstance(store, Store):
             raise TypeError("expected a Store")
-        # If this looks like a string, parse it as the text format
-        if isinstance(wasm, str):
+
+        # If this looks like a string, parse it as the text format. Note that
+        # in python 2 strings and bytes are basically the same, so we skip this
+        # if the first byte in the string is 0, meaning this is actually a wasm
+        # module.
+        if isinstance(wasm, str) and len(wasm) > 0 and ord(wasm[0]) != 0:
             wasm = wat2wasm(store.engine, wasm)
+
         if not isinstance(wasm, (bytes, bytearray)):
             raise TypeError("expected wasm bytes")
 
-        binary = wasm_byte_vec_t(len(wasm), cast(wasm, POINTER(c_uint8)))
+        # TODO: can the copy be avoided here? I can't for the life of me
+        # figure this out.
+        c_ty = c_uint8 * len(wasm)
+        binary = wasm_byte_vec_t(len(wasm), c_ty.from_buffer_copy(wasm))
         ptr = dll.wasm_module_new(store.__ptr__, byref(binary))
         if not ptr:
             raise RuntimeError("failed to compile module")
@@ -59,7 +67,7 @@ class Module:
             dll.wasm_module_delete(self.__ptr__)
 
 
-class ImportTypeList:
+class ImportTypeList(object):
     def __init__(self):
         self.vec = wasm_importtype_vec_t(0, None)
 
@@ -67,7 +75,7 @@ class ImportTypeList:
         dll.wasm_importtype_vec_delete(byref(self.vec))
 
 
-class ExportTypeList:
+class ExportTypeList(object):
     def __init__(self):
         self.vec = wasm_exporttype_vec_t(0, None)
 

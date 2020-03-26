@@ -26,7 +26,7 @@ dll.wasm_valtype_kind.restype = c_uint8
 dll.wasm_globaltype_mutability.restype = c_uint8
 
 
-class ValType:
+class ValType(object):
     @classmethod
     def i32(cls):
         ptr = dll.wasm_valtype_new(WASM_I32)
@@ -78,6 +78,9 @@ class ValType:
         kind2 = dll.wasm_valtype_kind(other.__ptr__)
         return kind1 == kind2
 
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def __repr__(self):
         return str(self)
 
@@ -125,7 +128,7 @@ def take_owned_valtype(ty):
     return dll.wasm_valtype_new(dll.wasm_valtype_kind(ty.__ptr__))
 
 
-class FuncType:
+class FuncType(object):
     def __init__(self, params, results):
         for param in params:
             if not isinstance(param, ValType):
@@ -175,7 +178,7 @@ class FuncType:
             dll.wasm_functype_delete(self.__ptr__)
 
 
-class GlobalType:
+class GlobalType(object):
     def __init__(self, valtype, mutable):
         if mutable:
             mutability = WASM_VAR
@@ -212,7 +215,7 @@ class GlobalType:
             dll.wasm_globaltype_delete(self.__ptr__)
 
 
-class Limits:
+class Limits(object):
     def __init__(self, min, max):
         self.min = min
         self.max = max
@@ -235,7 +238,7 @@ class Limits:
         return Limits(min, max)
 
 
-class TableType:
+class TableType(object):
     def __init__(self, valtype, limits):
         if not isinstance(limits, Limits):
             raise TypeError("expected Limits")
@@ -270,7 +273,7 @@ class TableType:
             dll.wasm_tabletype_delete(self.__ptr__)
 
 
-class MemoryType:
+class MemoryType(object):
     def __init__(self, limits):
         if not isinstance(limits, Limits):
             raise TypeError("expected Limits")
@@ -299,7 +302,7 @@ class MemoryType:
             dll.wasm_memorytype_delete(self.__ptr__)
 
 
-class ExternType:
+class ExternType(object):
     @classmethod
     def __from_ptr__(cls, ptr, owner):
         ty = cls.__new__(cls)
@@ -346,7 +349,7 @@ class ExternType:
             dll.wasm_externtype_delete(self.__ptr__)
 
 
-class ImportType:
+class ImportType(object):
     @classmethod
     def __from_ptr__(cls, ptr, owner):
         ty = cls.__new__(cls)
@@ -358,15 +361,11 @@ class ImportType:
 
     # Returns the module this import type refers to
     def module(self):
-        ptr = dll.wasm_importtype_module(self.__ptr__)
-        contents = ptr.contents
-        return bytes(contents.data[:contents.size]).decode('utf-8')
+        return dll.wasm_importtype_module(self.__ptr__).contents.to_str()
 
     # Returns the name in the modulethis import type refers to
     def name(self):
-        ptr = dll.wasm_importtype_name(self.__ptr__)
-        contents = ptr.contents
-        return bytes(contents.data[:contents.size]).decode('utf-8')
+        return dll.wasm_importtype_name(self.__ptr__).contents.to_str()
 
     # Returns the type that this import refers to
     def type(self):
@@ -378,7 +377,7 @@ class ImportType:
             dll.wasm_importtype_delete(self.__ptr__)
 
 
-class ExportType:
+class ExportType(object):
     @classmethod
     def __from_ptr__(cls, ptr, owner):
         ty = cls.__new__(cls)
@@ -390,9 +389,7 @@ class ExportType:
 
     # Returns the name in the modulethis export type refers to
     def name(self):
-        ptr = dll.wasm_exporttype_name(self.__ptr__)
-        contents = ptr.contents
-        return bytes(contents.data[:contents.size]).decode('utf-8')
+        return dll.wasm_exporttype_name(self.__ptr__).contents.to_str()
 
     # Returns the type that this export refers to
     def type(self):

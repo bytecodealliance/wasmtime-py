@@ -5,7 +5,7 @@ from wasmtime import Module, Extern, Func, Table, Memory, Trap, Global
 dll.wasm_instance_new.restype = P_wasm_instance_t
 
 
-class Instance:
+class Instance(object):
     # Creates a new instance by instantiating the `module` given with the
     # `imports` provided.
     #
@@ -63,7 +63,7 @@ class Instance:
             dll.wasm_instance_delete(self.__ptr__)
 
 
-class ExternTypeList:
+class ExternTypeList(object):
     def __init__(self):
         self.vec = wasm_extern_vec_t(0, None)
 

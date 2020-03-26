@@ -9,7 +9,7 @@ dll.wasm_memory_type.restype = P_wasm_memorytype_t
 dll.wasm_memory_as_extern.restype = P_wasm_extern_t
 
 
-class Memory:
+class Memory(object):
     # Creates a new memory in `store` with the given `ty`
     def __init__(self, store, ty):
         if not isinstance(store, Store):

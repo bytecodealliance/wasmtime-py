@@ -4,7 +4,7 @@ from ctypes import *
 dll.wasm_config_new.restype = P_wasm_config_t
 
 
-class Config:
+class Config(object):
     def __init__(self):
         self.__ptr__ = dll.wasm_config_new()
 

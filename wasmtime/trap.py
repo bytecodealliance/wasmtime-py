@@ -5,7 +5,7 @@ from wasmtime import Store
 dll.wasm_trap_new.restype = P_wasm_trap_t
 
 
-class Trap:
+class Trap(object):
     # Creates a new trap in `store` with the given `message`
     def __init__(self, store, message):
         if not isinstance(store, Store):
@@ -34,7 +34,9 @@ class Trap:
         message = wasm_byte_vec_t()
         dll.wasm_trap_message(self.__ptr__, byref(message))
         # subtract one to chop off the trailing nul byte
-        ret = bytes(message.data[:message.size - 1]).decode("utf-8")
+        message.size -= 1
+        ret = message.to_str()
+        message.size += 1
         dll.wasm_byte_vec_delete(byref(message))
         return ret
 
