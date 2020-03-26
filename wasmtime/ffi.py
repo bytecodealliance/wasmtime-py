@@ -1,6 +1,9 @@
 from ctypes import *
 import os
 
+if sys.maxsize <= 2**32:
+    raise RuntimeError("wasmtime only works on 64-bit platforms right now")
+
 filename = os.path.join(os.path.dirname(__file__), 'wasmtime.pyd')
 dll = cdll.LoadLibrary(filename)
 
