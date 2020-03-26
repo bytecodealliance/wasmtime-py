@@ -19,6 +19,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: x64
+      - run: python -c "import sys; print(sys.version)"
       - run: python setup.py test
 
   flake8:
