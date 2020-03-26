@@ -1,5 +1,6 @@
 from ctypes import *
 import os
+import sys
 
 if sys.maxsize <= 2**32:
     raise RuntimeError("wasmtime only works on 64-bit platforms right now")
