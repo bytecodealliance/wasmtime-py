@@ -18,6 +18,7 @@ jobs:
       - uses: actions/setup-python@v1
         with:
           python-version: ${{ matrix.python-version }}
+          architecture: x64
       - run: python setup.py test
 
   flake8:
