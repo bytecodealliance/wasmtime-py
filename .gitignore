@@ -5,3 +5,5 @@ dist
 *.pyc
 __pycache__
 *.pyd
+.coverage
+htmlcov

@@ -47,7 +47,14 @@ class Instance(object):
                 raise RuntimeError("instantiation trap: %s" % trap.message())
             raise RuntimeError("failed to compile instance")
         self.__ptr__ = ptr
-        self.module = module
+
+    @classmethod
+    def __from_ptr__(cls, ptr):
+        ty = cls.__new__(cls)
+        if not isinstance(ptr, P_wasm_instance_t):
+            raise TypeError("wrong pointer type")
+        ty.__ptr__ = ptr
+        return ty
 
     # Returns the exports of this module
     def exports(self):

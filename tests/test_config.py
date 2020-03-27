@@ -23,3 +23,6 @@ class TestConfig(unittest.TestCase):
         config.cranelift_opt_level("speed")
         with self.assertRaises(RuntimeError):
             config.cranelift_opt_level("nonexistent-level")
+        config.profiler("none")
+        with self.assertRaises(RuntimeError):
+            config.profiler("nonexistent-profiler")

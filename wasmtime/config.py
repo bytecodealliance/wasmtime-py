@@ -63,6 +63,14 @@ class Config(object):
         else:
             raise RuntimeError("unknown opt level: " + str(opt_level))
 
+    def profiler(self, profiler):
+        if profiler == "none":
+            dll.wasmtime_config_profiler_set(self.__ptr__, 0)
+        elif profiler == "jitdump":
+            dll.wasmtime_config_profiler_set(self.__ptr__, 1)
+        else:
+            raise RuntimeError("unknown profiler: " + str(profiler))
+
     def __del__(self):
         if hasattr(self, '__ptr__'):
             dll.wasm_config_delete(self.__ptr__)

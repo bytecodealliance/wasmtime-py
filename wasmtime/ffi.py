@@ -152,6 +152,13 @@ class wasm_instance_t(Structure):
 P_wasm_instance_t = POINTER(wasm_instance_t)
 
 
+class wasmtime_linker_t(Structure):
+    pass
+
+
+P_wasmtime_linker_t = POINTER(wasmtime_linker_t)
+
+
 class wasm_valtype_vec_t(Structure):
     _fields_ = [("size", c_size_t), ("data", POINTER(P_wasm_valtype_t))]
 
@@ -197,3 +204,15 @@ class wasm_val_union(Union):
 
 class wasm_val_t(Structure):
     _fields_ = [("kind", c_uint8), ("of", wasm_val_union)]
+
+
+def str_to_name(s, trailing_nul = False):
+    if not isinstance(s, str):
+        raise TypeError("expected a string")
+    s = s.encode('utf8')
+    buf = cast(create_string_buffer(s), POINTER(c_uint8))
+    if trailing_nul:
+        extra = 1
+    else:
+        extra = 0
+    return wasm_byte_vec_t(len(s) + extra, buf)

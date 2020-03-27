@@ -1,0 +1,107 @@
+import unittest
+
+from wasmtime import *
+
+
+class TestLinker(unittest.TestCase):
+    def test_define(self):
+        store = Store()
+        linker = Linker(store)
+        linker.allow_shadowing(False)
+
+        func = Func(store, FuncType([], []), lambda: None)
+        linker.define("", "a", func)
+        linker.define("", "b", func.as_extern())
+
+        g = Global(store, GlobalType(ValType.i32(), False), Val.i32(0))
+        linker.define("", "c", g)
+        linker.define("", "d", g.as_extern())
+
+        mem = Memory(store, MemoryType(Limits(1, None)))
+        linker.define("", "e", mem)
+        linker.define("", "f", mem.as_extern())
+
+        module = Module(store, """
+            (module (table (export "") 1 funcref))
+        """)
+        table = Instance(module, []).exports()[0].table()
+        linker.define("", "g", table)
+        linker.define("", "h", table.as_extern())
+
+        with self.assertRaises(RuntimeError):
+            linker.define("", "a", func)
+        linker.allow_shadowing(True)
+        linker.define("", "a", func)
+
+        with self.assertRaises(TypeError):
+            linker.define("", "", 2)
+        with self.assertRaises(TypeError):
+            linker.define(2, "", func)
+        with self.assertRaises(TypeError):
+            linker.define("", 2, func)
+
+    def test_define_instance(self):
+        store = Store()
+        linker = Linker(store)
+        with self.assertRaises(TypeError):
+            linker.define_instance("x", 2)
+
+        module = Module(store, "(module)")
+        linker.define_instance("a", Instance(module, []))
+
+        module = Module(store, "(module (func (export \"foo\")))")
+        instance = Instance(module, [])
+        linker.define_instance("b", instance)
+        with self.assertRaises(RuntimeError):
+            linker.define_instance("b", instance)
+        linker.allow_shadowing(True)
+        linker.define_instance("b", instance)
+
+    def test_instantiate(self):
+        store = Store()
+        linker = Linker(store)
+
+        module = Module(store, "(module (func (export \"foo\")))")
+        instance = Instance(module, [])
+        linker.define_instance("x", instance)
+
+        func = Func(store, FuncType([], []), lambda: None)
+        linker.define("y", "z", func)
+
+        module = Module(store, """
+            (module
+                (import "x" "foo" (func))
+                (import "y" "z" (func))
+            )
+        """)
+        linker.instantiate(module)
+
+        module = Module(store, """
+            (module
+                (import "x" "foo" (func))
+                (import "y" "z" (global i32))
+            )
+        """)
+        with self.assertRaises(RuntimeError):
+            linker.instantiate(module)
+
+        module = Module(store, """
+            (module
+                (func unreachable)
+                (start 0)
+            )
+        """)
+        with self.assertRaises(RuntimeError):
+            linker.instantiate(module)
+
+        module = Module(store, "(module)")
+        linker.instantiate(module)
+
+    def test_errors(self):
+        linker = Linker(Store())
+        with self.assertRaises(TypeError):
+            linker.allow_shadowing(2)
+        with self.assertRaises(TypeError):
+            Linker(2)
+        with self.assertRaises(TypeError):
+            linker.instantiate(3)

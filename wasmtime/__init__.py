@@ -13,3 +13,4 @@ from .memory import Memory
 from .trap import Trap
 from .func import Func
 from .instance import Instance
+from .linker import Linker
