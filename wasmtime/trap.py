@@ -12,7 +12,7 @@ class Trap(object):
             raise TypeError("expected a Store")
         if not isinstance(message, str):
             raise TypeError("expected a string")
-        message_raw = str_to_name(message, trailing_nul = True)
+        message_raw = str_to_name(message, trailing_nul=True)
         ptr = dll.wasm_trap_new(store.__ptr__, byref(message_raw))
         if not ptr:
             raise RuntimeError("failed to create trap")

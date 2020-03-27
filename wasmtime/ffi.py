@@ -206,7 +206,7 @@ class wasm_val_t(Structure):
     _fields_ = [("kind", c_uint8), ("of", wasm_val_union)]
 
 
-def str_to_name(s, trailing_nul = False):
+def str_to_name(s, trailing_nul=False):
     if not isinstance(s, str):
         raise TypeError("expected a string")
     s = s.encode('utf8')

@@ -1,6 +1,7 @@
 from .ffi import *
 from ctypes import *
-from wasmtime import Store, Extern, Func, Global, Table, Memory, Instance, Module, Trap
+from wasmtime import Store, Extern, Func, Global, Table, Memory, Instance
+from wasmtime import Module, Trap
 
 dll.wasmtime_linker_new.restype = P_wasmtime_linker_t
 dll.wasmtime_linker_define.restype = c_bool
@@ -36,7 +37,7 @@ class Linker(object):
         module_raw = str_to_name(module)
         name_raw = str_to_name(name)
         ok = dll.wasmtime_linker_define(self.__ptr__, byref(module_raw),
-                byref(name_raw), raw_item)
+                                        byref(name_raw), raw_item)
         if not ok:
             raise RuntimeError("failed to define item")
 
@@ -45,7 +46,7 @@ class Linker(object):
             raise TypeError("expected an `Instance`")
         name_raw = str_to_name(name)
         ok = dll.wasmtime_linker_define_instance(self.__ptr__, byref(name_raw),
-                instance.__ptr__)
+                                                 instance.__ptr__)
         if not ok:
             raise RuntimeError("failed to define item")
 
@@ -53,7 +54,8 @@ class Linker(object):
         if not isinstance(module, Module):
             raise TypeError("expected a `Module`")
         trap = P_wasm_trap_t()
-        ptr = dll.wasmtime_linker_instantiate(self.__ptr__, module.__ptr__, byref(trap))
+        ptr = dll.wasmtime_linker_instantiate(
+            self.__ptr__, module.__ptr__, byref(trap))
         if not ptr:
             if trap:
                 trap = Trap.__from_ptr__(trap)
@@ -64,4 +66,3 @@ class Linker(object):
     def __del__(self):
         if hasattr(self, '__ptr__'):
             dll.wasmtime_linker_delete(self.__ptr__)
-
