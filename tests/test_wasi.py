@@ -12,12 +12,12 @@ class TestWasi(unittest.TestCase):
         config.set_env(['a'], ['b'])
         config.inherit_env()
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            config.set_stdin_file(tmpdir + '/x')
+        with tempfile.NamedTemporaryFile() as f:
+            config.set_stdin_file(f.name)
             config.inherit_stdin()
-            config.set_stdout_file(tmpdir + '/x')
+            config.set_stdout_file(f.name)
             config.inherit_stdout()
-            config.set_stderr_file(tmpdir + '/x')
+            config.set_stderr_file(f.name)
             config.inherit_stderr()
         config.preopen_dir('wasmtime', 'other')
 
