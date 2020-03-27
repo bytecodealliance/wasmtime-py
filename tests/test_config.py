@@ -15,7 +15,10 @@ class TestConfig(unittest.TestCase):
         config.cranelift_debug_verifier(True)
         config.strategy("cranelift")
         config.strategy("auto")
-        config.strategy("lightbeam")
+        try:
+            config.strategy("lightbeam")
+        except RuntimeError:
+            pass # this may fail to be enabled
         with self.assertRaises(RuntimeError):
             config.strategy("nonexistent-strategy")
         config.cranelift_opt_level("none")

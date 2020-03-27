@@ -2,6 +2,8 @@ from .ffi import *
 from ctypes import *
 
 dll.wasm_config_new.restype = P_wasm_config_t
+dll.wasmtime_config_strategy_set.restype = c_bool
+dll.wasmtime_config_profiler_set.restype = c_bool
 
 
 class Config(object):
@@ -40,13 +42,15 @@ class Config(object):
 
     def strategy(self, strategy):
         if strategy == "auto":
-            dll.wasmtime_config_strategy_set(self.__ptr__, 0)
+            ok = dll.wasmtime_config_strategy_set(self.__ptr__, 0)
         elif strategy == "cranelift":
-            dll.wasmtime_config_strategy_set(self.__ptr__, 1)
+            ok = dll.wasmtime_config_strategy_set(self.__ptr__, 1)
         elif strategy == "lightbeam":
-            dll.wasmtime_config_strategy_set(self.__ptr__, 2)
+            ok = dll.wasmtime_config_strategy_set(self.__ptr__, 2)
         else:
             raise RuntimeError("unknown strategy: " + str(strategy))
+        if not ok:
+            raise RuntimeError("failed to configure strategy: " + strategy)
 
     def cranelift_debug_verifier(self, enable):
         if not isinstance(enable, bool):
@@ -65,11 +69,13 @@ class Config(object):
 
     def profiler(self, profiler):
         if profiler == "none":
-            dll.wasmtime_config_profiler_set(self.__ptr__, 0)
+            ok = dll.wasmtime_config_profiler_set(self.__ptr__, 0)
         elif profiler == "jitdump":
-            dll.wasmtime_config_profiler_set(self.__ptr__, 1)
+            ok = dll.wasmtime_config_profiler_set(self.__ptr__, 1)
         else:
             raise RuntimeError("unknown profiler: " + str(profiler))
+        if not ok:
+            raise RuntimeError("failed to configure profiler: " + profiler)
 
     def __del__(self):
         if hasattr(self, '__ptr__'):
