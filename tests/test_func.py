@@ -98,6 +98,7 @@ class TestFunc(unittest.TestCase):
     def test_access_caller(self):
         # Test that we get *something*
         store = Store()
+
         def runtest(caller):
             self.assertEqual(caller.get_export(''), None)
             self.assertEqual(caller.get_export('x'), None)

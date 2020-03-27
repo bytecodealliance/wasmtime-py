@@ -57,6 +57,12 @@ class TestLinker(unittest.TestCase):
         linker.allow_shadowing(True)
         linker.define_instance("b", instance)
 
+    def test_define_wasi(self):
+        store = Store()
+        linker = Linker(store)
+        instance = WasiInstance(store, "wasi_unstable", WasiConfig())
+        linker.define_wasi(instance)
+
     def test_instantiate(self):
         store = Store()
         linker = Linker(store)

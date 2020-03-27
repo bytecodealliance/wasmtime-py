@@ -30,7 +30,11 @@ class Func(object):
         idx = FUNCTIONS.allocate((func, ty.params(), ty.results(), store))
         if access_caller:
             ptr = dll.wasmtime_func_new_with_env(
-                store.__ptr__, ty.__ptr__, trampoline_with_caller, idx, finalize)
+                store.__ptr__,
+                ty.__ptr__,
+                trampoline_with_caller,
+                idx,
+                finalize)
         else:
             ptr = dll.wasm_func_new_with_env(
                 store.__ptr__, ty.__ptr__, trampoline, idx, finalize)
@@ -145,7 +149,13 @@ def trampoline(idx, params_ptr, results_ptr):
     return invoke(idx, params_ptr, results_ptr, [])
 
 
-@CFUNCTYPE(c_size_t, P_wasmtime_caller_t, c_size_t, POINTER(wasm_val_t), POINTER(wasm_val_t))
+@CFUNCTYPE(
+    c_size_t,
+    P_wasmtime_caller_t,
+    c_size_t,
+    POINTER(wasm_val_t),
+    POINTER(wasm_val_t),
+)
 def trampoline_with_caller(caller, idx, params_ptr, results_ptr):
     caller = Caller(caller)
     try:

@@ -1,7 +1,7 @@
 from .ffi import *
 from ctypes import *
 from wasmtime import Store, Extern, Func, Global, Table, Memory, Instance
-from wasmtime import Module, Trap
+from wasmtime import Module, Trap, WasiInstance
 
 dll.wasmtime_linker_new.restype = P_wasmtime_linker_t
 dll.wasmtime_linker_define.restype = c_bool
@@ -47,6 +47,13 @@ class Linker(object):
         name_raw = str_to_name(name)
         ok = dll.wasmtime_linker_define_instance(self.__ptr__, byref(name_raw),
                                                  instance.__ptr__)
+        if not ok:
+            raise RuntimeError("failed to define item")
+
+    def define_wasi(self, instance):
+        if not isinstance(instance, WasiInstance):
+            raise TypeError("expected an `WasiInstance`")
+        ok = dll.wasmtime_linker_define_wasi(self.__ptr__, instance.__ptr__)
         if not ok:
             raise RuntimeError("failed to define item")
 

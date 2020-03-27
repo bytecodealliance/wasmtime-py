@@ -13,4 +13,5 @@ from .memory import Memory
 from .trap import Trap
 from .func import Func, Caller
 from .instance import Instance
+from .wasi import WasiInstance, WasiConfig
 from .linker import Linker

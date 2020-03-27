@@ -166,6 +166,20 @@ class wasmtime_caller_t(Structure):
 P_wasmtime_caller_t = POINTER(wasmtime_caller_t)
 
 
+class wasi_config_t(Structure):
+    pass
+
+
+P_wasi_config_t = POINTER(wasi_config_t)
+
+
+class wasi_instance_t(Structure):
+    pass
+
+
+P_wasi_instance_t = POINTER(wasi_instance_t)
+
+
 class wasm_valtype_vec_t(Structure):
     _fields_ = [("size", c_size_t), ("data", POINTER(P_wasm_valtype_t))]
 
