@@ -1,3 +1,6 @@
+# Helper script to download a precompiled binary of the wasmtime dll for the
+# current platform. Currently always downloads the dev release of wasmtime.
+
 import urllib.request
 import zipfile
 import tarfile
