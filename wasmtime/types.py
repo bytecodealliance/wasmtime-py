@@ -21,6 +21,10 @@ dll.wasm_importtype_name.restype = POINTER(wasm_name_t)
 dll.wasm_importtype_type.restype = P_wasm_externtype_t
 dll.wasm_exporttype_name.restype = POINTER(wasm_name_t)
 dll.wasm_exporttype_type.restype = P_wasm_externtype_t
+dll.wasm_memorytype_as_externtype_const.restype = P_wasm_externtype_t
+dll.wasm_tabletype_as_externtype_const.restype = P_wasm_externtype_t
+dll.wasm_globaltype_as_externtype_const.restype = P_wasm_externtype_t
+dll.wasm_functype_as_externtype_const.restype = P_wasm_externtype_t
 
 dll.wasm_valtype_kind.restype = c_uint8
 dll.wasm_globaltype_mutability.restype = c_uint8
@@ -173,6 +177,11 @@ class FuncType(object):
         ptr = dll.wasm_functype_results(self.__ptr__)
         return ValType.__from_list__(ptr, self)
 
+    # Converts this object to an `ExternType`
+    def as_extern(self):
+        ptr = dll.wasm_functype_as_externtype_const(self.__ptr__)
+        return ExternType.__from_ptr__(ptr, self.__owner__ or self)
+
     def __del__(self):
         if hasattr(self, '__owner__') and self.__owner__ is None:
             dll.wasm_functype_delete(self.__ptr__)
@@ -209,6 +218,11 @@ class GlobalType(object):
     def mutable(self):
         val = dll.wasm_globaltype_mutability(self.__ptr__)
         return val == WASM_VAR.value
+
+    # Converts this object to an `ExternType`
+    def as_extern(self):
+        ptr = dll.wasm_globaltype_as_externtype_const(self.__ptr__)
+        return ExternType.__from_ptr__(ptr, self.__owner__ or self)
 
     def __del__(self):
         if hasattr(self, '__owner__') and self.__owner__ is None:
@@ -268,6 +282,11 @@ class TableType(object):
         val = dll.wasm_tabletype_limits(self.__ptr__)
         return Limits.__from_ffi__(val)
 
+    # Converts this object to an `ExternType`
+    def as_extern(self):
+        ptr = dll.wasm_tabletype_as_externtype_const(self.__ptr__)
+        return ExternType.__from_ptr__(ptr, self.__owner__ or self)
+
     def __del__(self):
         if hasattr(self, '__owner__') and self.__owner__ is None:
             dll.wasm_tabletype_delete(self.__ptr__)
@@ -292,10 +311,15 @@ class MemoryType(object):
         ty.__owner__ = owner
         return ty
 
-    # Returns the limits on the size of thi stable
+    # Returns the limits on the size of this table
     def limits(self):
         val = dll.wasm_memorytype_limits(self.__ptr__)
         return Limits.__from_ffi__(val)
+
+    # Converts this object to an `ExternType`
+    def as_extern(self):
+        ptr = dll.wasm_memorytype_as_externtype_const(self.__ptr__)
+        return ExternType.__from_ptr__(ptr, self.__owner__ or self)
 
     def __del__(self):
         if hasattr(self, '__owner__') and self.__owner__ is None:

@@ -30,6 +30,8 @@ class TestTypes(unittest.TestCase):
         ty = FuncType([ValType.i32()], [ValType.i64()])
         self.assertEqual([ValType.i32()], ty.params())
         self.assertEqual([ValType.i64()], ty.results())
+        self.assertTrue(ty.as_extern().func_type() is not None)
+        self.assertTrue(ty.as_extern().global_type() is None)
 
         GlobalType(ty.params()[0], True)
 
@@ -41,6 +43,8 @@ class TestTypes(unittest.TestCase):
         ty = GlobalType(ValType.i64(), False)
         self.assertFalse(ty.mutable())
         self.assertEqual(ty.content(), ValType.i64())
+        self.assertTrue(ty.as_extern().global_type() is not None)
+        self.assertTrue(ty.as_extern().func_type() is None)
 
     def test_table_type(self):
         ty = TableType(ValType.i32(), Limits(1, None))
@@ -50,6 +54,8 @@ class TestTypes(unittest.TestCase):
         ty = TableType(ValType.f32(), Limits(1, 2))
         self.assertEqual(ty.element(), ValType.f32())
         self.assertEqual(ty.limits(), Limits(1, 2))
+        self.assertTrue(ty.as_extern().table_type() is not None)
+        self.assertTrue(ty.as_extern().memory_type() is None)
 
     def test_memory_type(self):
         ty = MemoryType(Limits(1, None))
@@ -57,6 +63,8 @@ class TestTypes(unittest.TestCase):
 
         ty = MemoryType(Limits(1, 2))
         self.assertEqual(ty.limits(), Limits(1, 2))
+        self.assertTrue(ty.as_extern().memory_type() is not None)
+        self.assertTrue(ty.as_extern().table_type() is None)
 
     def test_invalid(self):
         with self.assertRaises(TypeError):
