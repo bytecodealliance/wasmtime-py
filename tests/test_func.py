@@ -2,9 +2,6 @@ import unittest
 
 from wasmtime import *
 
-import faulthandler
-faulthandler.enable()
-
 
 class TestFunc(unittest.TestCase):
     def test_smoke(self):
