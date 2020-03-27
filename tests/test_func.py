@@ -94,3 +94,55 @@ class TestFunc(unittest.TestCase):
 
         func = Func(store, ty, rev)
         self.assertEqual(func.call(1, 2, 3.0, 4.0), [4.0, 3.0, 2, 1])
+
+    def test_access_caller(self):
+        # Test that we get *something*
+        store = Store()
+        def runtest(caller):
+            self.assertEqual(caller.get_export(''), None)
+            self.assertEqual(caller.get_export('x'), None)
+            self.assertEqual(caller.get_export('y'), None)
+
+        Func(store, FuncType([], []), runtest, access_caller=True).call()
+
+        hit = {}
+
+        # Test that `Caller` works and that it's invalidated
+        def runtest2(caller):
+            hit['yes'] = True
+            hit['caller'] = caller
+
+            self.assertTrue(caller.get_export('bar') is None)
+            mem = caller.get_export('foo').memory()
+            self.assertTrue(mem is not None)
+
+            self.assertEqual(mem.data_ptr()[0], ord('f'))
+            self.assertEqual(mem.data_ptr()[1], ord('o'))
+            self.assertEqual(mem.data_ptr()[2], ord('o'))
+            self.assertEqual(mem.data_ptr()[3], 0)
+
+        module = Module(store, """
+            (module
+                (import "" "" (func))
+                (memory (export "foo") 1)
+                (start 0)
+                (data (i32.const 0) "foo")
+            )
+        """)
+        func = Func(store, FuncType([], []), runtest2, access_caller=True)
+        Instance(module, [func])
+        self.assertTrue(hit['yes'])
+        self.assertTrue(hit['caller'].get_export('foo') is None)
+
+        # Test that `Caller` is invalidated even on exceptions
+        hit2 = {}
+
+        def runtest3(caller):
+            hit2['caller'] = caller
+            self.assertTrue(caller.get_export('foo') is not None)
+            raise RuntimeError('foo')
+
+        func = Func(store, FuncType([], []), runtest3, access_caller=True)
+        with self.assertRaises(RuntimeError):
+            Instance(module, [func])
+        self.assertTrue(hit2['caller'].get_export('foo') is None)

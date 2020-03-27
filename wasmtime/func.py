@@ -5,24 +5,35 @@ import sys
 import traceback
 
 dll.wasm_func_new_with_env.restype = P_wasm_func_t
+dll.wasmtime_func_new_with_env.restype = P_wasm_func_t
 dll.wasm_func_type.restype = P_wasm_functype_t
 dll.wasm_func_param_arity.restype = c_size_t
 dll.wasm_func_result_arity.restype = c_size_t
 dll.wasm_func_call.restype = P_wasm_trap_t
 dll.wasm_func_as_extern.restype = P_wasm_extern_t
+dll.wasmtime_caller_export_get.restype = P_wasm_extern_t
 
 
 class Func(object):
     # Creates a new func in `store` with the given `ty` which calls the closure
     # given
-    def __init__(self, store, ty, func):
+    #
+    # The `func` is called with the parameters natively and they'll have native
+    # Python values rather than being wrapped in `Val`. If `access_caller` is
+    # set to `True` then the first argument given to `func` is an instance of
+    # type `Caller` below.
+    def __init__(self, store, ty, func, access_caller=False):
         if not isinstance(store, Store):
             raise TypeError("expected a Store")
         if not isinstance(ty, FuncType):
             raise TypeError("expected a FuncType")
         idx = FUNCTIONS.allocate((func, ty.params(), ty.results(), store))
-        ptr = dll.wasm_func_new_with_env(
-            store.__ptr__, ty.__ptr__, trampoline, idx, finalize)
+        if access_caller:
+            ptr = dll.wasmtime_func_new_with_env(
+                store.__ptr__, ty.__ptr__, trampoline_with_caller, idx, finalize)
+        else:
+            ptr = dll.wasm_func_new_with_env(
+                store.__ptr__, ty.__ptr__, trampoline, idx, finalize)
         if not ptr:
             FUNCTIONS.deallocate(idx)
             raise RuntimeError("failed to create func")
@@ -97,6 +108,31 @@ class Func(object):
             dll.wasm_func_delete(self.__ptr__)
 
 
+class Caller(object):
+    def __init__(self, ptr):
+        self.__ptr__ = ptr
+
+    # Looks up an export with `name` on the calling module.
+    #
+    # May return `None` if the export isn't found, if it's not a memory (for
+    # now), or if the caller has gone away and this `Caller` object has
+    # persisted too long.
+    def get_export(self, name):
+        # First convert to a raw name so we can typecheck our argument
+        name_raw = str_to_name(name)
+
+        # Next see if we've been invalidated
+        if not hasattr(self, '__ptr__'):
+            return None
+
+        # And if we're not invalidated we can perform the actual lookup
+        ptr = dll.wasmtime_caller_export_get(self.__ptr__, byref(name_raw))
+        if ptr:
+            return Extern.__from_ptr__(ptr, None)
+        else:
+            return None
+
+
 def extract_val(val):
     a = val.get()
     if a is not None:
@@ -106,10 +142,22 @@ def extract_val(val):
 
 @CFUNCTYPE(c_size_t, c_size_t, POINTER(wasm_val_t), POINTER(wasm_val_t))
 def trampoline(idx, params_ptr, results_ptr):
+    return invoke(idx, params_ptr, results_ptr, [])
+
+
+@CFUNCTYPE(c_size_t, P_wasmtime_caller_t, c_size_t, POINTER(wasm_val_t), POINTER(wasm_val_t))
+def trampoline_with_caller(caller, idx, params_ptr, results_ptr):
+    caller = Caller(caller)
+    try:
+        return invoke(idx, params_ptr, results_ptr, [caller])
+    finally:
+        delattr(caller, '__ptr__')
+
+
+def invoke(idx, params_ptr, results_ptr, params):
     func, param_tys, result_tys, store = FUNCTIONS.get(idx)
 
     try:
-        params = []
         for i in range(0, len(param_tys)):
             params.append(extract_val(Val(params_ptr[i])))
         results = func(*params)

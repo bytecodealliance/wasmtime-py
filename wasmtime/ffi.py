@@ -159,6 +159,13 @@ class wasmtime_linker_t(Structure):
 P_wasmtime_linker_t = POINTER(wasmtime_linker_t)
 
 
+class wasmtime_caller_t(Structure):
+    pass
+
+
+P_wasmtime_caller_t = POINTER(wasmtime_caller_t)
+
+
 class wasm_valtype_vec_t(Structure):
     _fields_ = [("size", c_size_t), ("data", POINTER(P_wasm_valtype_t))]
 
