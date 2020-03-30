@@ -88,7 +88,7 @@ class TestLinker(unittest.TestCase):
                 (import "y" "z" (global i32))
             )
         """)
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(Trap):
             linker.instantiate(module)
 
         module = Module(store, """
@@ -97,7 +97,7 @@ class TestLinker(unittest.TestCase):
                 (start 0)
             )
         """)
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(Trap):
             linker.instantiate(module)
 
         module = Module(store, "(module)")

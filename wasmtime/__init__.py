@@ -10,7 +10,7 @@ from .extern import Extern
 from .globals import Global
 from .table import Table
 from .memory import Memory
-from .trap import Trap
+from .trap import Trap, Frame
 from .func import Func, Caller
 from .instance import Instance
 from .wasi import WasiInstance, WasiConfig

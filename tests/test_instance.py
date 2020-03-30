@@ -154,11 +154,11 @@ class TestInstance(unittest.TestCase):
             Instance(module, [val, val])
 
         module = Module(store, '(module (import "" "" (global i32)))')
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(Trap):
             Instance(module, [val])
 
     def test_start_trap(self):
         store = Store()
         module = Module(store, '(module (func unreachable) (start 0))')
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(Trap):
             Instance(module, [])

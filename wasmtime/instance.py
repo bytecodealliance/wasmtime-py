@@ -43,8 +43,7 @@ class Instance(object):
             module.store.__ptr__, module.__ptr__, imports_ffi, byref(trap))
         if not ptr:
             if trap:
-                trap = Trap.__from_ptr__(trap)
-                raise RuntimeError("instantiation trap: %s" % trap.message())
+                raise Trap.__from_ptr__(trap)
             raise RuntimeError("failed to compile instance")
         self.__ptr__ = ptr
 

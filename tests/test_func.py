@@ -66,17 +66,17 @@ class TestFunc(unittest.TestCase):
         ty = FuncType([ValType.i32()], [])
 
         func = Func(store, ty, lambda x: x)
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(Trap):
             func.call(1)
 
     def test_produce_wrong(self):
         store = Store()
         ty = FuncType([], [ValType.i32(), ValType.i32()])
         func = Func(store, ty, lambda: 1)
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(Trap):
             func.call()
         func = Func(store, ty, lambda: [1, 2, 3])
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(Trap):
             func.call()
 
     def test_typest(self):
@@ -144,6 +144,6 @@ class TestFunc(unittest.TestCase):
             raise RuntimeError('foo')
 
         func = Func(store, FuncType([], []), runtest3, access_caller=True)
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(Trap):
             Instance(module, [func])
         self.assertTrue(hit2['caller'].get_export('foo') is None)

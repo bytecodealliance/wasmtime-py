@@ -89,8 +89,7 @@ class Func(object):
 
         trap = dll.wasm_func_call(self.__ptr__, param_ffi, result_ffi)
         if trap:
-            trap = Trap.__from_ptr__(trap)
-            raise RuntimeError(trap.message())
+            raise Trap.__from_ptr__(trap)
 
         results = []
         for i in range(0, len(result_tys)):

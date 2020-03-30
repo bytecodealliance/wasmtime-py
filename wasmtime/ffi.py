@@ -180,6 +180,13 @@ class wasi_instance_t(Structure):
 P_wasi_instance_t = POINTER(wasi_instance_t)
 
 
+class wasm_frame_t(Structure):
+    pass
+
+
+P_wasm_frame_t = POINTER(wasm_frame_t)
+
+
 class wasm_valtype_vec_t(Structure):
     _fields_ = [("size", c_size_t), ("data", POINTER(P_wasm_valtype_t))]
 
@@ -212,6 +219,10 @@ class wasm_importtype_vec_t(Structure):
 
 class wasm_extern_vec_t(Structure):
     _fields_ = [("size", c_size_t), ("data", POINTER(P_wasm_extern_t))]
+
+
+class wasm_frame_vec_t(Structure):
+    _fields_ = [("size", c_size_t), ("data", POINTER(P_wasm_frame_t))]
 
 
 class wasm_val_union(Union):

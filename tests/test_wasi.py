@@ -26,7 +26,7 @@ class TestWasi(unittest.TestCase):
         instance = WasiInstance(Store(), "wasi_unstable", config)
 
         # specify nonexistent version
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(Trap):
             WasiInstance(Store(), "nonexistent_wasi", WasiConfig())
         # re-use config
         with self.assertRaises(AttributeError):

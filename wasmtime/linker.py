@@ -65,8 +65,7 @@ class Linker(object):
             self.__ptr__, module.__ptr__, byref(trap))
         if not ptr:
             if trap:
-                trap = Trap.__from_ptr__(trap)
-                raise RuntimeError("failed to instantiate: " + trap.message())
+                raise Trap.__from_ptr__(trap)
             raise RuntimeError("failed to instantiate")
         return Instance.__from_ptr__(ptr)
 
