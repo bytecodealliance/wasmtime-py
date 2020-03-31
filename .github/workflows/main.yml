@@ -45,6 +45,7 @@ jobs:
       with:
         python-version: '3.x'
     - run: pip install pdoc3
+    - run: python download-wasmtime.py
     - run: pdoc --html wasmtime
     - name: Push to gh-pages
       run: curl -LsSf https://git.io/fhJ8n | rustc - && (cd html/wasmtime && ../../rust_out)
