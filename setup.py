@@ -19,7 +19,6 @@ setuptools.setup(
         "Source Code": "https://github.com/bytecodealliance/wasmtime-py",
     },
     packages=['wasmtime'],
-    package_data={'wasmtime': ['wasmtime/wasmtime.pyd']},
     include_package_data=True,
     python_requires='>=2.7',
     test_suite="tests",
