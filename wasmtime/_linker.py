@@ -1,4 +1,4 @@
-from .ffi import *
+from ._ffi import *
 from ctypes import *
 from wasmtime import Store, Extern, Func, Global, Table, Memory, Instance
 from wasmtime import Module, Trap, WasiInstance

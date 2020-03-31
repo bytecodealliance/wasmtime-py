@@ -1,4 +1,4 @@
-from .ffi import *
+from ._ffi import *
 from ctypes import *
 
 dll.wasm_valtype_new.restype = P_wasm_valtype_t

@@ -1,17 +1,62 @@
-from .config import Config
-from .engine import Engine
-from .store import Store
-from .types import FuncType, GlobalType, MemoryType, TableType
-from .types import ValType, ExternType, Limits, ImportType, ExportType
-from .wat2wasm import wat2wasm
-from .module import Module
-from .value import Val
-from .extern import Extern
-from .globals import Global
-from .table import Table
-from .memory import Memory
-from .trap import Trap, Frame
-from .func import Func, Caller
-from .instance import Instance
-from .wasi import WasiInstance, WasiConfig
-from .linker import Linker
+"""
+Python bindings for the [Wasmtime project]
+
+[Wasmtime project]: https://github.com/bytecodealliance/wasmtime
+
+This library binds the [Wasmtime project]'s C API to provide an implementation
+of a WebAssembly JIT compiler to Python. You can validate, compile, instantiate,
+and interact with WebAssembly modules via this library.
+
+The API of this library is intended to be very similar to the [`wasmtime` Rust
+crate](https://docs.rs/wasmtime), so if you find the docs are lacking here feel
+free to consult that documentation as well. While not exactly the same the two
+libraries are intended to be quite similar.
+"""
+
+from ._config import Config
+from ._engine import Engine
+from ._store import Store
+from ._types import FuncType, GlobalType, MemoryType, TableType
+from ._types import ValType, ExternType, Limits, ImportType, ExportType
+from ._wat2wasm import wat2wasm
+from ._module import Module
+from ._value import Val
+from ._extern import Extern
+from ._globals import Global
+from ._table import Table
+from ._memory import Memory
+from ._trap import Trap, Frame
+from ._func import Func, Caller
+from ._instance import Instance
+from ._wasi import WasiInstance, WasiConfig
+from ._linker import Linker
+
+__all__ = [
+    'wat2wasm',
+    'Config',
+    'Engine',
+    'Store',
+    'FuncType',
+    'GlobalType',
+    'MemoryType',
+    'TableType',
+    'ValType',
+    'ExternType',
+    'Limits',
+    'ImportType',
+    'ExportType',
+    'Val',
+    'Func',
+    'Caller',
+    'Table',
+    'Memory',
+    'Global',
+    'Extern',
+    'Trap',
+    'Frame',
+    'Module',
+    'Instance',
+    'WasiConfig',
+    'WasiInstance',
+    'Linker',
+]
