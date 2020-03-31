@@ -19,6 +19,9 @@
     <a href="https://alexcrichton.github.io/wasmtime-py/">
       <img src="https://img.shields.io/badge/docs-master-green" alt="Documentation"/>
     </a>
+    <a href="https://alexcrichton.github.io/wasmtime-py/coverage/">
+      <img src="https://img.shields.io/badge/coverage-master-green" alt="Code Coverage"/>
+    </a>
   </p>
 
 </div>

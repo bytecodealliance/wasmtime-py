@@ -49,7 +49,7 @@ jobs:
     - run: pdoc --html wasmtime
     - uses: actions/upload-artifact@v1
       with:
-        name: docs
+        name: generated-docs
         path: html/wasmtime
 
   coverage:
@@ -78,11 +78,11 @@ jobs:
         name: coverage
     - uses: actions/download-artifact@v1
       with:
-        name: docs
+        name: generated-docs
     - run: find .
-    - run: mv coverage/htmlcov docs
+    - run: mv coverage generated-docs
     - name: Push to gh-pages
-      run: curl -LsSf https://git.io/fhJ8n | rustc - && (cd docs && ../rust_out)
+      run: curl -LsSf https://git.io/fhJ8n | rustc - && (cd generated-docs && ../rust_out)
       env:
         GITHUB_DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
         BUILD_REPOSITORY_ID: ${{ github.repository }}
