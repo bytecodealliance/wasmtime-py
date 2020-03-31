@@ -43,6 +43,9 @@ jobs:
       with:
         python-version: '3.x'
     - run: pip install setuptools wheel
+    # If this is a tagged build use real version numbers
+    - run: echo "::set-env name=PROD::true"
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
     - run: python download-wasmtime.py
     - run: python setup.py bdist_wheel --plat-name ${{ matrix.plat }}
     - uses: actions/upload-artifact@v1
@@ -106,6 +109,7 @@ jobs:
     - run: mv coverage generated-docs
     - name: Push to gh-pages
       run: curl -LsSf https://git.io/fhJ8n | rustc - && (cd generated-docs && ../rust_out)
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
       env:
         GITHUB_DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
         BUILD_REPOSITORY_ID: ${{ github.repository }}
@@ -138,9 +142,11 @@ jobs:
         user: __token__
         password: ${{ secrets.test_pypi_password }}
         repository_url: https://test.pypi.org/legacy/
-    # - name: Publish distribution 📦 to PyPI
-    #   if: startsWith(github.event.ref, 'refs/tags')
-    #   uses: pypa/gh-action-pypi-publish@master
-    #   with:
-    #     user: __token__
-    #     password: ${{ secrets.pypi_password }}
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+
+    - name: Publish distribution 📦 to PyPI
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: __token__
+        password: ${{ secrets.pypi_password }}
