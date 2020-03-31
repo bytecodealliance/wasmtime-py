@@ -36,3 +36,20 @@ jobs:
           python-version: '3.x'
       - run: pip install flake8
       - run: flake8
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v1
+      with:
+        python-version: '3.x'
+    - run: pip install pdoc3
+    - run: pdoc --html wasmtime
+    - name: Push to gh-pages
+      run: curl -LsSf https://git.io/fhJ8n | rustc - && (cd html/wasmtime && ../../rust_out)
+      env:
+        GITHUB_DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+        BUILD_REPOSITORY_ID: ${{ github.repository }}
+        BUILD_SOURCEVERSION: ${{ github.sha }}
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
