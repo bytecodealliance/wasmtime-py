@@ -132,4 +132,5 @@ jobs:
     - run: find .
     - run: twine upload --non-interactive --repository-url https://test.pypi.org/legacy/ wheel-*-latest/*
       env:
-        TWINE_USER: alexcrichton
+        TWINE_USERNAME: alexcrichton
+        TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
