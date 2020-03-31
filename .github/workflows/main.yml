@@ -130,4 +130,6 @@ jobs:
       with:
         name: wheel-windows-latest
     - run: find .
-    - run: twine upload -u alexcrichton --repository-url https://test.pypi.org/legacy/ wheel-*-latest/*
+    - run: twine upload --non-interactive --repository-url https://test.pypi.org/legacy/ wheel-*-latest/*
+      env:
+        TWINE_USER: alexcrichton
