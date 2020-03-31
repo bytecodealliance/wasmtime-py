@@ -8,7 +8,7 @@ setuptools.setup(
     version="0.1.0",
     author="The Wasmtime Project Developers",
     author_email="hello@bytecodealliance.org",
-    description="A WebAssembly runtime",
+    description="A WebAssembly runtime powered by Wasmtime",
     long_description=long_description,
     long_description_content_type="text/markdown",
     license="Apache-2.0 WITH LLVM-exception",
