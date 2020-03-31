@@ -47,7 +47,7 @@ jobs:
     - run: python setup.py bdist_wheel --plat-name ${{ matrix.plat }}
     - uses: actions/upload-artifact@v1
       with:
-        name: wheel-${{ matrix.palt }}
+        name: wheel-${{ matrix.os }}
         path: dist
 
   flake8:
@@ -91,7 +91,7 @@ jobs:
         name: coverage
         path: htmlcov
 
-  upload:
+  upload_docs:
     needs: [coverage, docs]
     runs-on: ubuntu-latest
     steps:
@@ -110,4 +110,24 @@ jobs:
         GITHUB_DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
         BUILD_REPOSITORY_ID: ${{ github.repository }}
         BUILD_SOURCEVERSION: ${{ github.sha }}
-      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+
+  upload_wheels:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v1
+      with:
+        python-version: '3.x'
+    - run: pip install twine
+    - uses: actions/download-artifact@v1
+      with:
+        name: wheel-ubuntu-latest
+    - uses: actions/download-artifact@v1
+      with:
+        name: wheel-macos-latest
+    - uses: actions/download-artifact@v1
+      with:
+        name: wheel-windows-latest
+    - run: find .
+    - run: twine upload --repository-url https://test.pypi.org/legacy/ wheel-*-latest/*
