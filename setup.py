@@ -13,6 +13,11 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     license="Apache-2.0 WITH LLVM-exception",
     url="https://github.com/bytecodealliance/wasmtime-py",
+    project_urls={
+        "Bug Tracker": "https://github.com/bytecodealliance/wasmtime-py/issues",
+        "Documentation": "https://bytecodealliance.github.io/wasmtime-py/",
+        "Source Code": "https://github.com/bytecodealliance/wasmtime-py",
+    },
     packages=['wasmtime'],
     python_requires='>=2.7',
     test_suite="tests",
