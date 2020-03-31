@@ -28,5 +28,8 @@
 
 ## Installation
 
-WORDS
+You can install this extension via:
 
+```
+pip install wasmtime
+```
