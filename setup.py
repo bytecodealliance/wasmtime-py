@@ -1,9 +1,18 @@
 import setuptools
+import os
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 version = "0.0.0"
+
+# Give unique version numbers to all commits so our publication-on-each commit
+# works on master
+if 'PROD' not in os.environ:
+    stream = os.popen('git rev-list ' + version + '.. --count')
+    output = stream.read()
+    version += '.dev' + output
+    print(version)
 
 setuptools.setup(
     name="wasmtime2",
