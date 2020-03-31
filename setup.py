@@ -9,7 +9,7 @@ version = "0.0.0"
 # Give unique version numbers to all commits so our publication-on-each commit
 # works on master
 if 'PROD' not in os.environ:
-    stream = os.popen('git rev-list 0.0.0.. --count')
+    stream = os.popen('git rev-list HEAD --count')
     output = stream.read()
     version += '.dev' + output
     print(version)
