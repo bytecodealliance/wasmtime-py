@@ -43,6 +43,7 @@ jobs:
       with:
         python-version: '3.x'
     - run: python download-wasmtime.py
+    - run: pip install setuptools wheel
     - run: python setup.py bdist_wheel --plat-name ${{ matrix.plat }}
     - uses: actions/upload-artifact@v1
       with:
