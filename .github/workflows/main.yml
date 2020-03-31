@@ -42,8 +42,8 @@ jobs:
     - uses: actions/setup-python@v1
       with:
         python-version: '3.x'
-    - run: python download-wasmtime.py
     - run: pip install setuptools wheel
+    - run: python download-wasmtime.py
     - run: python setup.py bdist_wheel --plat-name ${{ matrix.plat }}
     - uses: actions/upload-artifact@v1
       with:
@@ -130,4 +130,4 @@ jobs:
       with:
         name: wheel-windows-latest
     - run: find .
-    - run: twine upload --repository-url https://test.pypi.org/legacy/ wheel-*-latest/*
+    - run: twine upload -u alexcrichton --repository-url https://test.pypi.org/legacy/ wheel-*-latest/*
