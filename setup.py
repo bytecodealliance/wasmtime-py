@@ -3,10 +3,6 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-class BinaryDistribution(setuptools.dist.Distribution):
-    def is_pure(self):
-        return False
-
 setuptools.setup(
     name="wasmtime",
     version="0.1.0",
@@ -25,10 +21,8 @@ setuptools.setup(
     packages=['wasmtime'],
     package_data={'wasmtime': ['wasmtime/wasmtime.pyd']},
     include_package_data=True,
-    ext_modules=[],
     python_requires='>=2.7',
     test_suite="tests",
-    install_requires=['setuptools >= 36'],
     extras_require={
         'testing': [
             'coverage',
