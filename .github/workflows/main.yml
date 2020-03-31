@@ -50,7 +50,7 @@ jobs:
     - uses: actions/upload-artifact@v1
       with:
         name: docs
-        path: html
+        path: html/wasmtime
 
   coverage:
     runs-on: ubuntu-latest
@@ -79,9 +79,10 @@ jobs:
     - uses: actions/download-artifact@v1
       with:
         name: docs
-    - run: mv htmlcov html/wasmtime
+    - run: find .
+    - run: mv coverage/htmlcov docs
     - name: Push to gh-pages
-      run: curl -LsSf https://git.io/fhJ8n | rustc - && (cd html/wasmtime && ../../rust_out)
+      run: curl -LsSf https://git.io/fhJ8n | rustc - && (cd docs && ../rust_out)
       env:
         GITHUB_DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
         BUILD_REPOSITORY_ID: ${{ github.repository }}
