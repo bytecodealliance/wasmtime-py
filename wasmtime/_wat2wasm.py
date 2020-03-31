@@ -8,13 +8,13 @@ def wat2wasm(wat):
     """
     Converts the [WebAssembly Text format][wat] to the binary format.
 
-    This function is intended to be a convenience function for local development
-    and you likely don't want to use it extensively in production. It's much
-    faster to parse and compile the binary format than it is to process the text
-    format.
+    This function is intended to be a convenience function for local
+    development and you likely don't want to use it extensively in production.
+    It's much faster to parse and compile the binary format than it is to
+    process the text format.
 
-    Takes a `str` as input, raises an error if it fails to parse, and returns a
-    `bytes` if conversion/parsing was successful.
+    Takes a `str` as input, raises an error if it fails to parse, and returns
+    a `bytes` if conversion/parsing was successful.
 
     >>> wat2wasm('(module)')
     bytearray(b'\\x00asm\\x01\\x00\\x00\\x00')

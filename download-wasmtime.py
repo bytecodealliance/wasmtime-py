@@ -50,5 +50,6 @@ def main():
 
     raise RuntimeError("failed to find dynamic library")
 
+
 if __name__ == '__main__':
     main()
