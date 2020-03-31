@@ -3,9 +3,11 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+version = "0.0.0"
+
 setuptools.setup(
     name="wasmtime2",
-    version="0.1.0",
+    version=version,
     author="The Wasmtime Project Developers",
     author_email="hello@bytecodealliance.org",
     description="A WebAssembly runtime powered by Wasmtime",
