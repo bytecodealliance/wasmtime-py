@@ -15,14 +15,17 @@ dll.wasmtime_caller_export_get.restype = P_wasm_extern_t
 
 
 class Func(object):
-    # Creates a new func in `store` with the given `ty` which calls the closure
-    # given
-    #
-    # The `func` is called with the parameters natively and they'll have native
-    # Python values rather than being wrapped in `Val`. If `access_caller` is
-    # set to `True` then the first argument given to `func` is an instance of
-    # type `Caller` below.
     def __init__(self, store, ty, func, access_caller=False):
+        """
+        Creates a new func in `store` with the given `ty` which calls the closure
+        given
+
+        The `func` is called with the parameters natively and they'll have native
+        Python values rather than being wrapped in `Val`. If `access_caller` is
+        set to `True` then the first argument given to `func` is an instance of
+        type `Caller` below.
+        """
+
         if not isinstance(store, Store):
             raise TypeError("expected a Store")
         if not isinstance(ty, FuncType):
@@ -53,28 +56,39 @@ class Func(object):
         ty.__owner__ = owner
         return ty
 
-    # Gets the type of this func as a `FuncType`
     def type(self):
+        """
+        Gets the type of this func as a `FuncType`
+        """
         ptr = dll.wasm_func_type(self.__ptr__)
         return FuncType.__from_ptr__(ptr, None)
 
-    # Returns the number of parameters this function expects
     def param_arity(self):
+        """
+        Returns the number of parameters this function expects
+        """
         return dll.wasm_func_param_arity(self.__ptr__)
 
-    # Returns the number of results this function produces
     def result_arity(self):
+        """
+        Returns the number of results this function produces
+        """
         return dll.wasm_func_result_arity(self.__ptr__)
 
-    # Calls this function with the given parameters
-    #
-    # Parameters can either be a `Val` or a native python value which can be
-    # converted to a `Val` of the corresponding correct type
-    #
-    # Returns `None` if this func has 0 return types
-    # Returns a single value if the func has 1 return type
-    # Returns a list if the func has more than 1 return type
     def call(self, *params):
+        """
+        Calls this function with the given parameters
+
+        Parameters can either be a `Val` or a native python value which can be
+        converted to a `Val` of the corresponding correct type
+
+        Returns `None` if this func has 0 return types
+        Returns a single value if the func has 1 return type
+        Returns a list if the func has more than 1 return type
+
+        Note that you can also use the `__call__` method and invoke a `Func` as
+        if it were a function directly.
+        """
         return self(*params)
 
     def __call__(self, *params):
@@ -104,8 +118,10 @@ class Func(object):
         else:
             return results
 
-    # Returns this as an instance of `Extern`
     def as_extern(self):
+        """
+        Returns this as an instance of `Extern`
+        """
         ptr = dll.wasm_func_as_extern(self.__ptr__)
         return Extern.__from_ptr__(ptr, self.__owner__ or self)
 
@@ -118,12 +134,15 @@ class Caller(object):
     def __init__(self, ptr):
         self.__ptr__ = ptr
 
-    # Looks up an export with `name` on the calling module.
-    #
-    # May return `None` if the export isn't found, if it's not a memory (for
-    # now), or if the caller has gone away and this `Caller` object has
-    # persisted too long.
     def get_export(self, name):
+        """
+        Looks up an export with `name` on the calling module.
+
+        May return `None` if the export isn't found, if it's not a memory (for
+        now), or if the caller has gone away and this `Caller` object has
+        persisted too long.
+        """
+
         # First convert to a raw name so we can typecheck our argument
         name_raw = str_to_name(name)
 

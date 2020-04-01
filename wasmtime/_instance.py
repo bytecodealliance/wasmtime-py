@@ -6,16 +6,19 @@ dll.wasm_instance_new.restype = P_wasm_instance_t
 
 
 class Instance(object):
-    # Creates a new instance by instantiating the `module` given with the
-    # `imports` provided.
-    #
-    # The `module` must have type `Module`, and the `imports` must be an
-    # iterable of external values, either `Extern`, `Func`, `Table`, `Memory`,
-    # or `Global`.
-    #
-    # Raises an error if instantiation fails (e.g. linking or trap) and
-    # otherwise initializes the new instance.
     def __init__(self, module, imports):
+        """
+        Creates a new instance by instantiating the `module` given with the
+        `imports` provided.
+
+        The `module` must have type `Module`, and the `imports` must be an
+        iterable of external values, either `Extern`, `Func`, `Table`, `Memory`,
+        or `Global`.
+
+        Raises an error if instantiation fails (e.g. linking or trap) and
+        otherwise initializes the new instance.
+        """
+
         if not isinstance(module, Module):
             raise TypeError("expected a Module")
 
@@ -57,8 +60,10 @@ class Instance(object):
         ty._module = module
         return ty
 
-    # Returns the exports of this module
     def exports(self):
+        """
+        Returns the exports of this module
+        """
         externs = ExternTypeList()
         dll.wasm_instance_exports(self.__ptr__, byref(externs.vec))
         ret = []
@@ -66,9 +71,11 @@ class Instance(object):
             ret.append(Extern.__from_ptr__(externs.vec.data[i], externs))
         return ret
 
-    # Gets an export from this module by name, returning `None` if the name
-    # doesn't exist.
     def get_export(self, name):
+        """
+        Gets an export from this module by name, returning `None` if the name
+        doesn't exist.
+        """
         if not hasattr(self, '_export_map'):
             self._export_map = {}
             exports = self.exports()

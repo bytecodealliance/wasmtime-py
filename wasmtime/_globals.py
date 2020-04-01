@@ -30,26 +30,35 @@ class Global(object):
         ty.__owner__ = owner
         return ty
 
-    # Gets the type of this global as a `GlobalType`
     def type(self):
+        """
+        Gets the type of this global as a `GlobalType`
+        """
+
         ptr = dll.wasm_global_type(self.__ptr__)
         return GlobalType.__from_ptr__(ptr, None)
 
-    # Gets the current value of this global
-    #
-    # Returns a native python type
     def get(self):
+        """
+        Gets the current value of this global
+
+        Returns a native python type
+        """
         raw = wasm_val_t()
         dll.wasm_global_get(self.__ptr__, byref(raw))
         return Val(raw).get()
 
-    # Sets the value of this global to a new value
     def set(self, val):
+        """
+        Sets the value of this global to a new value
+        """
         val = Val.__convert__(self.type().content(), val)
         dll.wasm_global_set(self.__ptr__, byref(val.__raw__))
 
-    # Returns this type as an instance of `Extern`
     def as_extern(self):
+        """
+        Returns this type as an instance of `Extern`
+        """
         ptr = dll.wasm_global_as_extern(self.__ptr__)
         return Extern.__from_ptr__(ptr, self.__owner__ or self)
 

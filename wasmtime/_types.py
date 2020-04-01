@@ -167,18 +167,27 @@ class FuncType(object):
         ty.__owner__ = owner
         return ty
 
-    # Returns the list of parameter types for this function type
     def params(self):
+        """
+        Returns the list of parameter types for this function type
+        """
+
         ptr = dll.wasm_functype_params(self.__ptr__)
         return ValType.__from_list__(ptr, self)
 
-    # Returns the list of result types for this function type
     def results(self):
+        """
+        Returns the list of result types for this function type
+        """
+
         ptr = dll.wasm_functype_results(self.__ptr__)
         return ValType.__from_list__(ptr, self)
 
-    # Converts this object to an `ExternType`
     def as_extern(self):
+        """
+        Converts this object to an `ExternType`
+        """
+
         ptr = dll.wasm_functype_as_externtype_const(self.__ptr__)
         return ExternType.__from_ptr__(ptr, self.__owner__ or self)
 
@@ -209,18 +218,25 @@ class GlobalType(object):
         ty.__owner__ = owner
         return ty
 
-    # Returns the type this global contains
     def content(self):
+        """
+        Returns the type this global contains
+        """
+
         ptr = dll.wasm_globaltype_content(self.__ptr__)
         return ValType.__from_ptr__(ptr, self)
 
-    # Returns whether this global is mutable or not
     def mutable(self):
+        """
+        Returns whether this global is mutable or not
+        """
         val = dll.wasm_globaltype_mutability(self.__ptr__)
         return val == WASM_VAR.value
 
-    # Converts this object to an `ExternType`
     def as_extern(self):
+        """
+        Converts this object to an `ExternType`
+        """
         ptr = dll.wasm_globaltype_as_externtype_const(self.__ptr__)
         return ExternType.__from_ptr__(ptr, self.__owner__ or self)
 
@@ -272,18 +288,24 @@ class TableType(object):
         ty.__owner__ = owner
         return ty
 
-    # Returns the type of this table's elements
     def element(self):
+        """
+        Returns the type of this table's elements
+        """
         ptr = dll.wasm_tabletype_element(self.__ptr__)
         return ValType.__from_ptr__(ptr, self)
 
-    # Returns the limits on the size of thi stable
     def limits(self):
+        """
+        Returns the limits on the size of thi stable
+        """
         val = dll.wasm_tabletype_limits(self.__ptr__)
         return Limits.__from_ffi__(val)
 
-    # Converts this object to an `ExternType`
     def as_extern(self):
+        """
+        Converts this object to an `ExternType`
+        """
         ptr = dll.wasm_tabletype_as_externtype_const(self.__ptr__)
         return ExternType.__from_ptr__(ptr, self.__owner__ or self)
 
@@ -311,13 +333,18 @@ class MemoryType(object):
         ty.__owner__ = owner
         return ty
 
-    # Returns the limits on the size of this table
     def limits(self):
+        """
+        Returns the limits on the size of this table
+        """
         val = dll.wasm_memorytype_limits(self.__ptr__)
         return Limits.__from_ffi__(val)
 
-    # Converts this object to an `ExternType`
     def as_extern(self):
+        """
+        Converts this object to an `ExternType`
+        """
+
         ptr = dll.wasm_memorytype_as_externtype_const(self.__ptr__)
         return ExternType.__from_ptr__(ptr, self.__owner__ or self)
 
@@ -336,32 +363,44 @@ class ExternType(object):
         ty.__owner__ = owner
         return ty
 
-    # Returns this type as a `FuncType` or `None` if it's not a function
     def func_type(self):
+        """
+        Returns this type as a `FuncType` or `None` if it's not a function
+        """
+
         val = dll.wasm_externtype_as_functype_const(self.__ptr__)
         if val:
             return FuncType.__from_ptr__(val, self.__owner__ or self)
         else:
             return None
 
-    # Returns this type as a `TableType` or `None` if it's not a table
     def table_type(self):
+        """
+        Returns this type as a `TableType` or `None` if it's not a table
+        """
+
         val = dll.wasm_externtype_as_tabletype_const(self.__ptr__)
         if val:
             return TableType.__from_ptr__(val, self.__owner__ or self)
         else:
             return None
 
-    # Returns this type as a `GlobalType` or `None` if it's not a global
     def global_type(self):
+        """
+        Returns this type as a `GlobalType` or `None` if it's not a global
+        """
+
         val = dll.wasm_externtype_as_globaltype_const(self.__ptr__)
         if val:
             return GlobalType.__from_ptr__(val, self.__owner__ or self)
         else:
             return None
 
-    # Returns this type as a `MemoryType` or `None` if it's not a memory
     def memory_type(self):
+        """
+        Returns this type as a `MemoryType` or `None` if it's not a memory
+        """
+
         val = dll.wasm_externtype_as_memorytype_const(self.__ptr__)
         if val:
             return MemoryType.__from_ptr__(val, self.__owner__ or self)
@@ -383,16 +422,23 @@ class ImportType(object):
         ty.__owner__ = owner
         return ty
 
-    # Returns the module this import type refers to
     def module(self):
+        """
+        Returns the module this import type refers to
+        """
+
         return dll.wasm_importtype_module(self.__ptr__).contents.to_str()
 
-    # Returns the name in the modulethis import type refers to
     def name(self):
+        """
+        Returns the name in the modulethis import type refers to
+        """
         return dll.wasm_importtype_name(self.__ptr__).contents.to_str()
 
-    # Returns the type that this import refers to
     def type(self):
+        """
+        Returns the type that this import refers to
+        """
         ptr = dll.wasm_importtype_type(self.__ptr__)
         return ExternType.__from_ptr__(ptr, self.__owner__ or self)
 
@@ -411,12 +457,16 @@ class ExportType(object):
         ty.__owner__ = owner
         return ty
 
-    # Returns the name in the modulethis export type refers to
     def name(self):
+        """
+        Returns the name in the modulethis export type refers to
+        """
         return dll.wasm_exporttype_name(self.__ptr__).contents.to_str()
 
-    # Returns the type that this export refers to
     def type(self):
+        """
+        Returns the type that this export refers to
+        """
         ptr = dll.wasm_exporttype_type(self.__ptr__)
         return ExternType.__from_ptr__(ptr, self.__owner__ or self)
 

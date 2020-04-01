@@ -17,17 +17,26 @@ class Table(object):
         ty.__owner__ = owner
         return ty
 
-    # Gets the type of this table as a `TableType`
     def type(self):
+        """
+        Gets the type of this table as a `TableType`
+        """
+
         ptr = dll.wasm_table_type(self.__ptr__)
         return TableType.__from_ptr__(ptr, None)
 
-    # Gets the size, in elements, of this table
     def size(self):
+        """
+        Gets the size, in elements, of this table
+        """
+
         return dll.wasm_table_size(self.__ptr__)
 
-    # Returns this as an instance of `Extern`
     def as_extern(self):
+        """
+        Returns this as an instance of `Extern`
+        """
+
         ptr = dll.wasm_table_as_extern(self.__ptr__)
         return Extern.__from_ptr__(ptr, self.__owner__ or self)
 

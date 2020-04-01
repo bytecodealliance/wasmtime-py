@@ -61,8 +61,11 @@ class Module(object):
         else:
             return False
 
-    # Returns the types of imports that this module has
     def imports(self):
+        """
+        Returns the types of imports that this module has
+        """
+
         imports = ImportTypeList()
         dll.wasm_module_imports(self.__ptr__, byref(imports.vec))
         ret = []
@@ -70,8 +73,11 @@ class Module(object):
             ret.append(ImportType.__from_ptr__(imports.vec.data[i], imports))
         return ret
 
-    # Returns the types of the exports that this module has
     def exports(self):
+        """
+        Returns the types of the exports that this module has
+        """
+
         exports = ExportTypeList()
         dll.wasm_module_exports(self.__ptr__, byref(exports.vec))
         ret = []

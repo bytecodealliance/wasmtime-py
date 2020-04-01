@@ -11,8 +11,11 @@ dll.wasm_memory_grow.restype = c_bool
 
 
 class Memory(object):
-    # Creates a new memory in `store` with the given `ty`
     def __init__(self, store, ty):
+        """
+        Creates a new memory in `store` with the given `ty`
+        """
+
         if not isinstance(store, Store):
             raise TypeError("expected a Store")
         if not isinstance(ty, MemoryType):
@@ -32,13 +35,19 @@ class Memory(object):
         ty.__owner__ = owner
         return ty
 
-    # Gets the type of this memory as a `MemoryType`
     def type(self):
+        """
+        Gets the type of this memory as a `MemoryType`
+        """
+
         ptr = dll.wasm_memory_type(self.__ptr__)
         return MemoryType.__from_ptr__(ptr, None)
 
-    # Grows this memory by the given number of pages
     def grow(self, delta):
+        """
+        Grows this memory by the given number of pages
+        """
+
         if not isinstance(delta, int):
             raise TypeError("expected an integer")
         if delta < 0:
@@ -49,8 +58,11 @@ class Memory(object):
         else:
             return False
 
-    # Returns the size, in WebAssembly pages, of this memory.
     def size(self):
+        """
+        Returns the size, in WebAssembly pages, of this memory.
+        """
+
         return dll.wasm_memory_size(self.__ptr__)
 
     def data_ptr(self):
@@ -62,12 +74,17 @@ class Memory(object):
         """
         return dll.wasm_memory_data(self.__ptr__)
 
-    # Returns the raw byte length of this memory.
     def data_len(self):
+        """
+        Returns the raw byte length of this memory.
+        """
+
         return dll.wasm_memory_data_size(self.__ptr__)
 
-    # Returns this type as an instance of `Extern`
     def as_extern(self):
+        """
+        Returns this type as an instance of `Extern`
+        """
         ptr = dll.wasm_memory_as_extern(self.__ptr__)
         return Extern.__from_ptr__(ptr, self.__owner__ or self)
 
