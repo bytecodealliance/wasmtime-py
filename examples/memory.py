@@ -35,12 +35,14 @@ assert(load.call(0x1000) == 1)
 assert(load.call(0x1003) == 4)
 assert(load.call(0x1ffff) == 0)
 
+
 def assert_traps(func):
     try:
         func()
         assert(False)
     except Trap:
         pass
+
 
 # out of bounds trap
 assert_traps(lambda: load.call(0x20000))

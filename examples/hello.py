@@ -9,8 +9,12 @@ store = Store()
 module = Module.from_file(store, './examples/hello.wat')
 
 # Our module needs one import, so we'll create that here.
+
+
 def say_hello():
     print("Hello from Python!")
+
+
 hello = Func(store, FuncType([], []), say_hello)
 
 # And with all that we can instantiate our module and call the export!

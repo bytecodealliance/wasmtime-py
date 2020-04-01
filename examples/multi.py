@@ -15,8 +15,12 @@ module = Module.from_file(store, "examples/multi.wat")
 
 print("Creating callback...")
 callback_type = FuncType([ValType.i32(), ValType.i64()], [ValType.i64(), ValType.i32()])
+
+
 def callback(a, b):
     return [b + 1, a + 1]
+
+
 callback_func = Func(store, callback_type, callback)
 
 print("Instantiating module...")
