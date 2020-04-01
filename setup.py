@@ -14,7 +14,7 @@ if 'PROD' not in os.environ:
     version += '.dev' + output.strip()
 
 setuptools.setup(
-    name="wasmtime2",
+    name="wasmtime",
     version=version,
     author="The Wasmtime Project Developers",
     author_email="hello@bytecodealliance.org",
