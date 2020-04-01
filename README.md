@@ -69,6 +69,20 @@ as well as the [full API documentation][apidoc]
 [`examples` directory]: https://github.com/alexcrichton/wasmtime-py/tree/master/examples
 [apidoc]: https://alexcrichton.github.io/wasmtime-py/
 
+If your wasm modules works this way, then you can also import the wasm module
+directly into Python without instantiating it yourself:
+
+```python
+# Import the custom loader for `*.wasm` files
+import wasmtime.loader
+
+# Assuming `your_wasm_file.wasm` is in the python load path...
+import your_wasm_file
+
+# And now you're instantiated and ready to go!
+print(your_wasm_file.run())
+```
+
 ## Contributing
 
 So far this extension has been written by folks who are primarily Rust
