@@ -9,8 +9,8 @@
   <strong>A <a href="https://bytecodealliance.org/">Bytecode Alliance</a> project</strong>
 
   <p>
-    <a href="https://github.com/alexcrichton/wasmtime-py/actions?query=workflow%3ACI">
-      <img src="https://github.com/alexcrichton/wasmtime-py/workflows/CI/badge.svg" alt="CI status"/>
+    <a href="https://github.com/bytecodealliance/wasmtime-py/actions?query=workflow%3ACI">
+      <img src="https://github.com/bytecodealliance/wasmtime-py/workflows/CI/badge.svg" alt="CI status"/>
     </a>
     <a href="https://pypi.org/project/wasmtime/">
       <img src="https://img.shields.io/pypi/v/wasmtime.svg" alt="Latest Version"/>
@@ -18,10 +18,10 @@
     <a href="https://pypi.org/project/wasmtime/">
       <img src="https://img.shields.io/pypi/pyversions/wasmtime.svg" alt="Latest Version"/>
     </a>
-    <a href="https://alexcrichton.github.io/wasmtime-py/">
+    <a href="https://bytecodealliance.github.io/wasmtime-py/">
       <img src="https://img.shields.io/badge/docs-master-green" alt="Documentation"/>
     </a>
-    <a href="https://alexcrichton.github.io/wasmtime-py/coverage/">
+    <a href="https://bytecodealliance.github.io/wasmtime-py/coverage/">
       <img src="https://img.shields.io/badge/coverage-master-green" alt="Code Coverage"/>
     </a>
   </p>
@@ -66,8 +66,8 @@ instance.get_export("run").func().call()
 Be sure to check out the [`examples` directory] which has other usage patterns
 as well as the [full API documentation][apidoc]
 
-[`examples` directory]: https://github.com/alexcrichton/wasmtime-py/tree/master/examples
-[apidoc]: https://alexcrichton.github.io/wasmtime-py/
+[`examples` directory]: https://github.com/bytecodealliance/wasmtime-py/tree/master/examples
+[apidoc]: https://bytecodealliance.github.io/wasmtime-py/
 
 If your wasm modules works this way, then you can also import the wasm module
 directly into Python without instantiating it yourself:
@@ -93,7 +93,7 @@ something!
 To work on this extension locally you'll first want to clone the project:
 
 ```sh
-$ git clone https://github.com/alexcrichton/wasmtime-py
+$ git clone https://github.com/bytecodealliance/wasmtime-py
 $ cd wasmtime-py
 ```
 
@@ -121,7 +121,7 @@ particulars. The CI for this project does a few different things:
 * API docs are generated for pushes to the master branch and are [rendered
   online][apidoc]
 * Test coverage information is generated for pushes to the master branch and are
-  [available online](https://alexcrichton.github.io/wasmtime-py/coverage/)
+  [available online](https://bytecodealliance.github.io/wasmtime-py/coverage/)
 * Each push to `master` will publish a release to
   [test.pypi.org](https://test.pypi.org/project/wasmtime/) for local inspection.
 * Tagged commits will automatically be published to
