@@ -46,6 +46,7 @@ class Instance(object):
                 raise Trap.__from_ptr__(trap)
             raise RuntimeError("failed to compile instance")
         self.__ptr__ = ptr
+        self._module = module
 
     @classmethod
     def __from_ptr__(cls, ptr):
@@ -63,6 +64,19 @@ class Instance(object):
         for i in range(0, externs.vec.size):
             ret.append(Extern.__from_ptr__(externs.vec.data[i], externs))
         return ret
+
+    # Gets an export from this module by name, returning `None` if the name
+    # doesn't exist.
+    def get_export(self, name):
+        if not hasattr(self, '_export_map'):
+            self._export_map = {}
+            exports = self.exports()
+            for i, export in enumerate(self._module.exports()):
+                self._export_map[export.name()] = exports[i]
+        if name in self._export_map:
+            return self._export_map[name]
+        else:
+            return None
 
     def __del__(self):
         if hasattr(self, '__ptr__'):

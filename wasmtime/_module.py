@@ -7,6 +7,17 @@ dll.wasm_module_validate.restype = c_bool
 
 
 class Module(object):
+    @classmethod
+    def from_file(cls, store, path):
+        """
+        Compiles and creates a new `Module` by reading the file at `path` and
+        then delegating to the `Module` constructor.
+        """
+
+        with open(path, "rb") as f:
+            contents = f.read()
+        return cls(store, contents)
+
     def __init__(self, store, wasm):
         if not isinstance(store, Store):
             raise TypeError("expected a Store")
@@ -16,6 +27,8 @@ class Module(object):
         # if the first byte in the string is 0, meaning this is actually a wasm
         # module.
         if isinstance(wasm, str) and len(wasm) > 0 and ord(wasm[0]) != 0:
+            wasm = wat2wasm(wasm)
+        if isinstance(wasm, bytes) and len(wasm) > 0 and wasm[0] != 0:
             wasm = wat2wasm(wasm)
 
         if not isinstance(wasm, (bytes, bytearray)):

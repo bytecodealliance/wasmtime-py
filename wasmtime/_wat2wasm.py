@@ -22,7 +22,8 @@ def wat2wasm(wat):
     [wat]: https://webassembly.github.io/spec/core/text/index.html
     """
 
-    wat = wat.encode('utf8')
+    if isinstance(wat, str):
+        wat = wat.encode('utf8')
     wat_buffer = cast(create_string_buffer(wat), POINTER(c_uint8))
     wat = wasm_byte_vec_t(len(wat), wat_buffer)
     wasm = wasm_byte_vec_t()
