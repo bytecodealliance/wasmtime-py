@@ -30,7 +30,7 @@ print("Extracting export...")
 g = instance.get_export("g").func()
 
 print("Calling export \"g\"...")
-results = g.call(1, 3)
+results = g(1, 3)
 print("> %d %d", results[0], results[1])
 
 assert(results[0] == 4)
@@ -38,7 +38,7 @@ assert(results[1] == 2)
 
 print("Calling export \"round_trip_many\"...")
 round_trip_many = instance.get_export("round_trip_many").func()
-results = round_trip_many.call(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+results = round_trip_many(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
 print("Printing result...")
 print(">")

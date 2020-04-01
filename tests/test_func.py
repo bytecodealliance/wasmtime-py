@@ -8,7 +8,7 @@ class TestFunc(unittest.TestCase):
         store = Store()
         ty = FuncType([], [])
         func = Func(store, ty, lambda: None)
-        func.call()
+        func()
         self.assertEqual(func.param_arity(), 0)
         self.assertEqual(func.result_arity(), 0)
         self.assertTrue(func.as_extern().type().func_type() is not None)
@@ -20,31 +20,31 @@ class TestFunc(unittest.TestCase):
         store = Store()
         ty = FuncType([ValType.i32(), ValType.i32()], [ValType.i32()])
         func = Func(store, ty, lambda a, b: a + b)
-        self.assertEqual(func.call(1, 2), 3)
+        self.assertEqual(func(1, 2), 3)
 
     def test_calls(self):
         store = Store()
         ty = FuncType([ValType.i32()], [])
         func = Func(store, ty, lambda a: self.assertEqual(a, 1))
-        func.call(1)
+        func(1)
 
         ty = FuncType([ValType.i64()], [])
         func = Func(store, ty, lambda a: self.assertEqual(a, 2))
-        func.call(Val.i64(2))
+        func(Val.i64(2))
 
         ty = FuncType([ValType.f32()], [])
         func = Func(store, ty, lambda a: self.assertEqual(a, 3.0))
-        func.call(3.0)
+        func(3.0)
 
         ty = FuncType([ValType.f64()], [])
         func = Func(store, ty, lambda a: self.assertEqual(a, 4.0))
-        func.call(4.0)
+        func(4.0)
 
     def test_multi_return(self):
         store = Store()
         ty = FuncType([], [ValType.i32(), ValType.i32()])
         func = Func(store, ty, lambda: [1, 2])
-        self.assertEqual(func.call(), [1, 2])
+        self.assertEqual(func(), [1, 2])
 
     def test_errors(self):
         store = Store()
@@ -55,29 +55,29 @@ class TestFunc(unittest.TestCase):
             Func(store, 1, lambda: None)
         func = Func(store, ty, lambda: None)
         with self.assertRaises(TypeError):
-            func.call(2)
+            func(2)
 
         ty = FuncType([ValType.i32()], [])
         func = Func(store, ty, lambda: None)
         with self.assertRaises(TypeError):
-            func.call(3.0)
+            func(3.0)
         with self.assertRaises(TypeError):
-            func.call(Val.i64(3))
+            func(Val.i64(3))
         ty = FuncType([ValType.i32()], [])
 
         func = Func(store, ty, lambda x: x)
         with self.assertRaises(Trap):
-            func.call(1)
+            func(1)
 
     def test_produce_wrong(self):
         store = Store()
         ty = FuncType([], [ValType.i32(), ValType.i32()])
         func = Func(store, ty, lambda: 1)
         with self.assertRaises(Trap):
-            func.call()
+            func()
         func = Func(store, ty, lambda: [1, 2, 3])
         with self.assertRaises(Trap):
-            func.call()
+            func()
 
     def test_typest(self):
         store = Store()
@@ -93,7 +93,7 @@ class TestFunc(unittest.TestCase):
             return ret
 
         func = Func(store, ty, rev)
-        self.assertEqual(func.call(1, 2, 3.0, 4.0), [4.0, 3.0, 2, 1])
+        self.assertEqual(func(1, 2, 3.0, 4.0), [4.0, 3.0, 2, 1])
 
     def test_access_caller(self):
         # Test that we get *something*
@@ -104,7 +104,7 @@ class TestFunc(unittest.TestCase):
             self.assertEqual(caller.get_export('x'), None)
             self.assertEqual(caller.get_export('y'), None)
 
-        Func(store, FuncType([], []), runtest, access_caller=True).call()
+        Func(store, FuncType([], []), runtest, access_caller=True)()
 
         hit = {}
 

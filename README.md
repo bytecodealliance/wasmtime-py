@@ -60,7 +60,8 @@ def say_hello():
 hello = Func(store, FuncType([], []), say_hello)
 
 instance = Instance(module, [hello])
-instance.get_export("run").func().call()
+run = instance.get_export("run")
+run()
 ```
 
 Be sure to check out the [`examples` directory] which has other usage patterns

@@ -19,4 +19,4 @@ hello = Func(store, FuncType([], []), say_hello)
 
 # And with all that we can instantiate our module and call the export!
 instance = Instance(module, [hello])
-instance.get_export("run").func().call()
+instance.get_export("run")()

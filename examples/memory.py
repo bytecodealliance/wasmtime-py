@@ -29,11 +29,11 @@ assert(memory.data_ptr()[0] == 0)
 assert(memory.data_ptr()[0x1000] == 1)
 assert(memory.data_ptr()[0x1003] == 4)
 
-assert(size.call() == 2)
-assert(load.call(0) == 0)
-assert(load.call(0x1000) == 1)
-assert(load.call(0x1003) == 4)
-assert(load.call(0x1ffff) == 0)
+assert(size() == 2)
+assert(load(0) == 0)
+assert(load(0x1000) == 1)
+assert(load(0x1003) == 4)
+assert(load(0x1ffff) == 0)
 
 
 def assert_traps(func):
@@ -45,18 +45,18 @@ def assert_traps(func):
 
 
 # out of bounds trap
-assert_traps(lambda: load.call(0x20000))
+assert_traps(lambda: load(0x20000))
 
 print("Mutating memory...")
 memory.data_ptr()[0x1003] = 5
-store.call(0x1002, 6)
+store(0x1002, 6)
 # out of bounds trap
-assert_traps(lambda: store.call(0x20000, 0))
+assert_traps(lambda: store(0x20000, 0))
 
 assert(memory.data_ptr()[0x1002] == 6)
 assert(memory.data_ptr()[0x1003] == 5)
-assert(load.call(0x1002) == 6)
-assert(load.call(0x1003) == 5)
+assert(load(0x1002) == 6)
+assert(load(0x1003) == 5)
 
 # Grow memory.
 print("Growing memory...")
@@ -64,10 +64,10 @@ assert(memory.grow(1))
 assert(memory.size() == 3)
 assert(memory.data_len() == 0x30000)
 
-assert(load.call(0x20000) == 0)
-store.call(0x20000, 0)
-assert_traps(lambda: load.call(0x30000))
-assert_traps(lambda: store.call(0x30000, 0))
+assert(load(0x20000) == 0)
+store(0x20000, 0)
+assert_traps(lambda: load(0x30000))
+assert_traps(lambda: store(0x30000, 0))
 
 # Memory can fail to grow
 assert(not memory.grow(1))
