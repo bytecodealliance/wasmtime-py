@@ -144,7 +144,7 @@ jobs:
     - run: mkdir dist && mv wheel-*-latest/* dist
 
     - name: Publish distribution 📦 to Test PyPI
-      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+      if: github.event_name == 'push'
       uses: pypa/gh-action-pypi-publish@master
       with:
         user: __token__
@@ -156,5 +156,4 @@ jobs:
       uses: pypa/gh-action-pypi-publish@master
       with:
         user: __token__
-        password: ${{ secrets.test_pypi_password }}
-        repository_url: https://test.pypi.org/legacy/
+        password: ${{ secrets.pypi_password }}
