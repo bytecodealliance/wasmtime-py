@@ -75,6 +75,9 @@ class Func(object):
     # Returns a single value if the func has 1 return type
     # Returns a list if the func has more than 1 return type
     def call(self, *params):
+        return self(*params)
+
+    def __call__(self, *params):
         ty = self.type()
         param_tys = ty.params()
         if len(param_tys) != len(params):

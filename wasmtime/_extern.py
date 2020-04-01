@@ -19,13 +19,17 @@ class Extern(object):
         ty.__owner__ = owner
         return ty
 
-    # Returns the type of this `Extern` as an `ExternType`
     def type(self):
+        """
+        Returns the type of this `Extern` as an `ExternType`
+        """
         val = dll.wasm_extern_type(self.__ptr__)
         return ExternType.__from_ptr__(val, None)
 
-    # Returns this type as a `Func` or `None` if it's not a function
     def func(self):
+        """
+        Returns this type as a `Func` or `None` if it's not a function
+        """
         from wasmtime import Func
 
         val = dll.wasm_extern_as_func(self.__ptr__)
@@ -34,8 +38,10 @@ class Extern(object):
         else:
             return None
 
-    # Returns this type as a `Table` or `None` if it's not a table
     def table(self):
+        """
+        Returns this type as a `Table` or `None` if it's not a table
+        """
         from wasmtime import Table
 
         val = dll.wasm_extern_as_table(self.__ptr__)
@@ -44,8 +50,10 @@ class Extern(object):
         else:
             return None
 
-    # Returns this type as a `Global` or `None` if it's not a global
     def global_(self):
+        """
+        Returns this type as a `Global` or `None` if it's not a global
+        """
         from wasmtime import Global
 
         val = dll.wasm_extern_as_global(self.__ptr__)
@@ -54,8 +62,10 @@ class Extern(object):
         else:
             return None
 
-    # Returns this type as a `Memory` or `None` if it's not a memory
     def memory(self):
+        """
+        Returns this type as a `Memory` or `None` if it's not a memory
+        """
         from wasmtime import Memory
 
         val = dll.wasm_extern_as_memory(self.__ptr__)
@@ -63,6 +73,9 @@ class Extern(object):
             return Memory.__from_ptr__(val, self.__owner__ or self)
         else:
             return None
+
+    def __call__(self, *params):
+        return self.func()(*params)
 
     def __del__(self):
         if hasattr(self, '__owner__') and self.__owner__ is None:
