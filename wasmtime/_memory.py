@@ -53,8 +53,13 @@ class Memory(object):
     def size(self):
         return dll.wasm_memory_size(self.__ptr__)
 
-    # Returns the raw pointer in memory where this wasm memory lives.
     def data_ptr(self):
+        """
+        Returns the raw pointer in memory where this wasm memory lives.
+
+        Remember that all accesses to wasm memory should be bounds-checked
+        against the `data_len` method.
+        """
         return dll.wasm_memory_data(self.__ptr__)
 
     # Returns the raw byte length of this memory.

@@ -67,7 +67,7 @@ class Linker(object):
             if trap:
                 raise Trap.__from_ptr__(trap)
             raise RuntimeError("failed to instantiate")
-        return Instance.__from_ptr__(ptr)
+        return Instance.__from_ptr__(ptr, module)
 
     def __del__(self):
         if hasattr(self, '__ptr__'):

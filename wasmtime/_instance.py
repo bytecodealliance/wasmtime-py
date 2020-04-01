@@ -49,11 +49,12 @@ class Instance(object):
         self._module = module
 
     @classmethod
-    def __from_ptr__(cls, ptr):
+    def __from_ptr__(cls, ptr, module):
         ty = cls.__new__(cls)
         if not isinstance(ptr, P_wasm_instance_t):
             raise TypeError("wrong pointer type")
         ty.__ptr__ = ptr
+        ty._module = module
         return ty
 
     # Returns the exports of this module
