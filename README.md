@@ -9,7 +9,9 @@
   <strong>A <a href="https://bytecodealliance.org/">Bytecode Alliance</a> project</strong>
 
   <p>
-    <img src="https://github.com/alexcrichton/wasmtime-py/workflows/CI/badge.svg" alt="CI status"/>
+    <a href="https://github.com/alexcrichton/wasmtime-py/actions?query=workflow%3ACI">
+      <img src="https://github.com/alexcrichton/wasmtime-py/workflows/CI/badge.svg" alt="CI status"/>
+    </a>
     <a href="https://pypi.org/project/wasmtime/">
       <img src="https://img.shields.io/pypi/v/wasmtime.svg" alt="Latest Version"/>
     </a>
