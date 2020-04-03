@@ -3,7 +3,7 @@ import os
 import sys
 
 if sys.maxsize <= 2**32:
-    raise RuntimeError("wasmtime only works on 64-bit platforms right now")
+    raise WasmtimeError("wasmtime only works on 64-bit platforms right now")
 
 filename = os.path.join(os.path.dirname(__file__), 'wasmtime.pyd')
 dll = cdll.LoadLibrary(filename)
@@ -185,6 +185,13 @@ class wasm_frame_t(Structure):
 
 
 P_wasm_frame_t = POINTER(wasm_frame_t)
+
+
+class wasmtime_error_t(Structure):
+    pass
+
+
+P_wasmtime_error_t = POINTER(wasmtime_error_t)
 
 
 class wasm_valtype_vec_t(Structure):

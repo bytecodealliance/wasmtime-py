@@ -13,6 +13,7 @@ free to consult that documentation as well. While not exactly the same the two
 libraries are intended to be quite similar.
 """
 
+from ._error import WasmtimeError
 from ._config import Config
 from ._engine import Engine
 from ._store import Store
@@ -59,4 +60,5 @@ __all__ = [
     'WasiConfig',
     'WasiInstance',
     'Linker',
+    'WasmtimeError',
 ]

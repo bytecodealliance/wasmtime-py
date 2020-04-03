@@ -9,5 +9,5 @@ class TestWat2Wasm(unittest.TestCase):
         self.assertEqual(wasm, b'\0asm\x01\0\0\0')
 
     def test_errors(self):
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(WasmtimeError):
             wat2wasm('x')

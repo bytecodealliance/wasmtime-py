@@ -1,12 +1,13 @@
 from ._ffi import *
 from ctypes import *
 from wasmtime import Store, Extern, Func, Global, Table, Memory, Instance
-from wasmtime import Module, Trap, WasiInstance
+from wasmtime import Module, Trap, WasiInstance, WasmtimeError
 
 dll.wasmtime_linker_new.restype = P_wasmtime_linker_t
-dll.wasmtime_linker_define.restype = c_bool
-dll.wasmtime_linker_define_instance.restype = c_bool
-dll.wasmtime_linker_instantiate.restype = P_wasm_instance_t
+dll.wasmtime_linker_define.restype = P_wasmtime_error_t
+dll.wasmtime_linker_define_instance.restype = P_wasmtime_error_t
+dll.wasmtime_linker_define_wasi.restype = P_wasmtime_error_t
+dll.wasmtime_linker_instantiate.restype = P_wasmtime_error_t
 
 
 class Linker(object):
@@ -36,38 +37,42 @@ class Linker(object):
             raise TypeError("expected an `Extern`")
         module_raw = str_to_name(module)
         name_raw = str_to_name(name)
-        ok = dll.wasmtime_linker_define(self.__ptr__, byref(module_raw),
-                                        byref(name_raw), raw_item)
-        if not ok:
-            raise RuntimeError("failed to define item")
+        error = dll.wasmtime_linker_define(
+            self.__ptr__,
+            byref(module_raw),
+            byref(name_raw),
+            raw_item)
+        if error:
+            raise WasmtimeError.__from_ptr__(error)
 
     def define_instance(self, name, instance):
         if not isinstance(instance, Instance):
             raise TypeError("expected an `Instance`")
         name_raw = str_to_name(name)
-        ok = dll.wasmtime_linker_define_instance(self.__ptr__, byref(name_raw),
-                                                 instance.__ptr__)
-        if not ok:
-            raise RuntimeError("failed to define item")
+        error = dll.wasmtime_linker_define_instance(self.__ptr__, byref(name_raw),
+                                                    instance.__ptr__)
+        if error:
+            raise WasmtimeError.__from_ptr__(error)
 
     def define_wasi(self, instance):
         if not isinstance(instance, WasiInstance):
             raise TypeError("expected an `WasiInstance`")
-        ok = dll.wasmtime_linker_define_wasi(self.__ptr__, instance.__ptr__)
-        if not ok:
-            raise RuntimeError("failed to define item")
+        error = dll.wasmtime_linker_define_wasi(self.__ptr__, instance.__ptr__)
+        if error:
+            raise WasmtimeError.__from_ptr__(error)
 
     def instantiate(self, module):
         if not isinstance(module, Module):
             raise TypeError("expected a `Module`")
         trap = P_wasm_trap_t()
-        ptr = dll.wasmtime_linker_instantiate(
-            self.__ptr__, module.__ptr__, byref(trap))
-        if not ptr:
-            if trap:
-                raise Trap.__from_ptr__(trap)
-            raise RuntimeError("failed to instantiate")
-        return Instance.__from_ptr__(ptr, module)
+        instance = P_wasm_instance_t()
+        error = dll.wasmtime_linker_instantiate(
+            self.__ptr__, module.__ptr__, byref(instance), byref(trap))
+        if error:
+            raise WasmtimeError.__from_ptr__(error)
+        if trap:
+            raise Trap.__from_ptr__(trap)
+        return Instance.__from_ptr__(instance, module)
 
     def __del__(self):
         if hasattr(self, '__ptr__'):

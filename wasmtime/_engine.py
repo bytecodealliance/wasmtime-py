@@ -1,6 +1,6 @@
 from ._ffi import *
 from ctypes import *
-from wasmtime import Config
+from wasmtime import Config, WasmtimeError
 
 dll.wasm_engine_new.restype = P_wasm_engine_t
 dll.wasm_engine_new_with_config.restype = P_wasm_engine_t
@@ -13,7 +13,7 @@ class Engine(object):
         elif not isinstance(config, Config):
             raise TypeError("expected Config")
         elif not hasattr(config, '__ptr__'):
-            raise RuntimeError("Config already used")
+            raise WasmtimeError("Config already used")
         else:
             ptr = config.__ptr__
             delattr(config, '__ptr__')

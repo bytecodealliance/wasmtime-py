@@ -62,7 +62,7 @@ class ValType(object):
         return ValType.__from_ptr__(ptr, None)
 
     def __init__(self):
-        raise RuntimeError("cannot construct directly")
+        raise WasmtimeError("cannot construct directly")
 
     @classmethod
     def __from_ptr__(cls, ptr, owner):
@@ -154,7 +154,7 @@ class FuncType(object):
             results_ffi.data[i] = take_owned_valtype(result)
         ptr = dll.wasm_functype_new(byref(params_ffi), byref(results_ffi))
         if not ptr:
-            raise RuntimeError("failed to allocate FuncType")
+            raise WasmtimeError("failed to allocate FuncType")
         self.__ptr__ = ptr
         self.__owner__ = None
 
@@ -205,7 +205,7 @@ class GlobalType(object):
         type_ptr = take_owned_valtype(valtype)
         ptr = dll.wasm_globaltype_new(type_ptr, mutability)
         if ptr == 0:
-            raise RuntimeError("failed to allocate GlobalType")
+            raise WasmtimeError("failed to allocate GlobalType")
         self.__ptr__ = ptr
         self.__owner__ = None
 
@@ -275,7 +275,7 @@ class TableType(object):
         type_ptr = take_owned_valtype(valtype)
         ptr = dll.wasm_tabletype_new(type_ptr, byref(limits.__ffi__()))
         if not ptr:
-            raise RuntimeError("failed to allocate TableType")
+            raise WasmtimeError("failed to allocate TableType")
         self.__ptr__ = ptr
         self.__owner__ = None
 
@@ -320,7 +320,7 @@ class MemoryType(object):
             raise TypeError("expected Limits")
         ptr = dll.wasm_memorytype_new(byref(limits.__ffi__()))
         if not ptr:
-            raise RuntimeError("failed to allocate MemoryType")
+            raise WasmtimeError("failed to allocate MemoryType")
         self.__ptr__ = ptr
         self.__owner__ = None
 

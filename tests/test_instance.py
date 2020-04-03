@@ -148,13 +148,13 @@ class TestInstance(unittest.TestCase):
         val = Func(store, FuncType([], []), lambda: None)
         module = Module(store, '(module (import "" "" (func)))')
         Instance(module, [val])
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(WasmtimeError):
             Instance(module, [])
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(WasmtimeError):
             Instance(module, [val, val])
 
         module = Module(store, '(module (import "" "" (global i32)))')
-        with self.assertRaises(Trap):
+        with self.assertRaises(WasmtimeError):
             Instance(module, [val])
 
     def test_start_trap(self):

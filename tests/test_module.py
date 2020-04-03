@@ -18,15 +18,16 @@ class TestModule(unittest.TestCase):
             Module(1, b'')
         with self.assertRaises(TypeError):
             Module(Store(), 2)
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(WasmtimeError):
             Module(Store(), b'')
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(WasmtimeError):
             Module(Store(), b'\x00')
 
     def test_validate(self):
         store = Store()
-        self.assertTrue(Module.validate(store, b'\0asm\x01\0\0\0'))
-        self.assertFalse(Module.validate(store, b''))
+        Module.validate(store, b'\0asm\x01\0\0\0')
+        with self.assertRaises(WasmtimeError):
+            self.assertFalse(Module.validate(store, b''))
 
     def test_imports(self):
         store = Store()

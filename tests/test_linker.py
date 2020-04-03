@@ -28,7 +28,7 @@ class TestLinker(unittest.TestCase):
         linker.define("", "g", table)
         linker.define("", "h", table.as_extern())
 
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(WasmtimeError):
             linker.define("", "a", func)
         linker.allow_shadowing(True)
         linker.define("", "a", func)
@@ -52,7 +52,7 @@ class TestLinker(unittest.TestCase):
         module = Module(store, "(module (func (export \"foo\")))")
         instance = Instance(module, [])
         linker.define_instance("b", instance)
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(WasmtimeError):
             linker.define_instance("b", instance)
         linker.allow_shadowing(True)
         linker.define_instance("b", instance)
@@ -88,7 +88,7 @@ class TestLinker(unittest.TestCase):
                 (import "y" "z" (global i32))
             )
         """)
-        with self.assertRaises(Trap):
+        with self.assertRaises(WasmtimeError):
             linker.instantiate(module)
 
         module = Module(store, """

@@ -21,7 +21,7 @@ class Trap(Exception):
         message_raw = str_to_name(message, trailing_nul=True)
         ptr = dll.wasm_trap_new(store.__ptr__, byref(message_raw))
         if not ptr:
-            raise RuntimeError("failed to create trap")
+            raise WasmtimeError("failed to create trap")
         self.__ptr__ = ptr
 
     @classmethod

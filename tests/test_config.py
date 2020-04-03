@@ -17,15 +17,15 @@ class TestConfig(unittest.TestCase):
         config.strategy("auto")
         try:
             config.strategy("lightbeam")
-        except RuntimeError:
+        except WasmtimeError:
             pass  # this may fail to be enabled
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(WasmtimeError):
             config.strategy("nonexistent-strategy")
         config.cranelift_opt_level("none")
         config.cranelift_opt_level("speed_and_size")
         config.cranelift_opt_level("speed")
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(WasmtimeError):
             config.cranelift_opt_level("nonexistent-level")
         config.profiler("none")
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(WasmtimeError):
             config.profiler("nonexistent-profiler")

@@ -1,9 +1,9 @@
 from ._ffi import *
 from ctypes import *
-from wasmtime import Store, wat2wasm, ImportType, ExportType
+from wasmtime import Store, wat2wasm, ImportType, ExportType, WasmtimeError
 
-dll.wasm_module_new.restype = P_wasm_module_t
-dll.wasm_module_validate.restype = c_bool
+dll.wasmtime_module_new.restype = P_wasmtime_error_t
+dll.wasmtime_module_validate.restype = P_wasmtime_error_t
 
 
 class Module(object):
@@ -38,14 +38,22 @@ class Module(object):
         # figure this out.
         c_ty = c_uint8 * len(wasm)
         binary = wasm_byte_vec_t(len(wasm), c_ty.from_buffer_copy(wasm))
-        ptr = dll.wasm_module_new(store.__ptr__, byref(binary))
-        if not ptr:
-            raise RuntimeError("failed to compile module")
+        ptr = P_wasm_module_t()
+        error = dll.wasmtime_module_new(store.__ptr__, byref(binary), byref(ptr))
+        if error:
+            raise WasmtimeError.__from_ptr__(error)
         self.__ptr__ = ptr
         self.store = store
 
     @classmethod
     def validate(cls, store, wasm):
+        """
+        Validates whether the list of bytes `wasm` provided is a valid
+        WebAssembly binary given the configuration in `store`
+
+        Raises a `WasmtimeError` if the wasm isn't valid.
+        """
+
         if not isinstance(store, Store):
             raise TypeError("expected a Store")
         if not isinstance(wasm, (bytes, bytearray)):
@@ -55,11 +63,9 @@ class Module(object):
         # figure this out.
         c_ty = c_uint8 * len(wasm)
         binary = wasm_byte_vec_t(len(wasm), c_ty.from_buffer_copy(wasm))
-        ok = dll.wasm_module_validate(store.__ptr__, byref(binary))
-        if ok:
-            return True
-        else:
-            return False
+        error = dll.wasmtime_module_validate(store.__ptr__, byref(binary))
+        if error:
+            raise WasmtimeError.__from_ptr__(error)
 
     def imports(self):
         """

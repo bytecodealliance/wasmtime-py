@@ -54,7 +54,7 @@ class TestFunc(unittest.TestCase):
         with self.assertRaises(TypeError):
             Func(store, 1, lambda: None)
         func = Func(store, ty, lambda: None)
-        with self.assertRaises(TypeError):
+        with self.assertRaises(WasmtimeError):
             func(2)
 
         ty = FuncType([ValType.i32()], [])
@@ -141,7 +141,7 @@ class TestFunc(unittest.TestCase):
         def runtest3(caller):
             hit2['caller'] = caller
             self.assertTrue(caller.get_export('foo') is not None)
-            raise RuntimeError('foo')
+            raise WasmtimeError('foo')
 
         func = Func(store, FuncType([], []), runtest3, access_caller=True)
         with self.assertRaises(Trap):

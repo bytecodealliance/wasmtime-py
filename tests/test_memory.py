@@ -16,7 +16,7 @@ class TestMemory(unittest.TestCase):
         self.assertEqual(memory.size(), 2)
         with self.assertRaises(TypeError):
             memory.grow('')
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(WasmtimeError):
             memory.grow(-1)
         self.assertEqual(memory.data_ptr()[0], 0)
         self.assertEqual(memory.data_len(), 65536 * 2)

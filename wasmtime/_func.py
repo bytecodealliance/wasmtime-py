@@ -1,6 +1,6 @@
 from ._ffi import *
 from ctypes import *
-from wasmtime import Store, FuncType, Val, Trap, Extern
+from wasmtime import Store, FuncType, Val, Trap, Extern, WasmtimeError
 import sys
 import traceback
 
@@ -9,7 +9,7 @@ dll.wasmtime_func_new_with_env.restype = P_wasm_func_t
 dll.wasm_func_type.restype = P_wasm_functype_t
 dll.wasm_func_param_arity.restype = c_size_t
 dll.wasm_func_result_arity.restype = c_size_t
-dll.wasm_func_call.restype = P_wasm_trap_t
+dll.wasmtime_func_call.restype = P_wasmtime_error_t
 dll.wasm_func_as_extern.restype = P_wasm_extern_t
 dll.wasmtime_caller_export_get.restype = P_wasm_extern_t
 
@@ -43,7 +43,7 @@ class Func(object):
                 store.__ptr__, ty.__ptr__, trampoline, idx, finalize)
         if not ptr:
             FUNCTIONS.deallocate(idx)
-            raise RuntimeError("failed to create func")
+            raise WasmtimeError("failed to create func")
         self.__ptr__ = ptr
         self.__owner__ = None
 
@@ -94,23 +94,32 @@ class Func(object):
     def __call__(self, *params):
         ty = self.type()
         param_tys = ty.params()
-        if len(param_tys) != len(params):
-            raise TypeError("wrong number of parameters")
-        param_ffi = (wasm_val_t * len(params))()
+        params_ptr = (wasm_val_t * len(params))()
         for i, param in enumerate(params):
+            if i >= len(param_tys):
+                raise WasmtimeError("too many parameters provided")
             val = Val.__convert__(param_tys[i], param)
-            param_ffi[i] = val.__raw__
+            params_ptr[i] = val.__raw__
 
         result_tys = ty.results()
-        result_ffi = (wasm_val_t * len(result_tys))()
+        results_ptr = (wasm_val_t * len(result_tys))()
 
-        trap = dll.wasm_func_call(self.__ptr__, param_ffi, result_ffi)
+        trap = P_wasm_trap_t()
+        error = dll.wasmtime_func_call(
+            self.__ptr__,
+            params_ptr,
+            len(params),
+            results_ptr,
+            len(result_tys),
+            byref(trap))
+        if error:
+            raise WasmtimeError.__from_ptr__(error)
         if trap:
             raise Trap.__from_ptr__(trap)
 
         results = []
         for i in range(0, len(result_tys)):
-            results.append(extract_val(Val(result_ffi[i])))
+            results.append(extract_val(Val(results_ptr[i])))
         if len(results) == 0:
             return None
         elif len(results) == 1:
@@ -194,14 +203,14 @@ def invoke(idx, params_ptr, results_ptr, params):
         results = func(*params)
         if len(result_tys) == 0:
             if results is not None:
-                raise RuntimeError(
+                raise WasmtimeError(
                     "callback produced results when it shouldn't")
         elif len(result_tys) == 1:
             val = Val.__convert__(result_tys[0], results)
             results_ptr[0] = val.__raw__
         else:
             if len(results) != len(result_tys):
-                raise RuntimeError("callback produced wrong number of results")
+                raise WasmtimeError("callback produced wrong number of results")
             for i, result in enumerate(results):
                 val = Val.__convert__(result_tys[i], result)
                 results_ptr[i] = val.__raw__

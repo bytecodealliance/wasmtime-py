@@ -75,7 +75,7 @@ class Val(object):
             return Val.f32(val)
         if ty == ValType.f64():
             return Val.f64(val)
-        raise RuntimeError("don't know how to convert %r to %s" % (val, ty))
+        raise WasmtimeError("don't know how to convert %r to %s" % (val, ty))
 
     def get(self):
         """

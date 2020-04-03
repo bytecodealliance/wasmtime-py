@@ -33,3 +33,8 @@ class TestGlobal(unittest.TestCase):
         g = Global(store, ty, Val.i32(1))
         with self.assertRaises(TypeError):
             g.set(g)
+
+        ty = GlobalType(ValType.i32(), False)
+        g = Global(store, ty, Val.i32(1))
+        with self.assertRaises(WasmtimeError):
+            g.set(1)

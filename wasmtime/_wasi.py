@@ -84,7 +84,7 @@ class WasiInstance(object):
         if not ptr:
             if trap:
                 raise Trap.__from_ptr__(trap)
-            raise RuntimeError("failed to create wasi instance")
+            raise WasmtimeError("failed to create wasi instance")
         self.__ptr__ = ptr
         self.store = store
 

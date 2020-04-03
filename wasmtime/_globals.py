@@ -1,10 +1,11 @@
 from ._ffi import *
 from ctypes import *
-from wasmtime import Store, GlobalType, Val, Extern
+from wasmtime import Store, GlobalType, Val, Extern, WasmtimeError
 
-dll.wasm_global_new.restype = P_wasm_global_t
+dll.wasmtime_global_new.restype = P_wasmtime_error_t
 dll.wasm_global_type.restype = P_wasm_globaltype_t
 dll.wasm_global_as_extern.restype = P_wasm_extern_t
+dll.wasmtime_global_set.restype = P_wasmtime_error_t
 
 
 class Global(object):
@@ -14,10 +15,14 @@ class Global(object):
         if not isinstance(ty, GlobalType):
             raise TypeError("expected a GlobalType")
         val = Val.__convert__(ty.content(), val)
-        ptr = dll.wasm_global_new(
-            store.__ptr__, ty.__ptr__, byref(val.__raw__))
-        if not ptr:
-            raise RuntimeError("failed to create global")
+        ptr = P_wasm_global_t()
+        error = dll.wasmtime_global_new(
+            store.__ptr__,
+            ty.__ptr__,
+            byref(val.__raw__),
+            byref(ptr))
+        if error:
+            raise WasmtimeError.__from_ptr__(error)
         self.__ptr__ = ptr
         self.__owner__ = None
 
@@ -53,7 +58,9 @@ class Global(object):
         Sets the value of this global to a new value
         """
         val = Val.__convert__(self.type().content(), val)
-        dll.wasm_global_set(self.__ptr__, byref(val.__raw__))
+        error = dll.wasmtime_global_set(self.__ptr__, byref(val.__raw__))
+        if error:
+            raise WasmtimeError.__from_ptr__(error)
 
     def as_extern(self):
         """

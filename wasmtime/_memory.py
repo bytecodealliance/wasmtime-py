@@ -1,6 +1,6 @@
 from ._ffi import *
 from ctypes import *
-from wasmtime import Store, MemoryType, Extern
+from wasmtime import Store, MemoryType, Extern, WasmtimeError
 
 dll.wasm_memory_data.restype = POINTER(c_uint8)
 dll.wasm_memory_data_size.restype = c_size_t
@@ -22,7 +22,7 @@ class Memory(object):
             raise TypeError("expected a MemoryType")
         ptr = dll.wasm_memory_new(store.__ptr__, ty.__ptr__)
         if not ptr:
-            raise RuntimeError("failed to create memory")
+            raise WasmtimeError("failed to create memory")
         self.__ptr__ = ptr
         self.__owner__ = None
 
@@ -51,7 +51,7 @@ class Memory(object):
         if not isinstance(delta, int):
             raise TypeError("expected an integer")
         if delta < 0:
-            raise RuntimeError("cannot grow by negative amount")
+            raise WasmtimeError("cannot grow by negative amount")
         ok = dll.wasm_memory_grow(self.__ptr__, delta)
         if ok:
             return True

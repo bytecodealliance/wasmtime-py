@@ -13,5 +13,5 @@ class TestEngine(unittest.TestCase):
             Engine(3)
         config = Config()
         Engine(config)
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(WasmtimeError):
             Engine(config)

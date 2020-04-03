@@ -1,9 +1,10 @@
 from ._ffi import *
 from ctypes import *
+from wasmtime import WasmtimeError
 
 dll.wasm_config_new.restype = P_wasm_config_t
-dll.wasmtime_config_strategy_set.restype = c_bool
-dll.wasmtime_config_profiler_set.restype = c_bool
+dll.wasmtime_config_strategy_set.restype = P_wasmtime_error_t
+dll.wasmtime_config_profiler_set.restype = P_wasmtime_error_t
 
 
 class Config(object):
@@ -94,15 +95,15 @@ class Config(object):
         """
 
         if strategy == "auto":
-            ok = dll.wasmtime_config_strategy_set(self.__ptr__, 0)
+            error = dll.wasmtime_config_strategy_set(self.__ptr__, 0)
         elif strategy == "cranelift":
-            ok = dll.wasmtime_config_strategy_set(self.__ptr__, 1)
+            error = dll.wasmtime_config_strategy_set(self.__ptr__, 1)
         elif strategy == "lightbeam":
-            ok = dll.wasmtime_config_strategy_set(self.__ptr__, 2)
+            error = dll.wasmtime_config_strategy_set(self.__ptr__, 2)
         else:
-            raise RuntimeError("unknown strategy: " + str(strategy))
-        if not ok:
-            raise RuntimeError("failed to configure strategy: " + strategy)
+            raise WasmtimeError("unknown strategy: " + str(strategy))
+        if error:
+            raise WasmtimeError.__from_ptr__(error)
 
     def cranelift_debug_verifier(self, enable):
         if not isinstance(enable, bool):
@@ -117,17 +118,17 @@ class Config(object):
         elif opt_level == "speed_and_size":
             dll.wasmtime_config_cranelift_opt_level_set(self.__ptr__, 2)
         else:
-            raise RuntimeError("unknown opt level: " + str(opt_level))
+            raise WasmtimeError("unknown opt level: " + str(opt_level))
 
     def profiler(self, profiler):
         if profiler == "none":
-            ok = dll.wasmtime_config_profiler_set(self.__ptr__, 0)
+            error = dll.wasmtime_config_profiler_set(self.__ptr__, 0)
         elif profiler == "jitdump":
-            ok = dll.wasmtime_config_profiler_set(self.__ptr__, 1)
+            error = dll.wasmtime_config_profiler_set(self.__ptr__, 1)
         else:
-            raise RuntimeError("unknown profiler: " + str(profiler))
-        if not ok:
-            raise RuntimeError("failed to configure profiler: " + profiler)
+            raise WasmtimeError("unknown profiler: " + str(profiler))
+        if error:
+            raise WasmtimeError.__from_ptr__(error)
 
     def __del__(self):
         if hasattr(self, '__ptr__'):

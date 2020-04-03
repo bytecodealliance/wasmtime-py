@@ -1,8 +1,8 @@
 from ._ffi import *
 from ctypes import *
-from wasmtime import Module, Extern, Func, Table, Memory, Trap, Global
+from wasmtime import Module, Extern, Func, Table, Memory, Trap, Global, WasmtimeError
 
-dll.wasm_instance_new.restype = P_wasm_instance_t
+dll.wasmtime_instance_new.restype = P_wasmtime_error_t
 
 
 class Instance(object):
@@ -22,33 +22,34 @@ class Instance(object):
         if not isinstance(module, Module):
             raise TypeError("expected a Module")
 
-        import_types = module.imports()
-        if len(imports) != len(import_types):
-            raise RuntimeError("wrong number of imports provided")
-        imports_ffi = (P_wasm_extern_t * len(import_types))()
-        for i, ty in enumerate(import_types):
-            val = imports[i]
+        imports_ptr = (P_wasm_extern_t * len(imports))()
+        for i, val in enumerate(imports):
             if isinstance(val, Extern):
-                imports_ffi[i] = val.__ptr__
+                imports_ptr[i] = val.__ptr__
             elif isinstance(val, Func):
-                imports_ffi[i] = val.as_extern().__ptr__
+                imports_ptr[i] = val.as_extern().__ptr__
             elif isinstance(val, Memory):
-                imports_ffi[i] = val.as_extern().__ptr__
+                imports_ptr[i] = val.as_extern().__ptr__
             elif isinstance(val, Global):
-                imports_ffi[i] = val.as_extern().__ptr__
+                imports_ptr[i] = val.as_extern().__ptr__
             elif isinstance(val, Table):
-                imports_ffi[i] = val.as_extern().__ptr__
+                imports_ptr[i] = val.as_extern().__ptr__
             else:
                 raise TypeError("expected an external item as an import")
 
+        instance = P_wasm_instance_t()
         trap = P_wasm_trap_t()
-        ptr = dll.wasm_instance_new(
-            module.store.__ptr__, module.__ptr__, imports_ffi, byref(trap))
-        if not ptr:
-            if trap:
-                raise Trap.__from_ptr__(trap)
-            raise RuntimeError("failed to compile instance")
-        self.__ptr__ = ptr
+        error = dll.wasmtime_instance_new(
+            module.__ptr__,
+            imports_ptr,
+            len(imports),
+            byref(instance),
+            byref(trap))
+        if error:
+            raise WasmtimeError.__from_ptr__(error)
+        if trap:
+            raise Trap.__from_ptr__(trap)
+        self.__ptr__ = instance
         self._module = module
 
     @classmethod
