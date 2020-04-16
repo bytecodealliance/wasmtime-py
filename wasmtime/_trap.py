@@ -6,6 +6,8 @@ dll.wasm_trap_new.restype = P_wasm_trap_t
 dll.wasm_frame_func_index.restype = c_uint32
 dll.wasmtime_frame_func_name.restype = POINTER(wasm_byte_vec_t)
 dll.wasmtime_frame_module_name.restype = POINTER(wasm_byte_vec_t)
+dll.wasm_frame_module_offset.restype = c_size_t
+dll.wasm_frame_func_offset.restype = c_size_t
 
 
 class Trap(Exception):
@@ -63,7 +65,7 @@ class Trap(Exception):
                 module = frame.module_name() or '<unknown>'
                 default_func_name = '<wasm function %d>' % frame.func_index()
                 func = frame.func_name() or default_func_name
-                message += "  %d: %s!%s\n" % (i, module, func)
+                message += "  {}: {:#6x} - {}!{}\n".format(i, frame.module_offset(), module, func)
         return message
 
     def __del__(self):
@@ -113,6 +115,22 @@ class Frame(object):
             return ptr.contents.to_str()
         else:
             return None
+
+    def module_offset(self):
+        """
+        Returns the offset of this frame's program counter into the original
+        wasm source module.
+        """
+
+        return dll.wasm_frame_module_offset(self.__ptr__)
+
+    def func_offset(self):
+        """
+        Returns the offset of this frame's program counter into the original
+        wasm function.
+        """
+
+        return dll.wasm_frame_func_offset(self.__ptr__)
 
     def __del__(self):
         if self.__owner__ is None:
