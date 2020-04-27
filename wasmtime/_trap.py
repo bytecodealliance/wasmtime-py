@@ -34,6 +34,7 @@ class Trap(Exception):
         trap.__ptr__ = ptr
         return trap
 
+    @property
     def message(self):
         """
         Returns the message for this trap
@@ -48,6 +49,7 @@ class Trap(Exception):
         dll.wasm_byte_vec_delete(byref(message))
         return ret
 
+    @property
     def frames(self):
         frames = FrameList()
         dll.wasm_trap_trace(self.__ptr__, byref(frames.vec))
@@ -57,15 +59,15 @@ class Trap(Exception):
         return ret
 
     def __str__(self):
-        frames = self.frames()
-        message = self.message()
+        frames = self.frames
+        message = self.message
         if len(frames) > 0:
             message += "\nwasm backtrace:\n"
             for i, frame in enumerate(frames):
-                module = frame.module_name() or '<unknown>'
-                default_func_name = '<wasm function %d>' % frame.func_index()
-                func = frame.func_name() or default_func_name
-                message += "  {}: {:#6x} - {}!{}\n".format(i, frame.module_offset(), module, func)
+                module = frame.module_name or '<unknown>'
+                default_func_name = '<wasm function %d>' % frame.func_index
+                func = frame.func_name or default_func_name
+                message += "  {}: {:#6x} - {}!{}\n".format(i, frame.module_offset, module, func)
         return message
 
     def __del__(self):
@@ -83,6 +85,7 @@ class Frame(object):
         ty.__owner__ = owner
         return ty
 
+    @property
     def func_index(self):
         """
         Returns the function index this frame corresponds to in its wasm module
@@ -90,6 +93,7 @@ class Frame(object):
 
         return dll.wasm_frame_func_index(self.__ptr__)
 
+    @property
     def func_name(self):
         """
         Returns the name of the function this frame corresponds to
@@ -103,6 +107,7 @@ class Frame(object):
         else:
             return None
 
+    @property
     def module_name(self):
         """
         Returns the name of the module this frame corresponds to
@@ -116,6 +121,7 @@ class Frame(object):
         else:
             return None
 
+    @property
     def module_offset(self):
         """
         Returns the offset of this frame's program counter into the original
@@ -124,6 +130,7 @@ class Frame(object):
 
         return dll.wasm_frame_module_offset(self.__ptr__)
 
+    @property
     def func_offset(self):
         """
         Returns the offset of this frame's program counter into the original

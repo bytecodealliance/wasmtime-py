@@ -1,6 +1,6 @@
 from ._ffi import *
 from ctypes import *
-from wasmtime import Store, GlobalType, Val, Extern, WasmtimeError
+from wasmtime import Store, GlobalType, Val, WasmtimeError
 
 dll.wasmtime_global_new.restype = P_wasmtime_error_t
 dll.wasm_global_type.restype = P_wasm_globaltype_t
@@ -14,7 +14,7 @@ class Global(object):
             raise TypeError("expected a Store")
         if not isinstance(ty, GlobalType):
             raise TypeError("expected a GlobalType")
-        val = Val.__convert__(ty.content(), val)
+        val = Val.__convert__(ty.content, val)
         ptr = P_wasm_global_t()
         error = dll.wasmtime_global_new(
             store.__ptr__,
@@ -35,6 +35,7 @@ class Global(object):
         ty.__owner__ = owner
         return ty
 
+    @property
     def type(self):
         """
         Gets the type of this global as a `GlobalType`
@@ -43,7 +44,8 @@ class Global(object):
         ptr = dll.wasm_global_type(self.__ptr__)
         return GlobalType.__from_ptr__(ptr, None)
 
-    def get(self):
+    @property
+    def value(self):
         """
         Gets the current value of this global
 
@@ -51,23 +53,20 @@ class Global(object):
         """
         raw = wasm_val_t()
         dll.wasm_global_get(self.__ptr__, byref(raw))
-        return Val(raw).get()
+        return Val(raw).value
 
-    def set(self, val):
+    @value.setter
+    def value(self, val):
         """
         Sets the value of this global to a new value
         """
-        val = Val.__convert__(self.type().content(), val)
+        val = Val.__convert__(self.type.content, val)
         error = dll.wasmtime_global_set(self.__ptr__, byref(val.__raw__))
         if error:
             raise WasmtimeError.__from_ptr__(error)
 
-    def as_extern(self):
-        """
-        Returns this type as an instance of `Extern`
-        """
-        ptr = dll.wasm_global_as_extern(self.__ptr__)
-        return Extern.__from_ptr__(ptr, self.__owner__ or self)
+    def _as_extern(self):
+        return dll.wasm_global_as_extern(self.__ptr__)
 
     def __del__(self):
         if hasattr(self, '__owner__') and self.__owner__ is None:

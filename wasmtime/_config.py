@@ -7,6 +7,10 @@ dll.wasmtime_config_strategy_set.restype = P_wasmtime_error_t
 dll.wasmtime_config_profiler_set.restype = P_wasmtime_error_t
 
 
+def setter_property(fset):
+    return property(fset=fset)
+
+
 class Config(object):
     """
     Global configuration, used to create an `Engine`.
@@ -18,6 +22,7 @@ class Config(object):
     def __init__(self):
         self.__ptr__ = dll.wasm_config_new()
 
+    @setter_property
     def debug_info(self, enable):
         """
         Configures whether DWARF debug information is emitted for the generated
@@ -28,6 +33,7 @@ class Config(object):
             raise TypeError('expected a bool')
         dll.wasmtime_config_debug_info_set(self.__ptr__, enable)
 
+    @setter_property
     def wasm_threads(self, enable):
         """
         Configures whether the wasm [threads proposal] is enabled.
@@ -39,6 +45,7 @@ class Config(object):
             raise TypeError('expected a bool')
         dll.wasmtime_config_wasm_threads_set(self.__ptr__, enable)
 
+    @setter_property
     def wasm_reference_types(self, enable):
         """
         Configures whether the wasm [reference types proposal] is enabled.
@@ -50,6 +57,7 @@ class Config(object):
             raise TypeError('expected a bool')
         dll.wasmtime_config_wasm_reference_types_set(self.__ptr__, enable)
 
+    @setter_property
     def wasm_simd(self, enable):
         """
         Configures whether the wasm [SIMD proposal] is enabled.
@@ -61,6 +69,7 @@ class Config(object):
             raise TypeError('expected a bool')
         dll.wasmtime_config_wasm_simd_set(self.__ptr__, enable)
 
+    @setter_property
     def wasm_bulk_memory(self, enable):
         """
         Configures whether the wasm [bulk memory proposal] is enabled.
@@ -72,6 +81,7 @@ class Config(object):
             raise TypeError('expected a bool')
         dll.wasmtime_config_wasm_bulk_memory_set(self.__ptr__, enable)
 
+    @setter_property
     def wasm_multi_value(self, enable):
         """
         Configures whether the wasm [multi value proposal] is enabled.
@@ -83,6 +93,7 @@ class Config(object):
             raise TypeError('expected a bool')
         dll.wasmtime_config_wasm_multi_value_set(self.__ptr__, enable)
 
+    @setter_property
     def strategy(self, strategy):
         """
         Configures the compilation strategy used for wasm code.
@@ -105,11 +116,13 @@ class Config(object):
         if error:
             raise WasmtimeError.__from_ptr__(error)
 
+    @setter_property
     def cranelift_debug_verifier(self, enable):
         if not isinstance(enable, bool):
             raise TypeError('expected a bool')
         dll.wasmtime_config_cranelift_debug_verifier_set(self.__ptr__, enable)
 
+    @setter_property
     def cranelift_opt_level(self, opt_level):
         if opt_level == "none":
             dll.wasmtime_config_cranelift_opt_level_set(self.__ptr__, 0)
@@ -120,6 +133,7 @@ class Config(object):
         else:
             raise WasmtimeError("unknown opt level: " + str(opt_level))
 
+    @setter_property
     def profiler(self, profiler):
         if profiler == "none":
             error = dll.wasmtime_config_profiler_set(self.__ptr__, 0)

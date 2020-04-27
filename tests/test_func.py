@@ -9,12 +9,9 @@ class TestFunc(unittest.TestCase):
         ty = FuncType([], [])
         func = Func(store, ty, lambda: None)
         func()
-        self.assertEqual(func.param_arity(), 0)
-        self.assertEqual(func.result_arity(), 0)
-        self.assertTrue(func.as_extern().type().func_type() is not None)
-        self.assertTrue(func.as_extern().type().memory_type() is None)
-        self.assertTrue(func.as_extern().type().global_type() is None)
-        self.assertTrue(func.as_extern().type().table_type() is None)
+        self.assertEqual(func.param_arity, 0)
+        self.assertEqual(func.result_arity, 0)
+        self.assertTrue(isinstance(func.type, FuncType))
 
     def test_add(self):
         store = Store()
@@ -114,13 +111,13 @@ class TestFunc(unittest.TestCase):
             hit['caller'] = caller
 
             self.assertTrue(caller.get_export('bar') is None)
-            mem = caller.get_export('foo').memory()
-            self.assertTrue(mem is not None)
+            mem = caller.get_export('foo')
+            self.assertTrue(isinstance(mem, Memory))
 
-            self.assertEqual(mem.data_ptr()[0], ord('f'))
-            self.assertEqual(mem.data_ptr()[1], ord('o'))
-            self.assertEqual(mem.data_ptr()[2], ord('o'))
-            self.assertEqual(mem.data_ptr()[3], 0)
+            self.assertEqual(mem.data_ptr[0], ord('f'))
+            self.assertEqual(mem.data_ptr[1], ord('o'))
+            self.assertEqual(mem.data_ptr[2], ord('o'))
+            self.assertEqual(mem.data_ptr[3], 0)
 
         module = Module(store, """
             (module

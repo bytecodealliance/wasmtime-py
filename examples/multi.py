@@ -7,7 +7,7 @@ from wasmtime import Config, Store, Engine, Module, FuncType, Func, ValType, Ins
 # wasm multi-value feature since it's not stable yet.
 print("Initializing...")
 config = Config()
-config.wasm_multi_value(True)
+config.wasm_multi_value = True
 store = Store(Engine(config))
 
 print("Compiling module...")
@@ -27,7 +27,7 @@ print("Instantiating module...")
 instance = Instance(module, [callback_func])
 
 print("Extracting export...")
-g = instance.get_export("g").func()
+g = instance.get_export("g")
 
 print("Calling export \"g\"...")
 results = g(1, 3)
@@ -37,7 +37,7 @@ assert(results[0] == 4)
 assert(results[1] == 2)
 
 print("Calling export \"round_trip_many\"...")
-round_trip_many = instance.get_export("round_trip_many").func()
+round_trip_many = instance.get_export("round_trip_many")
 results = round_trip_many(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
 print("Printing result...")

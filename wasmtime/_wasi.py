@@ -1,6 +1,7 @@
 from ._ffi import *
 from ctypes import *
-from wasmtime import Store, Trap, Extern, ImportType
+from wasmtime import Store, Trap, ImportType
+from ._extern import wrap_extern
 
 dll.wasi_config_new.restype = P_wasi_config_t
 dll.wasi_instance_new.restype = P_wasi_instance_t
@@ -93,7 +94,7 @@ class WasiInstance(object):
             raise TypeError("expected an `ImportType`")
         ptr = dll.wasi_instance_bind_import(self.__ptr__, import_.__ptr__)
         if ptr:
-            return Extern.__from_ptr__(ptr, self)
+            return wrap_extern(ptr, self)
         else:
             return None
 

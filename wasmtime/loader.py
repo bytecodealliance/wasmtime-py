@@ -8,7 +8,7 @@ can `import your_wasm_file` which will automatically compile and instantiate
 """
 
 from wasmtime import Module, Linker, Store, WasiInstance, WasiConfig
-from wasmtime import Func, Extern, Table, Global, Memory
+from wasmtime import Func, Table, Global, Memory
 import sys
 import os.path
 import importlib
@@ -21,7 +21,7 @@ linker = Linker(store)
 # TODO: how to configure wasi?
 wasi = WasiInstance(store, "wasi_snapshot_preview1", WasiConfig())
 linker.define_wasi(wasi)
-linker.allow_shadowing(True)
+linker.allow_shadowing = True
 
 # Mostly copied from
 # https://stackoverflow.com/questions/43571737/how-to-implement-an-import-hook-that-can-modify-the-source-code-on-the-fly-using
@@ -60,23 +60,22 @@ class _WasmtimeLoader(Loader):
     def exec_module(self, module):
         wasm_module = Module.from_file(store, self.filename)
 
-        for wasm_import in wasm_module.imports():
-            module_name = wasm_import.module()
-            field_name = wasm_import.name()
+        for wasm_import in wasm_module.imports:
+            module_name = wasm_import.module
+            field_name = wasm_import.name
             imported_module = importlib.import_module(module_name)
             item = imported_module.__dict__[field_name]
             if not isinstance(item, Func) and \
-                    not isinstance(item, Extern) and \
                     not isinstance(item, Table) and \
                     not isinstance(item, Global) and \
                     not isinstance(item, Memory):
-                item = Func(store, wasm_import.type().func_type(), item)
+                item = Func(store, wasm_import.type, item)
             linker.define(module_name, field_name, item)
 
         res = linker.instantiate(wasm_module)
-        exports = res.exports()
-        for i, export in enumerate(wasm_module.exports()):
-            module.__dict__[export.name()] = exports[i]
+        exports = res.exports
+        for i, export in enumerate(wasm_module.exports):
+            module.__dict__[export.name] = exports[i]
 
 
 sys.meta_path.insert(0, _WasmtimeMetaFinder())

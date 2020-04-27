@@ -1,6 +1,7 @@
 from ._ffi import *
 from ctypes import *
-from wasmtime import Module, Extern, Func, Table, Memory, Trap, Global, WasmtimeError
+from wasmtime import Module, Trap, WasmtimeError
+from ._extern import wrap_extern, get_extern_ptr
 
 dll.wasmtime_instance_new.restype = P_wasmtime_error_t
 
@@ -24,18 +25,7 @@ class Instance(object):
 
         imports_ptr = (P_wasm_extern_t * len(imports))()
         for i, val in enumerate(imports):
-            if isinstance(val, Extern):
-                imports_ptr[i] = val.__ptr__
-            elif isinstance(val, Func):
-                imports_ptr[i] = val.as_extern().__ptr__
-            elif isinstance(val, Memory):
-                imports_ptr[i] = val.as_extern().__ptr__
-            elif isinstance(val, Global):
-                imports_ptr[i] = val.as_extern().__ptr__
-            elif isinstance(val, Table):
-                imports_ptr[i] = val.as_extern().__ptr__
-            else:
-                raise TypeError("expected an external item as an import")
+            imports_ptr[i] = get_extern_ptr(val)
 
         instance = P_wasm_instance_t()
         trap = P_wasm_trap_t()
@@ -61,6 +51,7 @@ class Instance(object):
         ty._module = module
         return ty
 
+    @property
     def exports(self):
         """
         Returns the exports of this module
@@ -69,7 +60,7 @@ class Instance(object):
         dll.wasm_instance_exports(self.__ptr__, byref(externs.vec))
         ret = []
         for i in range(0, externs.vec.size):
-            ret.append(Extern.__from_ptr__(externs.vec.data[i], externs))
+            ret.append(wrap_extern(externs.vec.data[i], externs))
         return ret
 
     def get_export(self, name):
@@ -79,9 +70,9 @@ class Instance(object):
         """
         if not hasattr(self, '_export_map'):
             self._export_map = {}
-            exports = self.exports()
-            for i, export in enumerate(self._module.exports()):
-                self._export_map[export.name()] = exports[i]
+            exports = self.exports
+            for i, export in enumerate(self._module.exports):
+                self._export_map[export.name] = exports[i]
         if name in self._export_map:
             return self._export_map[name]
         else:

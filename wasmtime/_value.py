@@ -64,7 +64,7 @@ class Val(object):
     @classmethod
     def __convert__(cls, ty, val):
         if isinstance(val, Val):
-            if ty != val.type():
+            if ty != val.type:
                 raise TypeError("wrong type of `Val` provided")
             return val
         if ty == ValType.i32():
@@ -77,7 +77,8 @@ class Val(object):
             return Val.f64(val)
         raise WasmtimeError("don't know how to convert %r to %s" % (val, ty))
 
-    def get(self):
+    @property
+    def value(self):
         """
         Get the the underlying value as a python value
 
@@ -93,7 +94,7 @@ class Val(object):
             return self.__raw__.of.f64
         return None
 
-    def get_i32(self):
+    def as_i32(self):
         """
         Get the 32-bit integer value of this value, or `None` if it's not an i32
         """
@@ -102,7 +103,7 @@ class Val(object):
         else:
             return None
 
-    def get_i64(self):
+    def as_i64(self):
         """
         Get the 64-bit integer value of this value, or `None` if it's not an i64
         """
@@ -111,7 +112,7 @@ class Val(object):
         else:
             return None
 
-    def get_f32(self):
+    def as_f32(self):
         """
         Get the 32-bit float value of this value, or `None` if it's not an f32
         """
@@ -120,7 +121,7 @@ class Val(object):
         else:
             return None
 
-    def get_f64(self):
+    def as_f64(self):
         """
         Get the 64-bit float value of this value, or `None` if it's not an f64
         """
@@ -129,6 +130,7 @@ class Val(object):
         else:
             return None
 
+    @property
     def type(self):
         """
         Returns the `ValType` corresponding to this `Val`

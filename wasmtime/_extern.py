@@ -1,6 +1,5 @@
 from ._ffi import *
 from ctypes import *
-from wasmtime import ExternType
 
 dll.wasm_extern_as_func.restype = P_wasm_func_t
 dll.wasm_extern_as_table.restype = P_wasm_table_t
@@ -9,74 +8,49 @@ dll.wasm_extern_as_memory.restype = P_wasm_memory_t
 dll.wasm_extern_type.restype = P_wasm_externtype_t
 
 
+def wrap_extern(ptr, owner):
+    from wasmtime import Func, Table, Global, Memory
+
+    if not isinstance(ptr, P_wasm_extern_t):
+        raise TypeError("wrong pointer type")
+
+    # We must free this as an extern, so if there's no ambient owner then
+    # configure an owner with the right destructor
+    if owner is None:
+        owner = Extern(ptr)
+
+    val = dll.wasm_extern_as_func(ptr)
+    if val:
+        return Func.__from_ptr__(val, owner)
+    val = dll.wasm_extern_as_table(ptr)
+    if val:
+        return Table.__from_ptr__(val, owner)
+    val = dll.wasm_extern_as_global(ptr)
+    if val:
+        return Global.__from_ptr__(val, owner)
+    val = dll.wasm_extern_as_memory(ptr)
+    assert(val)
+    return Memory.__from_ptr__(val, owner)
+
+
+def get_extern_ptr(item):
+    from wasmtime import Func, Table, Global, Memory
+
+    if isinstance(item, Func):
+        return item._as_extern()
+    elif isinstance(item, Global):
+        return item._as_extern()
+    elif isinstance(item, Memory):
+        return item._as_extern()
+    elif isinstance(item, Table):
+        return item._as_extern()
+    else:
+        raise TypeError("expected a Func, Global, Memory, or Table")
+
+
 class Extern(object):
-    @classmethod
-    def __from_ptr__(cls, ptr, owner):
-        ty = cls.__new__(cls)
-        if not isinstance(ptr, P_wasm_extern_t):
-            raise TypeError("wrong pointer type")
-        ty.__ptr__ = ptr
-        ty.__owner__ = owner
-        return ty
-
-    def type(self):
-        """
-        Returns the type of this `Extern` as an `ExternType`
-        """
-        val = dll.wasm_extern_type(self.__ptr__)
-        return ExternType.__from_ptr__(val, None)
-
-    def func(self):
-        """
-        Returns this type as a `Func` or `None` if it's not a function
-        """
-        from wasmtime import Func
-
-        val = dll.wasm_extern_as_func(self.__ptr__)
-        if val:
-            return Func.__from_ptr__(val, self.__owner__ or self)
-        else:
-            return None
-
-    def table(self):
-        """
-        Returns this type as a `Table` or `None` if it's not a table
-        """
-        from wasmtime import Table
-
-        val = dll.wasm_extern_as_table(self.__ptr__)
-        if val:
-            return Table.__from_ptr__(val, self.__owner__ or self)
-        else:
-            return None
-
-    def global_(self):
-        """
-        Returns this type as a `Global` or `None` if it's not a global
-        """
-        from wasmtime import Global
-
-        val = dll.wasm_extern_as_global(self.__ptr__)
-        if val:
-            return Global.__from_ptr__(val, self.__owner__ or self)
-        else:
-            return None
-
-    def memory(self):
-        """
-        Returns this type as a `Memory` or `None` if it's not a memory
-        """
-        from wasmtime import Memory
-
-        val = dll.wasm_extern_as_memory(self.__ptr__)
-        if val:
-            return Memory.__from_ptr__(val, self.__owner__ or self)
-        else:
-            return None
-
-    def __call__(self, *params):
-        return self.func()(*params)
+    def __init__(self, ptr):
+        self.ptr = ptr
 
     def __del__(self):
-        if hasattr(self, '__owner__') and self.__owner__ is None:
-            dll.wasm_extern_delete(self.__ptr__)
+        dll.wasm_extern_delete(ptr)
