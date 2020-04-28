@@ -67,6 +67,7 @@ class Module(object):
         if error:
             raise WasmtimeError.__from_ptr__(error)
 
+    @property
     def imports(self):
         """
         Returns the types of imports that this module has
@@ -79,6 +80,7 @@ class Module(object):
             ret.append(ImportType.__from_ptr__(imports.vec.data[i], imports))
         return ret
 
+    @property
     def exports(self):
         """
         Returns the types of the exports that this module has

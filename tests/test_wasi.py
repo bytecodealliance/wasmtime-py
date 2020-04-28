@@ -48,11 +48,10 @@ class TestWasi(unittest.TestCase):
                     (func (param i32 i32) (result i32)))
             )
         """)
-        imp = module.imports()[0]
+        imp = module.imports[0]
         binding = instance.bind(imp)
-        self.assertTrue(binding is not None)
-        self.assertTrue(binding.func() is not None)
-        binding.func().call(1, 2)  # should return EFAULT basically
+        self.assertTrue(isinstance(binding, Func))
+        binding(1, 2)  # should return EFAULT basically
 
     def test_preview1(self):
         config = WasiConfig()
@@ -64,8 +63,7 @@ class TestWasi(unittest.TestCase):
                     (func (param i32 i32) (result i32)))
             )
         """)
-        imp = module.imports()[0]
+        imp = module.imports[0]
         binding = instance.bind(imp)
-        self.assertTrue(binding is not None)
-        self.assertTrue(binding.func() is not None)
-        binding.func().call(1, 2)  # should return EFAULT basically
+        self.assertTrue(isinstance(binding, Func))
+        binding(1, 2)  # should return EFAULT basically

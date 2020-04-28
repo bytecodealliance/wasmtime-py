@@ -7,7 +7,7 @@ class TestTrap(unittest.TestCase):
     def test_new(self):
         store = Store()
         trap = Trap(store, 'x')
-        self.assertEqual(trap.message(), u'x')
+        self.assertEqual(trap.message, u'x')
 
     def test_errors(self):
         store = Store()
@@ -30,23 +30,23 @@ class TestTrap(unittest.TestCase):
         """)
         i = Instance(module, [])
         try:
-            i.exports()[0].func().call()
+            i.exports[0]()
         except Trap as e:
             trap = e
 
-        frames = trap.frames()
+        frames = trap.frames
         self.assertEqual(len(frames), 3)
-        self.assertEqual(frames[0].func_index(), 2)
-        self.assertEqual(frames[1].func_index(), 1)
-        self.assertEqual(frames[2].func_index(), 0)
+        self.assertEqual(frames[0].func_index, 2)
+        self.assertEqual(frames[1].func_index, 1)
+        self.assertEqual(frames[2].func_index, 0)
 
-        self.assertEqual(frames[0].func_name(), 'bar')
-        self.assertEqual(frames[1].func_name(), 'foo')
-        self.assertEqual(frames[2].func_name(), None)
+        self.assertEqual(frames[0].func_name, 'bar')
+        self.assertEqual(frames[1].func_name, 'foo')
+        self.assertEqual(frames[2].func_name, None)
 
-        self.assertEqual(frames[0].module_name(), 'module')
-        self.assertEqual(frames[1].module_name(), 'module')
-        self.assertEqual(frames[2].module_name(), 'module')
+        self.assertEqual(frames[0].module_name, 'module')
+        self.assertEqual(frames[1].module_name, 'module')
+        self.assertEqual(frames[2].module_name, 'module')
 
         self.assertEqual(str(trap), """\
 wasm trap: unreachable
@@ -65,12 +65,12 @@ wasm backtrace:
         """)
         i = Instance(module, [])
         try:
-            i.exports()[0].func().call()
+            i.exports[0]()
         except Trap as e:
             trap = e
 
-        frames = trap.frames()
+        frames = trap.frames
         self.assertEqual(len(frames), 1)
-        self.assertEqual(frames[0].func_index(), 0)
-        self.assertEqual(frames[0].func_name(), None)
-        self.assertEqual(frames[0].module_name(), None)
+        self.assertEqual(frames[0].func_index, 0)
+        self.assertEqual(frames[0].func_name, None)
+        self.assertEqual(frames[0].module_name, None)

@@ -18,11 +18,10 @@ from ._config import Config
 from ._engine import Engine
 from ._store import Store
 from ._types import FuncType, GlobalType, MemoryType, TableType
-from ._types import ValType, ExternType, Limits, ImportType, ExportType
+from ._types import ValType, Limits, ImportType, ExportType
 from ._wat2wasm import wat2wasm
 from ._module import Module
 from ._value import Val
-from ._extern import Extern
 from ._globals import Global
 from ._table import Table
 from ._memory import Memory
@@ -42,7 +41,6 @@ __all__ = [
     'MemoryType',
     'TableType',
     'ValType',
-    'ExternType',
     'Limits',
     'ImportType',
     'ExportType',
@@ -52,7 +50,6 @@ __all__ = [
     'Table',
     'Memory',
     'Global',
-    'Extern',
     'Trap',
     'Frame',
     'Module',

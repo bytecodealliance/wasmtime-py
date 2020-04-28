@@ -1,8 +1,9 @@
 from ._ffi import *
 from ctypes import *
-from wasmtime import Store, FuncType, Val, Trap, Extern, WasmtimeError
+from wasmtime import Store, FuncType, Val, Trap, WasmtimeError
 import sys
 import traceback
+from ._extern import wrap_extern
 
 dll.wasm_func_new_with_env.restype = P_wasm_func_t
 dll.wasmtime_func_new_with_env.restype = P_wasm_func_t
@@ -30,7 +31,7 @@ class Func(object):
             raise TypeError("expected a Store")
         if not isinstance(ty, FuncType):
             raise TypeError("expected a FuncType")
-        idx = FUNCTIONS.allocate((func, ty.params(), ty.results(), store))
+        idx = FUNCTIONS.allocate((func, ty.params, ty.results, store))
         if access_caller:
             ptr = dll.wasmtime_func_new_with_env(
                 store.__ptr__,
@@ -56,6 +57,7 @@ class Func(object):
         ty.__owner__ = owner
         return ty
 
+    @property
     def type(self):
         """
         Gets the type of this func as a `FuncType`
@@ -63,19 +65,21 @@ class Func(object):
         ptr = dll.wasm_func_type(self.__ptr__)
         return FuncType.__from_ptr__(ptr, None)
 
+    @property
     def param_arity(self):
         """
         Returns the number of parameters this function expects
         """
         return dll.wasm_func_param_arity(self.__ptr__)
 
+    @property
     def result_arity(self):
         """
         Returns the number of results this function produces
         """
         return dll.wasm_func_result_arity(self.__ptr__)
 
-    def call(self, *params):
+    def __call__(self, *params):
         """
         Calls this function with the given parameters
 
@@ -89,11 +93,9 @@ class Func(object):
         Note that you can also use the `__call__` method and invoke a `Func` as
         if it were a function directly.
         """
-        return self(*params)
 
-    def __call__(self, *params):
-        ty = self.type()
-        param_tys = ty.params()
+        ty = self.type
+        param_tys = ty.params
         params_ptr = (wasm_val_t * len(params))()
         for i, param in enumerate(params):
             if i >= len(param_tys):
@@ -101,7 +103,7 @@ class Func(object):
             val = Val.__convert__(param_tys[i], param)
             params_ptr[i] = val.__raw__
 
-        result_tys = ty.results()
+        result_tys = ty.results
         results_ptr = (wasm_val_t * len(result_tys))()
 
         trap = P_wasm_trap_t()
@@ -127,12 +129,8 @@ class Func(object):
         else:
             return results
 
-    def as_extern(self):
-        """
-        Returns this as an instance of `Extern`
-        """
-        ptr = dll.wasm_func_as_extern(self.__ptr__)
-        return Extern.__from_ptr__(ptr, self.__owner__ or self)
+    def _as_extern(self):
+        return dll.wasm_func_as_extern(self.__ptr__)
 
     def __del__(self):
         if hasattr(self, '__owner__') and self.__owner__ is None:
@@ -162,13 +160,13 @@ class Caller(object):
         # And if we're not invalidated we can perform the actual lookup
         ptr = dll.wasmtime_caller_export_get(self.__ptr__, byref(name_raw))
         if ptr:
-            return Extern.__from_ptr__(ptr, None)
+            return wrap_extern(ptr, None)
         else:
             return None
 
 
 def extract_val(val):
-    a = val.get()
+    a = val.value
     if a is not None:
         return a
     return val

@@ -13,21 +13,21 @@ module = Module.from_file(wasmtime_store, "examples/memory.wat")
 instance = Instance(module, [])
 
 # Load up our exports from the instance
-memory = instance.get_export("memory").memory()
-size = instance.get_export("size").func()
-load = instance.get_export("load").func()
-store = instance.get_export("store").func()
+memory = instance.get_export("memory")
+size = instance.get_export("size")
+load = instance.get_export("load")
+store = instance.get_export("store")
 
 print("Checking memory...")
-assert(memory.size() == 2)
-assert(memory.data_len() == 0x20000)
+assert(memory.size == 2)
+assert(memory.data_len == 0x20000)
 
 # Note that usage of `data_ptr` is unsafe! This is a raw C pointer which is not
 # bounds checked at all. We checked our `data_len` above but you'll want to be
 # very careful when accessing data through `data_ptr()`
-assert(memory.data_ptr()[0] == 0)
-assert(memory.data_ptr()[0x1000] == 1)
-assert(memory.data_ptr()[0x1003] == 4)
+assert(memory.data_ptr[0] == 0)
+assert(memory.data_ptr[0x1000] == 1)
+assert(memory.data_ptr[0x1003] == 4)
 
 assert(size() == 2)
 assert(load(0) == 0)
@@ -48,21 +48,21 @@ def assert_traps(func):
 assert_traps(lambda: load(0x20000))
 
 print("Mutating memory...")
-memory.data_ptr()[0x1003] = 5
+memory.data_ptr[0x1003] = 5
 store(0x1002, 6)
 # out of bounds trap
 assert_traps(lambda: store(0x20000, 0))
 
-assert(memory.data_ptr()[0x1002] == 6)
-assert(memory.data_ptr()[0x1003] == 5)
+assert(memory.data_ptr[0x1002] == 6)
+assert(memory.data_ptr[0x1003] == 5)
 assert(load(0x1002) == 6)
 assert(load(0x1003) == 5)
 
 # Grow memory.
 print("Growing memory...")
 assert(memory.grow(1))
-assert(memory.size() == 3)
-assert(memory.data_len() == 0x30000)
+assert(memory.size == 3)
+assert(memory.data_len == 0x30000)
 
 assert(load(0x20000) == 0)
 store(0x20000, 0)
@@ -76,6 +76,6 @@ assert(memory.grow(0))
 print("Creating stand-alone memory...")
 memorytype = MemoryType(Limits(5, 5))
 memory2 = Memory(wasmtime_store, memorytype)
-assert(memory2.size() == 5)
+assert(memory2.size == 5)
 assert(not memory2.grow(1))
 assert(memory2.grow(0))

@@ -1,6 +1,6 @@
 from ._ffi import *
 from ctypes import *
-from wasmtime import Store, MemoryType, Extern, WasmtimeError
+from wasmtime import Store, MemoryType, WasmtimeError
 
 dll.wasm_memory_data.restype = POINTER(c_uint8)
 dll.wasm_memory_data_size.restype = c_size_t
@@ -35,6 +35,7 @@ class Memory(object):
         ty.__owner__ = owner
         return ty
 
+    @property
     def type(self):
         """
         Gets the type of this memory as a `MemoryType`
@@ -58,6 +59,7 @@ class Memory(object):
         else:
             return False
 
+    @property
     def size(self):
         """
         Returns the size, in WebAssembly pages, of this memory.
@@ -65,6 +67,7 @@ class Memory(object):
 
         return dll.wasm_memory_size(self.__ptr__)
 
+    @property
     def data_ptr(self):
         """
         Returns the raw pointer in memory where this wasm memory lives.
@@ -74,6 +77,7 @@ class Memory(object):
         """
         return dll.wasm_memory_data(self.__ptr__)
 
+    @property
     def data_len(self):
         """
         Returns the raw byte length of this memory.
@@ -81,12 +85,8 @@ class Memory(object):
 
         return dll.wasm_memory_data_size(self.__ptr__)
 
-    def as_extern(self):
-        """
-        Returns this type as an instance of `Extern`
-        """
-        ptr = dll.wasm_memory_as_extern(self.__ptr__)
-        return Extern.__from_ptr__(ptr, self.__owner__ or self)
+    def _as_extern(self):
+        return dll.wasm_memory_as_extern(self.__ptr__)
 
     def __del__(self):
         if hasattr(self, '__owner__') and self.__owner__ is None:

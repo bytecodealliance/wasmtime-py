@@ -1,6 +1,6 @@
 from ._ffi import *
 from ctypes import *
-from wasmtime import TableType, Extern
+from wasmtime import TableType
 
 dll.wasm_table_as_extern.restype = P_wasm_extern_t
 dll.wasm_table_type.restype = P_wasm_tabletype_t
@@ -17,6 +17,7 @@ class Table(object):
         ty.__owner__ = owner
         return ty
 
+    @property
     def type(self):
         """
         Gets the type of this table as a `TableType`
@@ -25,6 +26,7 @@ class Table(object):
         ptr = dll.wasm_table_type(self.__ptr__)
         return TableType.__from_ptr__(ptr, None)
 
+    @property
     def size(self):
         """
         Gets the size, in elements, of this table
@@ -32,13 +34,8 @@ class Table(object):
 
         return dll.wasm_table_size(self.__ptr__)
 
-    def as_extern(self):
-        """
-        Returns this as an instance of `Extern`
-        """
-
-        ptr = dll.wasm_table_as_extern(self.__ptr__)
-        return Extern.__from_ptr__(ptr, self.__owner__ or self)
+    def _as_extern(self):
+        return dll.wasm_table_as_extern(self.__ptr__)
 
     def __del__(self):
         if hasattr(self, '__owner__') and self.__owner__ is None:

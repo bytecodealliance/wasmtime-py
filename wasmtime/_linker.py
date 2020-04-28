@@ -1,13 +1,18 @@
 from ._ffi import *
 from ctypes import *
-from wasmtime import Store, Extern, Func, Global, Table, Memory, Instance
+from wasmtime import Store, Instance
 from wasmtime import Module, Trap, WasiInstance, WasmtimeError
+from ._extern import get_extern_ptr
 
 dll.wasmtime_linker_new.restype = P_wasmtime_linker_t
 dll.wasmtime_linker_define.restype = P_wasmtime_error_t
 dll.wasmtime_linker_define_instance.restype = P_wasmtime_error_t
 dll.wasmtime_linker_define_wasi.restype = P_wasmtime_error_t
 dll.wasmtime_linker_instantiate.restype = P_wasmtime_error_t
+
+
+def setter_property(fset):
+    return property(fset=fset)
 
 
 class Linker(object):
@@ -17,24 +22,18 @@ class Linker(object):
         self.__ptr__ = dll.wasmtime_linker_new(store.__ptr__)
         self.store = store
 
+    @setter_property
     def allow_shadowing(self, allow):
+        """
+        Configures whether definitions are allowed to shadow one another within
+        this linker
+        """
         if not isinstance(allow, bool):
             raise TypeError("expected a boolean")
         dll.wasmtime_linker_allow_shadowing(self.__ptr__, allow)
 
     def define(self, module, name, item):
-        if isinstance(item, Extern):
-            raw_item = item.__ptr__
-        elif isinstance(item, Func):
-            raw_item = item.as_extern().__ptr__
-        elif isinstance(item, Global):
-            raw_item = item.as_extern().__ptr__
-        elif isinstance(item, Memory):
-            raw_item = item.as_extern().__ptr__
-        elif isinstance(item, Table):
-            raw_item = item.as_extern().__ptr__
-        else:
-            raise TypeError("expected an `Extern`")
+        raw_item = get_extern_ptr(item)
         module_raw = str_to_name(module)
         name_raw = str_to_name(name)
         error = dll.wasmtime_linker_define(
