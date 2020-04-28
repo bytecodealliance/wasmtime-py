@@ -97,9 +97,9 @@ class TestFunc(unittest.TestCase):
         store = Store()
 
         def runtest(caller):
-            self.assertEqual(caller.get_export(''), None)
-            self.assertEqual(caller.get_export('x'), None)
-            self.assertEqual(caller.get_export('y'), None)
+            self.assertEqual(caller.get(''), None)
+            self.assertEqual(caller.get('x'), None)
+            self.assertEqual(caller.get('y'), None)
 
         Func(store, FuncType([], []), runtest, access_caller=True)()
 
@@ -110,8 +110,8 @@ class TestFunc(unittest.TestCase):
             hit['yes'] = True
             hit['caller'] = caller
 
-            self.assertTrue(caller.get_export('bar') is None)
-            mem = caller.get_export('foo')
+            self.assertTrue(caller.get('bar') is None)
+            mem = caller.get('foo')
             self.assertTrue(isinstance(mem, Memory))
 
             self.assertEqual(mem.data_ptr[0], ord('f'))
@@ -130,17 +130,17 @@ class TestFunc(unittest.TestCase):
         func = Func(store, FuncType([], []), runtest2, access_caller=True)
         Instance(module, [func])
         self.assertTrue(hit['yes'])
-        self.assertTrue(hit['caller'].get_export('foo') is None)
+        self.assertTrue(hit['caller'].get('foo') is None)
 
         # Test that `Caller` is invalidated even on exceptions
         hit2 = {}
 
         def runtest3(caller):
             hit2['caller'] = caller
-            self.assertTrue(caller.get_export('foo') is not None)
+            self.assertTrue(caller['foo'] is not None)
             raise WasmtimeError('foo')
 
         func = Func(store, FuncType([], []), runtest3, access_caller=True)
         with self.assertRaises(Trap):
             Instance(module, [func])
-        self.assertTrue(hit2['caller'].get_export('foo') is None)
+        self.assertTrue(hit2['caller'].get('foo') is None)

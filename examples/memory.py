@@ -13,10 +13,10 @@ module = Module.from_file(wasmtime_store, "examples/memory.wat")
 instance = Instance(module, [])
 
 # Load up our exports from the instance
-memory = instance.get_export("memory")
-size = instance.get_export("size")
-load = instance.get_export("load")
-store = instance.get_export("store")
+memory = instance.exports["memory"]
+size = instance.exports["size"]
+load = instance.exports["load"]
+store = instance.exports["store"]
 
 print("Checking memory...")
 assert(memory.size == 2)

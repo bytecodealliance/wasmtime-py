@@ -21,5 +21,5 @@ linker.define_instance("linking2", linking2)
 
 # And with that we can perform the final link and the execute the module.
 linking1 = linker.instantiate(linking1)
-run = linking1.get_export("run")
+run = linking1.exports["run"]
 run()
