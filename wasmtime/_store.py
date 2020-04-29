@@ -42,6 +42,7 @@ class InterruptHandle(object):
     For more information about this be sure to consult the Rust documentation:
     https://bytecodealliance.github.io/wasmtime/api/wasmtime/struct.Store.html#method.interrupt_handle
     """
+
     def __init__(self, store):
         if not isinstance(store, Store):
             raise TypeError("expected a Store")
@@ -60,4 +61,3 @@ class InterruptHandle(object):
     def __del__(self):
         if hasattr(self, '__ptr__'):
             dll.wasmtime_interrupt_handle_delete(self.__ptr__)
-
