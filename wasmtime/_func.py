@@ -141,7 +141,22 @@ class Caller(object):
     def __init__(self, ptr):
         self.__ptr__ = ptr
 
-    def get_export(self, name):
+    def __getitem__(self, name):
+        """
+        Looks up an export with `name` on the calling module.
+
+        If `name` isn't defined on the calling module, or if the caller has gone
+        away for some reason, then this will raise a `KeyError`. For more
+        information about when this could fail see the `get` method which
+        returns `None` on failure.
+        """
+
+        ret = self.get(name)
+        if ret is None:
+            raise KeyError("failed to find export {}".format(name))
+        return ret
+
+    def get(self, name):
         """
         Looks up an export with `name` on the calling module.
 

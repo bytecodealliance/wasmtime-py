@@ -41,6 +41,7 @@ class Instance(object):
             raise Trap.__from_ptr__(trap)
         self.__ptr__ = instance
         self._module = module
+        self._exports = None
 
     @classmethod
     def __from_ptr__(cls, ptr, module):
@@ -49,38 +50,60 @@ class Instance(object):
             raise TypeError("wrong pointer type")
         ty.__ptr__ = ptr
         ty._module = module
+        ty._exports = None
         return ty
 
     @property
     def exports(self):
         """
         Returns the exports of this module
-        """
-        externs = ExternTypeList()
-        dll.wasm_instance_exports(self.__ptr__, byref(externs.vec))
-        ret = []
-        for i in range(0, externs.vec.size):
-            ret.append(wrap_extern(externs.vec.data[i], externs))
-        return ret
 
-    def get_export(self, name):
+        The returned type can be indexed both with integers and with strings for
+        names of exports.
         """
-        Gets an export from this module by name, returning `None` if the name
-        doesn't exist.
-        """
-        if not hasattr(self, '_export_map'):
-            self._export_map = {}
-            exports = self.exports
-            for i, export in enumerate(self._module.exports):
-                self._export_map[export.name] = exports[i]
-        if name in self._export_map:
-            return self._export_map[name]
-        else:
-            return None
+        if self._exports is None:
+            externs = ExternTypeList()
+            dll.wasm_instance_exports(self.__ptr__, byref(externs.vec))
+            extern_list = []
+            for i in range(0, externs.vec.size):
+                extern_list.append(wrap_extern(externs.vec.data[i], externs))
+            self._exports = InstanceExports(extern_list, self._module)
+        return self._exports
 
     def __del__(self):
         if hasattr(self, '__ptr__'):
             dll.wasm_instance_delete(self.__ptr__)
+
+
+class InstanceExports(object):
+    def __init__(self, extern_list, module):
+        self._extern_list = extern_list
+        self._extern_map = {}
+        exports = module.exports
+        for i, extern in enumerate(extern_list):
+            self._extern_map[exports[i].name] = extern
+
+    def __getitem__(self, idx):
+        ret = self.get(idx)
+        if ret is None:
+            msg = "failed to find export {}".format(idx)
+            if isinstance(idx, str):
+                raise KeyError(msg)
+            raise IndexError(msg)
+        return ret
+
+    def __len__(self):
+        return len(self._extern_list)
+
+    def __iter__(self):
+        return iter(self._extern_list)
+
+    def get(self, idx):
+        if isinstance(idx, str):
+            return self._extern_map.get(idx)
+        if idx < len(self._extern_list):
+            return self._extern_list[idx]
+        return None
 
 
 class ExternTypeList(object):

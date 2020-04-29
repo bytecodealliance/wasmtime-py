@@ -18,6 +18,14 @@ class TestInstance(unittest.TestCase):
 
         extern()
 
+        self.assertTrue(instance.exports[''] is not None)
+        with self.assertRaises(KeyError):
+            instance.exports['x']
+        with self.assertRaises(IndexError):
+            instance.exports[100]
+        self.assertTrue(instance.exports.get('x') is None)
+        self.assertTrue(instance.exports.get(2) is None)
+
     def test_export_global(self):
         module = Module(
             Store(), '(module (global (export "") i32 (i32.const 3)))')

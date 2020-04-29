@@ -5,6 +5,6 @@ from wasmtime import Store, Module, Instance
 store = Store()
 module = Module.from_file(store, './examples/gcd.wat')
 instance = Instance(module, [])
-gcd = instance.get_export("gcd")
+gcd = instance.exports["gcd"]
 
 print("gcd(6, 27) = %d" % gcd(6, 27))
