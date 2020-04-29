@@ -15,6 +15,9 @@ class TestConfig(unittest.TestCase):
         config.cranelift_debug_verifier = True
         config.strategy = "cranelift"
         config.strategy = "auto"
+        config.cache = True
+        with self.assertRaises(WasmtimeError):
+            config.cache = "./test.toml"
         try:
             config.strategy = "lightbeam"
         except WasmtimeError:

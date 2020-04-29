@@ -5,6 +5,7 @@ from wasmtime import WasmtimeError
 dll.wasm_config_new.restype = P_wasm_config_t
 dll.wasmtime_config_strategy_set.restype = P_wasmtime_error_t
 dll.wasmtime_config_profiler_set.restype = P_wasmtime_error_t
+dll.wasmtime_config_cache_config_load.restype = P_wasmtime_error_t
 
 
 def setter_property(fset):
@@ -141,6 +142,31 @@ class Config(object):
             error = dll.wasmtime_config_profiler_set(self.__ptr__, 1)
         else:
             raise WasmtimeError("unknown profiler: " + str(profiler))
+        if error:
+            raise WasmtimeError.__from_ptr__(error)
+
+    @setter_property
+    def cache(self, enabled):
+        """
+        Configures whether code caching is enabled for this `Config`.
+
+        The value `True` can be passed in here to enable the default caching
+        configuration and location, or a path to a file can be passed in which
+        is a path to a TOML configuration file for the cache.
+
+        More information about cache configuration can be found at
+        https://bytecodealliance.github.io/wasmtime/cli-cache.html
+        """
+
+        if isinstance(enabled, bool):
+            if not enabled:
+                raise WasmtimeError("caching cannot be explicitly disabled")
+            error = dll.wasmtime_config_cache_config_load(self.__ptr__, 0)
+        elif isinstance(enabled, str):
+            error = dll.wasmtime_config_cache_config_load(self.__ptr__,
+                                                          c_char_p(enabled.encode('utf-8')))
+        else:
+            raise TypeError("expected string or bool")
         if error:
             raise WasmtimeError.__from_ptr__(error)
 
