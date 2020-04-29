@@ -170,6 +170,19 @@ class Config(object):
         if error:
             raise WasmtimeError.__from_ptr__(error)
 
+    @setter_property
+    def interruptable(self, enabled):
+        """
+        Configures whether wasm execution can be interrupted via interrupt
+        handles.
+        """
+
+        if enabled:
+            val = 1
+        else:
+            val = 0
+        dll.wasmtime_config_interruptable_set(self.__ptr__, val)
+
     def __del__(self):
         if hasattr(self, '__ptr__'):
             dll.wasm_config_delete(self.__ptr__)

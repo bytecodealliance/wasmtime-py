@@ -194,6 +194,13 @@ class wasmtime_error_t(Structure):
 P_wasmtime_error_t = POINTER(wasmtime_error_t)
 
 
+class wasmtime_interrupt_handle_t(Structure):
+    pass
+
+
+P_wasmtime_interrupt_handle_t = POINTER(wasmtime_interrupt_handle_t)
+
+
 class wasm_valtype_vec_t(Structure):
     _fields_ = [("size", c_size_t), ("data", POINTER(P_wasm_valtype_t))]
 
