@@ -3,16 +3,13 @@ from ctypes import *
 from wasmtime import Store, Instance
 from wasmtime import Module, Trap, WasiInstance, WasmtimeError
 from ._extern import get_extern_ptr
+from ._config import setter_property
 
 dll.wasmtime_linker_new.restype = P_wasmtime_linker_t
 dll.wasmtime_linker_define.restype = P_wasmtime_error_t
 dll.wasmtime_linker_define_instance.restype = P_wasmtime_error_t
 dll.wasmtime_linker_define_wasi.restype = P_wasmtime_error_t
 dll.wasmtime_linker_instantiate.restype = P_wasmtime_error_t
-
-
-def setter_property(fset):
-    return property(fset=fset)
 
 
 class Linker(object):

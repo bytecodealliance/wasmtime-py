@@ -9,7 +9,11 @@ dll.wasmtime_config_cache_config_load.restype = P_wasmtime_error_t
 
 
 def setter_property(fset):
-    return property(fset=fset)
+    prop = property(fset=fset)
+    if fset.__doc__:
+        prop.__doc__ = fset.__doc__
+        prop.__doc__ += "\n\n        Note that this field can only be set, it cannot be read"
+    return prop
 
 
 class Config(object):
