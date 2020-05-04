@@ -1,13 +1,47 @@
 from ._ffi import *
 from ctypes import *
-from wasmtime import TableType
+from wasmtime import TableType, Store, Func, WasmtimeError
 
 dll.wasm_table_as_extern.restype = P_wasm_extern_t
 dll.wasm_table_type.restype = P_wasm_tabletype_t
 dll.wasm_table_size.restype = c_uint32
+dll.wasmtime_funcref_table_new.restype = P_wasmtime_error_t
+dll.wasmtime_funcref_table_get.restype = c_bool
+dll.wasmtime_funcref_table_set.restype = P_wasmtime_error_t
+dll.wasmtime_funcref_table_grow.restype = P_wasmtime_error_t
+
+
+def get_func_ptr(init):
+    if init is None:
+        return 0
+    elif isinstance(init, Func):
+        return init.__ptr__
+    else:
+        raise TypeError("expected a `Func` or `None`")
 
 
 class Table(object):
+    def __init__(self, store, ty, init):
+        """
+        Creates a new table within `store` with the specified `ty`.
+
+        Note that for now only funcref tables are supported and `init` must
+        either be `None` or a `Func`.
+        """
+
+        if not isinstance(store, Store):
+            raise TypeError("expected a `Store`")
+        if not isinstance(ty, TableType):
+            raise TypeError("expected a `TableType`")
+
+        init_ptr = get_func_ptr(init)
+        ptr = P_wasm_table_t()
+        error = dll.wasmtime_funcref_table_new(store.__ptr__, ty.__ptr__, init_ptr, byref(ptr))
+        if error:
+            raise WasmtimeError.__from_ptr__(error)
+        self.__ptr__ = ptr
+        self.__owner__ = None
+
     @classmethod
     def __from_ptr__(cls, ptr, owner):
         ty = cls.__new__(cls)
@@ -33,6 +67,58 @@ class Table(object):
         """
 
         return dll.wasm_table_size(self.__ptr__)
+
+    def grow(self, amt, init):
+        """
+        Grows this table by the specified number of slots, using the specified
+        initializer for all new table slots.
+
+        Raises a `WasmtimeError` if the table could not be grown.
+        Returns the previous size of the table otherwise.
+        """
+        init_ptr = get_func_ptr(init)
+
+        prev = c_uint32(0)
+        error = dll.wasmtime_funcref_table_grow(self.__ptr__, c_uint32(amt), init_ptr, byref(prev))
+        if error:
+            raise WasmtimeError("failed to grow table")
+        return prev.value
+
+    def __getitem__(self, idx):
+        """
+        Gets an individual element within this table. Currently only works on
+        `funcref` tables.
+
+        Returns `None` for a slot where no function has been placed into.
+        Returns `Func` for a slot with a function.
+        Raises an `WasmtimeError` if `idx` is out of bounds.
+        """
+
+        idx = c_uint32(idx)
+        ptr = P_wasm_func_t()
+        ok = dll.wasmtime_funcref_table_get(self.__ptr__, idx, byref(ptr))
+        if ok:
+            if ptr:
+                return Func.__from_ptr__(ptr, None)
+            return None
+        raise WasmtimeError("table index out of bounds")
+
+    def __setitem__(self, idx, val):
+        """
+        Sets an individual element within this table. Currently only works on
+        `funcref` tables.
+
+        The `val` specified must either be a `Func` or `None`, and `idx` must
+        be an integer index.
+
+        Raises a `WasmtimeError` if `idx` is out of bounds.
+        """
+
+        idx = c_uint32(idx)
+        val_ptr = get_func_ptr(val)
+        error = dll.wasmtime_funcref_table_set(self.__ptr__, idx, val_ptr)
+        if error:
+            raise WasmtimeError.__from_ptr__(error)
 
     def _as_extern(self):
         return dll.wasm_table_as_extern(self.__ptr__)
