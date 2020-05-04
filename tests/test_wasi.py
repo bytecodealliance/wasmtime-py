@@ -7,17 +7,17 @@ from wasmtime import *
 class TestWasi(unittest.TestCase):
     def test_config(self):
         config = WasiConfig()
-        config.set_argv(['a', 'b'])
+        config.argv = ['a', 'b']
         config.inherit_argv()
-        config.set_env(['a'], ['b'])
+        config.env = [['a', 'b']]
         config.inherit_env()
 
         with tempfile.NamedTemporaryFile() as f:
-            config.set_stdin_file(f.name)
+            config.stdin_file = f.name
             config.inherit_stdin()
-            config.set_stdout_file(f.name)
+            config.stdout_file = f.name
             config.inherit_stdout()
-            config.set_stderr_file(f.name)
+            config.stderr_file = f.name
             config.inherit_stderr()
         config.preopen_dir('wasmtime', 'other')
 

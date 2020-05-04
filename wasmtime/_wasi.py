@@ -2,6 +2,7 @@ from ._ffi import *
 from ctypes import *
 from wasmtime import Store, Trap, ImportType
 from ._extern import wrap_extern
+from ._config import setter_property
 
 dll.wasi_config_new.restype = P_wasi_config_t
 dll.wasi_instance_new.restype = P_wasi_instance_t
@@ -12,15 +13,31 @@ class WasiConfig(object):
     def __init__(self):
         self.__ptr__ = dll.wasi_config_new()
 
+    @setter_property
     def set_argv(self, argv):
+        """
+        Explicitly configure the `argv` for this WASI configuration
+        """
         ptrs = to_char_array(argv)
         dll.wasi_config_set_argv(self.__ptr__, c_int(len(argv)), ptrs)
 
     def inherit_argv(self):
         dll.wasi_config_inherit_argv(self.__ptr__)
 
-    def set_env(self, names, values):
-        assert(len(names) == len(values))
+    @setter_property
+    def env(self, pairs):
+        """
+        Configure environment variables to be returned for this WASI
+        configuration.
+
+        The `pairs` provided must be an iterable list of key/value pairs of
+        environment variables.
+        """
+        names = []
+        values = []
+        for name, value in pairs:
+            names.append(name)
+            values.append(value)
         name_ptrs = to_char_array(names)
         value_ptrs = to_char_array(values)
         dll.wasi_config_set_env(self.__ptr__, c_int(
@@ -29,21 +46,24 @@ class WasiConfig(object):
     def inherit_env(self):
         dll.wasi_config_inherit_env(self.__ptr__)
 
-    def set_stdin_file(self, path):
+    @setter_property
+    def stdin_file(self, path):
         dll.wasi_config_set_stdin_file(
             self.__ptr__, c_char_p(path.encode('utf-8')))
 
     def inherit_stdin(self):
         dll.wasi_config_inherit_stdin(self.__ptr__)
 
-    def set_stdout_file(self, path):
+    @setter_property
+    def stdout_file(self, path):
         dll.wasi_config_set_stdout_file(
             self.__ptr__, c_char_p(path.encode('utf-8')))
 
     def inherit_stdout(self):
         dll.wasi_config_inherit_stdout(self.__ptr__)
 
-    def set_stderr_file(self, path):
+    @setter_property
+    def stderr_file(self, path):
         dll.wasi_config_set_stderr_file(
             self.__ptr__, c_char_p(path.encode('utf-8')))
 
