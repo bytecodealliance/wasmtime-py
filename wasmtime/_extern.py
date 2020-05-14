@@ -53,4 +53,4 @@ class Extern(object):
         self.ptr = ptr
 
     def __del__(self):
-        dll.wasm_extern_delete(ptr)
+        dll.wasm_extern_delete(self.ptr)
