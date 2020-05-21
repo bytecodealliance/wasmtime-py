@@ -45,7 +45,7 @@ jobs:
           file: x86_64-windows-c-api.zip
         - plat: mingw
           file: x86_64-windows-c-api.zip
-        - plat: linux-aarch64
+        - plat: manylinux2014-aarch64
           file: aarch64-linux-c-api.tar.xz
     steps:
     - uses: actions/checkout@v2
