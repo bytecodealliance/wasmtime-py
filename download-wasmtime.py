@@ -10,10 +10,7 @@ import sys
 
 def main():
     is_zip = False
-    if len(sys.argv) == 2:
-        filename = 'wasmtime-dev-' + sys.argv[1]
-        is_zip = filename.endswith('zip')
-    elif sys.platform == 'linux':
+    if sys.platform == 'linux':
         filename = 'wasmtime-dev-x86_64-linux-c-api.tar.xz'
     elif sys.platform == 'win32':
         filename = 'wasmtime-dev-x86_64-windows-c-api.zip'
