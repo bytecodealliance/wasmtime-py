@@ -33,17 +33,20 @@ jobs:
       - run: pytest
 
   build:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
         include:
-        - os: ubuntu-latest
-          plat: manylinux1-x86_64
-        - os: macos-latest
-          plat: macosx-10-13-x86_64
-        - os: windows-latest
-          plat: win-amd64
+        - plat: manylinux1-x86_64
+          file: x86_64-linux-c-api.tar.xz
+        - plat: macosx-10-13-x86_64
+          file: x86_64-macos-c-api.tar.xz
+        - plat: win-amd64
+          file: x86_64-windows-c-api.zip
+        - plat: mingw
+          file: x86_64-windows-c-api.zip
+        - plat: linux-aarch64
+          file: aarch64-linux-c-api.tar.xz
     steps:
     - uses: actions/checkout@v2
       with:
@@ -55,11 +58,11 @@ jobs:
     # If this is a tagged build use real version numbers
     - run: echo "::set-env name=PROD::true"
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
-    - run: python download-wasmtime.py
+    - run: python download-wasmtime.py ${{ matrix.file }}
     - run: python setup.py bdist_wheel --plat-name ${{ matrix.plat }}
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v2
       with:
-        name: wheel-${{ matrix.os }}
+        name: wheel-${{ matrix.plat }}
         path: dist
 
   flake8:
@@ -82,7 +85,7 @@ jobs:
     - run: pip install pdoc3
     - run: python download-wasmtime.py
     - run: pdoc --html wasmtime
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v2
       with:
         name: generated-docs
         path: html/wasmtime
@@ -98,7 +101,7 @@ jobs:
     - run: pip install coverage pytest
     - run: coverage run -m pytest
     - run: coverage html
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v2
       with:
         name: coverage
         path: htmlcov
@@ -108,16 +111,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/download-artifact@v1
-      with:
-        name: coverage
-    - uses: actions/download-artifact@v1
+    - uses: actions/download-artifact@v2
       with:
         name: generated-docs
+        path: html
+    - uses: actions/download-artifact@v2
+      with:
+        name: coverage
+        path: html/coverage
     - run: find .
-    - run: mv coverage generated-docs
     - name: Push to gh-pages
-      run: curl -LsSf https://git.io/fhJ8n | rustc - && (cd generated-docs && ../rust_out)
+      run: curl -LsSf https://git.io/fhJ8n | rustc - && (cd html && ../rust_out)
       if: github.event_name == 'push' && github.ref == 'refs/heads/master'
       env:
         GITHUB_DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
@@ -132,18 +136,12 @@ jobs:
     - uses: actions/setup-python@v1
       with:
         python-version: '3.x'
-    - uses: actions/download-artifact@v1
+    - uses: actions/download-artifact@v2
       with:
-        name: wheel-ubuntu-latest
-    - uses: actions/download-artifact@v1
-      with:
-        name: wheel-macos-latest
-    - uses: actions/download-artifact@v1
-      with:
-        name: wheel-windows-latest
+        path: wheels
     - run: find .
 
-    - run: mkdir dist && mv wheel-*-latest/* dist
+    - run: mkdir dist && mv wheels/**/*.whl dist
 
     - name: Publish distribution 📦 to Test PyPI
       if: github.event_name == 'push'
