@@ -20,7 +20,7 @@ def get_func_ptr(init):
         raise TypeError("expected a `Func` or `None`")
 
 
-class Table(object):
+class Table:
     def __init__(self, store, ty, init):
         """
         Creates a new table within `store` with the specified `ty`.

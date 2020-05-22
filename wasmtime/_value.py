@@ -11,7 +11,7 @@ def is_integer(val):
         return isinstance(val, (int, long))
 
 
-class Val(object):
+class Val:
     @classmethod
     def i32(cls, val):
         """

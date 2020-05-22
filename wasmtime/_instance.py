@@ -6,7 +6,7 @@ from ._extern import wrap_extern, get_extern_ptr
 dll.wasmtime_instance_new.restype = P_wasmtime_error_t
 
 
-class Instance(object):
+class Instance:
     def __init__(self, module, imports):
         """
         Creates a new instance by instantiating the `module` given with the
@@ -75,7 +75,7 @@ class Instance(object):
             dll.wasm_instance_delete(self.__ptr__)
 
 
-class InstanceExports(object):
+class InstanceExports:
     def __init__(self, extern_list, module):
         self._extern_list = extern_list
         self._extern_map = {}
@@ -106,7 +106,7 @@ class InstanceExports(object):
         return None
 
 
-class ExternTypeList(object):
+class ExternTypeList:
     def __init__(self):
         self.vec = wasm_extern_vec_t(0, None)
 

@@ -12,7 +12,7 @@ dll.wasmtime_linker_define_wasi.restype = P_wasmtime_error_t
 dll.wasmtime_linker_instantiate.restype = P_wasmtime_error_t
 
 
-class Linker(object):
+class Linker:
     def __init__(self, store):
         if not isinstance(store, Store):
             raise TypeError("expected a Store")

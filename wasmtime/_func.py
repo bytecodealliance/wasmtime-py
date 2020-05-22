@@ -15,7 +15,7 @@ dll.wasm_func_as_extern.restype = P_wasm_extern_t
 dll.wasmtime_caller_export_get.restype = P_wasm_extern_t
 
 
-class Func(object):
+class Func:
     def __init__(self, store, ty, func, access_caller=False):
         """
         Creates a new func in `store` with the given `ty` which calls the closure
@@ -137,7 +137,7 @@ class Func(object):
             dll.wasm_func_delete(self.__ptr__)
 
 
-class Caller(object):
+class Caller:
     def __init__(self, ptr):
         self.__ptr__ = ptr
 
@@ -244,7 +244,7 @@ def finalize(idx):
     pass
 
 
-class Slab(object):
+class Slab:
     def __init__(self):
         self.list = []
         self.next = 0

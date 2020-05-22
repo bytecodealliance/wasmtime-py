@@ -48,7 +48,7 @@ def get_extern_ptr(item):
         raise TypeError("expected a Func, Global, Memory, or Table")
 
 
-class Extern(object):
+class Extern:
     def __init__(self, ptr):
         self.ptr = ptr
 

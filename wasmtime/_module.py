@@ -6,7 +6,7 @@ dll.wasmtime_module_new.restype = P_wasmtime_error_t
 dll.wasmtime_module_validate.restype = P_wasmtime_error_t
 
 
-class Module(object):
+class Module:
     @classmethod
     def from_file(cls, store, path):
         """
@@ -98,7 +98,7 @@ class Module(object):
             dll.wasm_module_delete(self.__ptr__)
 
 
-class ImportTypeList(object):
+class ImportTypeList:
     def __init__(self):
         self.vec = wasm_importtype_vec_t(0, None)
 
@@ -106,7 +106,7 @@ class ImportTypeList(object):
         dll.wasm_importtype_vec_delete(byref(self.vec))
 
 
-class ExportTypeList(object):
+class ExportTypeList:
     def __init__(self):
         self.vec = wasm_exporttype_vec_t(0, None)
 
