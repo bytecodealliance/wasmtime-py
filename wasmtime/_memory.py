@@ -10,7 +10,7 @@ dll.wasm_memory_as_extern.restype = P_wasm_extern_t
 dll.wasm_memory_grow.restype = c_bool
 
 
-class Memory(object):
+class Memory:
     def __init__(self, store, ty):
         """
         Creates a new memory in `store` with the given `ty`

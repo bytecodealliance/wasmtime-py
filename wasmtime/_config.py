@@ -16,7 +16,7 @@ def setter_property(fset):
     return prop
 
 
-class Config(object):
+class Config:
     """
     Global configuration, used to create an `Engine`.
 

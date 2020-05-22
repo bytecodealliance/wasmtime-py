@@ -6,7 +6,7 @@ dll.wasm_store_new.restype = P_wasm_store_t
 dll.wasmtime_interrupt_handle_new.restype = P_wasmtime_interrupt_handle_t
 
 
-class Store(object):
+class Store:
     def __init__(self, engine=None):
         if engine is None:
             engine = Engine()
@@ -34,7 +34,7 @@ class Store(object):
             dll.wasm_store_delete(self.__ptr__)
 
 
-class InterruptHandle(object):
+class InterruptHandle:
     """
     A handle which can be used to interrupt executing WebAssembly code, forcing
     it to trap.

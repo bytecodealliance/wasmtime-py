@@ -75,7 +75,7 @@ class Trap(Exception):
             dll.wasm_trap_delete(self.__ptr__)
 
 
-class Frame(object):
+class Frame:
     @classmethod
     def __from_ptr__(cls, ptr, owner):
         ty = cls.__new__(cls)
@@ -144,7 +144,7 @@ class Frame(object):
             dll.wasm_frame_delete(self.__ptr__)
 
 
-class FrameList(object):
+class FrameList:
     def __init__(self):
         self.vec = wasm_frame_vec_t(0, None)
 

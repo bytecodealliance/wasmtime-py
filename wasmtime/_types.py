@@ -30,7 +30,7 @@ dll.wasm_valtype_kind.restype = c_uint8
 dll.wasm_globaltype_mutability.restype = c_uint8
 
 
-class ValType(object):
+class ValType:
     @classmethod
     def i32(cls):
         ptr = dll.wasm_valtype_new(WASM_I32)
@@ -132,7 +132,7 @@ def take_owned_valtype(ty):
     return dll.wasm_valtype_new(dll.wasm_valtype_kind(ty.__ptr__))
 
 
-class FuncType(object):
+class FuncType:
     def __init__(self, params, results):
         for param in params:
             if not isinstance(param, ValType):
@@ -193,7 +193,7 @@ class FuncType(object):
             dll.wasm_functype_delete(self.__ptr__)
 
 
-class GlobalType(object):
+class GlobalType:
     def __init__(self, valtype, mutable):
         if mutable:
             mutability = WASM_VAR
@@ -240,7 +240,7 @@ class GlobalType(object):
             dll.wasm_globaltype_delete(self.__ptr__)
 
 
-class Limits(object):
+class Limits:
     def __init__(self, min, max):
         self.min = min
         self.max = max
@@ -263,7 +263,7 @@ class Limits(object):
         return Limits(min, max)
 
 
-class TableType(object):
+class TableType:
     def __init__(self, valtype, limits):
         if not isinstance(limits, Limits):
             raise TypeError("expected Limits")
@@ -307,7 +307,7 @@ class TableType(object):
             dll.wasm_tabletype_delete(self.__ptr__)
 
 
-class MemoryType(object):
+class MemoryType:
     def __init__(self, limits):
         if not isinstance(limits, Limits):
             raise TypeError("expected Limits")
@@ -359,7 +359,7 @@ def wrap_externtype(ptr, owner):
     return MemoryType.__from_ptr__(val, owner)
 
 
-class ImportType(object):
+class ImportType:
     @classmethod
     def __from_ptr__(cls, ptr, owner):
         ty = cls.__new__(cls)
@@ -397,7 +397,7 @@ class ImportType(object):
             dll.wasm_importtype_delete(self.__ptr__)
 
 
-class ExportType(object):
+class ExportType:
     @classmethod
     def __from_ptr__(cls, ptr, owner):
         ty = cls.__new__(cls)

@@ -9,7 +9,7 @@ dll.wasi_instance_new.restype = P_wasi_instance_t
 dll.wasi_instance_bind_import.restype = P_wasm_extern_t
 
 
-class WasiConfig(object):
+class WasiConfig:
     def __init__(self):
         self.__ptr__ = dll.wasi_config_new()
 
@@ -87,7 +87,7 @@ def to_char_array(strings):
     return ptrs
 
 
-class WasiInstance(object):
+class WasiInstance:
     def __init__(self, store, name, config):
         if not isinstance(store, Store):
             raise TypeError("expected a `Store`")

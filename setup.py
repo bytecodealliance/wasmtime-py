@@ -30,7 +30,7 @@ setuptools.setup(
     },
     packages=['wasmtime'],
     include_package_data=True,
-    python_requires='>=2.7',
+    python_requires='>=3.5',
     test_suite="tests",
     extras_require={
         'testing': [
