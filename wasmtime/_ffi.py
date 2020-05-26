@@ -9,11 +9,11 @@ if sys.maxsize <= 2**32:
     raise WasmtimeError("wasmtime only works on 64-bit platforms right now")
 
 if sys.platform == 'linux':
-    libname = 'libwasmtime.so'
+    libname = '_libwasmtime.so'
 elif sys.platform == 'win32':
-    libname = 'wasmtime.dll'
+    libname = '_wasmtime.dll'
 elif sys.platform == 'darwin':
-    libname = 'libwasmtime.dylib'
+    libname = '_libwasmtime.dylib'
 else:
     raise RuntimeError("unsupported platform `{}` for wasmtime".format(sys.platform))
 

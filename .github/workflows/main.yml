@@ -1,7 +1,7 @@
 name: CI
 on:
   push:
-    branches: [master, wheel-updates]
+    branches: [master]
     tags-ignore: [dev]
   pull_request:
     branches: [master]

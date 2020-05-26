@@ -17,14 +17,14 @@ def main(platform, arch):
         arch = 'x86_64'
     if platform == 'linux':
         filename = 'wasmtime-dev-{}-linux-c-api.tar.xz'.format(arch)
-        libname = 'libwasmtime.so'
+        libname = '_libwasmtime.so'
     elif platform == 'win32':
         filename = 'wasmtime-dev-{}-windows-c-api.zip'.format(arch)
         is_zip = True
-        libname = 'wasmtime.dll'
+        libname = '_wasmtime.dll'
     elif platform == 'darwin':
         filename = 'wasmtime-dev-{}-macos-c-api.tar.xz'.format(arch)
-        libname = 'libwasmtime.dylib'
+        libname = '_libwasmtime.dylib'
     else:
         raise RuntimeError("unknown platform: " + sys.platform)
 
