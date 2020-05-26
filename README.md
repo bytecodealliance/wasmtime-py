@@ -30,19 +30,17 @@
 
 ## Installation
 
-You can install this extension via:
+To install wasmtime-py, run this command in your terminal:
 
-```
-pip install wasmtime
+```bash
+$ pip install wasmtime
 ```
 
-Currently only x86\_64 Windows, macOS, and Linux are supported for this Python
-extension.
+The package currently supports x86\_64 Windows, macOS, and Linux.
 
 ## Usage
 
-An example of compiling a module and importing functionality from Python can be
-done with:
+In this example, we compile and instantiate a WebAssembly module and use it from Python:
 
 ```python
 from wasmtime import Store, Module, Instance, Func, FuncType
@@ -64,14 +62,14 @@ run = instance.exports["run"]
 run()
 ```
 
-Be sure to check out the [`examples` directory] which has other usage patterns
-as well as the [full API documentation][apidoc]
+Be sure to check out the [`examples` directory], which has other usage patterns
+as well as the [full API documentation][apidoc] of the `wasmtime-py` package.
 
 [`examples` directory]: https://github.com/bytecodealliance/wasmtime-py/tree/master/examples
 [apidoc]: https://bytecodealliance.github.io/wasmtime-py/
 
-If your wasm modules works this way, then you can also import the wasm module
-directly into Python without instantiating it yourself:
+If your WebAssembly module works this way, then you can also import the WebAssembly module
+directly into Python without explicitly compiling and instantiating it yourself:
 
 ```python
 # Import the custom loader for `*.wasm` files
@@ -80,7 +78,7 @@ import wasmtime.loader
 # Assuming `your_wasm_file.wasm` is in the python load path...
 import your_wasm_file
 
-# And now you're instantiated and ready to go!
+# Now you're compiled and instantiated and ready to go!
 print(your_wasm_file.run())
 ```
 
@@ -88,8 +86,8 @@ print(your_wasm_file.run())
 
 So far this extension has been written by folks who are primarily Rust
 programmers, so it's highly likely that there's some faux pas in terms of Python
-idioms. Feel free to send a PR to help make things more idiomatic if you see
-something!
+idioms. Feel free to create a PR to help make things more idiomatic
+if you see something!
 
 To work on this extension locally you'll first want to clone the project:
 
@@ -98,35 +96,42 @@ $ git clone https://github.com/bytecodealliance/wasmtime-py
 $ cd wasmtime-py
 ```
 
-Next up you'll acquire a Wasmtime installation. This extension expects your
-platform's shared library to exist at `wasmtime/wasmtime.pyd`. You can download
-the latest development version of Wasmtime with `python download-wasmtime.py`
-(this is what CI does). Otherwise if you have a local checkout of Wasmtime you
-can symlink its `libwasmtime.so` (or equivalent) to `wasmtime/wasmtime.pyd`.
+Next up you'll acquire a [Wasmtime] installation. The wasmtime-py package expects
+your platform's shared library to exist at `wasmtime/wasmtime.pyd`. You can
+download the latest development version of Wasmtime by running a script in the
+top-level directory of the package's source (this is what CI does):
 
-After you've got Wasmtime set up you can make sure it works by running all the
-tests:
+[wasmtime]: https://wasmtime.dev/ 
+
+```sh
+$ python download-wasmtime.py
+```
+
+Otherwise if you have a local checkout of Wasmtime you can symlink
+its `libwasmtime.so` (or equivalent) to `wasmtime/wasmtime.pyd`.
+
+After you've got Wasmtime set up you can check it works by running all the
+unit tests:
 
 ```sh
 $ pip install pytest
 $ pytest
 ```
 
-And after that you should be good to go!
+After that you should be good to go!
 
 ### CI and Releases
 
-It's intended that this module is a largely automated process for all of the
-particulars. The CI for this project does a few different things:
+The CI for this project does a few different things:
 
-* API docs are generated for pushes to the master branch and are [rendered
-  online][apidoc]
+* API docs are generated for pushes to the master branch and are [published
+    online][apidoc].
 * Test coverage information is generated for pushes to the master branch and are
-  [available online](https://bytecodealliance.github.io/wasmtime-py/coverage/)
+  [available online](https://bytecodealliance.github.io/wasmtime-py/coverage/).
 * Each push to `master` will publish a release to
   [test.pypi.org](https://test.pypi.org/project/wasmtime/) for local inspection.
 * Tagged commits will automatically be published to
-  [pypi.org](https://pypi.org/project/wasmtime/)
+  [pypi.org](https://pypi.org/project/wasmtime/).
 
-Otherwise all commits/PRs run the full test suite and also check for style with
-`flake8`
+All commits/PRs run the full test suite, and check for code style
+and other errors using [flake8](https://flake8.pycqa.org/).
