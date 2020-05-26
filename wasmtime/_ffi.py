@@ -1,13 +1,29 @@
 from ctypes import *
 import os
 import sys
+import platform
 
 from wasmtime import WasmtimeError
 
 if sys.maxsize <= 2**32:
     raise WasmtimeError("wasmtime only works on 64-bit platforms right now")
 
-filename = os.path.join(os.path.dirname(__file__), 'wasmtime.pyd')
+if sys.platform == 'linux':
+    libname = 'libwasmtime.so'
+elif sys.platform == 'win32':
+    libname = 'wasmtime.dll'
+elif sys.platform == 'darwin':
+    libname = 'libwasmtime.dylib'
+else:
+    raise RuntimeError("unsupported platform `{}` for wasmtime".format(sys.platform))
+
+machine = platform.machine()
+if machine != 'x86_64' and machine != 'aarch64':
+    raise RuntimeError("unsupported architecture for wasmtime: {}".format(machine))
+
+filename = os.path.join(os.path.dirname(__file__), sys.platform + '-' + machine, libname)
+if not os.path.exists(filename):
+    raise RuntimeError("precompiled wasmtime binary not found at `{}`".format(filename))
 dll = cdll.LoadLibrary(filename)
 
 WASM_I32 = c_uint8(0)
