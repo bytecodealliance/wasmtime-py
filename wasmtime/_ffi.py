@@ -18,6 +18,8 @@ else:
     raise RuntimeError("unsupported platform `{}` for wasmtime".format(sys.platform))
 
 machine = platform.machine()
+if machine == 'AMD64':
+    machine = 'x86_64'
 if machine != 'x86_64' and machine != 'aarch64':
     raise RuntimeError("unsupported architecture for wasmtime: {}".format(machine))
 

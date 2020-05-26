@@ -13,6 +13,8 @@ import zipfile
 
 def main(platform, arch):
     is_zip = False
+    if arch == 'AMD64':
+        arch = 'x86_64'
     if platform == 'linux':
         filename = 'wasmtime-dev-{}-linux-c-api.tar.xz'.format(arch)
         libname = 'libwasmtime.so'
@@ -33,7 +35,7 @@ def main(platform, arch):
     dst = os.path.join('wasmtime', dirname, libname)
     try:
         shutil.rmtree(os.path.dirname(dst))
-    except:
+    except Exception:
         pass
     os.makedirs(os.path.dirname(dst))
 
@@ -65,4 +67,7 @@ def main(platform, arch):
 
 
 if __name__ == '__main__':
-    main(sys.platform, platform.machine())
+    if len(sys.argv) > 2:
+        main(sys.argv[1], sys.argv[2])
+    else:
+        main(sys.platform, platform.machine())

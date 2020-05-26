@@ -1,7 +1,7 @@
 name: CI
 on:
   push:
-    branches: [master]
+    branches: [master, wheel-updates]
     tags-ignore: [dev]
   pull_request:
     branches: [master]
@@ -24,26 +24,13 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
-          python-version: 3.8
-      - run: python download-wasmtime.py
-      - uses: actions/setup-python@v1
-        with:
           python-version: ${{ matrix.python-version }}
+      - run: python download-wasmtime.py
       - run: pip install pytest
       - run: pytest
 
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        include:
-        - os: ubuntu-latest
-          plat: manylinux1-x86_64
-        - os: macos-latest
-          plat: macosx-10-13-x86_64
-        - os: windows-latest
-          plat: win-amd64
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
       with:
@@ -55,11 +42,38 @@ jobs:
     # If this is a tagged build use real version numbers
     - run: echo "::set-env name=PROD::true"
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
-    - run: python download-wasmtime.py
-    - run: python setup.py bdist_wheel --plat-name ${{ matrix.plat }}
+    - run: |
+        git clean -fdx wasmtime build
+        python download-wasmtime.py linux x86_64
+        python setup.py bdist_wheel --plat-name manylinux1-x86_64
+    - run: |
+        git clean -fdx wasmtime build
+        python download-wasmtime.py darwin x86_64
+        python setup.py bdist_wheel --plat-name macosx-10-13-x86_64
+    - run: |
+        git clean -fdx wasmtime build
+        python download-wasmtime.py win32 x86_64
+        python setup.py bdist_wheel --plat-name win-amd64
+
+    # Build an "any" wheel with:
+    #
+    #   * MinGW
+    #   * Linux AArch64
+    #
+    # because at this time I don't know what the `--plat-name` tags supported on
+    # PyPI are for these platforms. Our hope is that any platform not matching
+    # the above `--plat-name` arguments will install this `any` wheel instead,
+    # and then when the wheel runs it'll dynamically select from the available
+    # shared libraries.
+    - run: |
+        git clean -fdx wasmtime build
+        python download-wasmtime.py win32 x86_64
+        python download-wasmtime.py linux aarch64
+        python setup.py bdist_wheel
+
     - uses: actions/upload-artifact@v1
       with:
-        name: wheel-${{ matrix.os }}
+        name: wheels
         path: dist
 
   flake8:
@@ -134,16 +148,9 @@ jobs:
         python-version: '3.x'
     - uses: actions/download-artifact@v1
       with:
-        name: wheel-ubuntu-latest
-    - uses: actions/download-artifact@v1
-      with:
-        name: wheel-macos-latest
-    - uses: actions/download-artifact@v1
-      with:
-        name: wheel-windows-latest
+        name: wheels
     - run: find .
-
-    - run: mkdir dist && mv wheel-*-latest/* dist
+    - run: mv wheels dist
 
     - name: Publish distribution 📦 to Test PyPI
       if: github.event_name == 'push'
