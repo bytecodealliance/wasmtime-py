@@ -36,7 +36,8 @@ To install wasmtime-py, run this command in your terminal:
 $ pip install wasmtime
 ```
 
-The package currently supports x86\_64 Windows, macOS, and Linux.
+The package currently supports 64-bit builds of Python 3.6+ on x86\_64 Windows,
+macOS, and Linux
 
 ## Usage
 
@@ -101,7 +102,7 @@ your platform's shared library to exist at `wasmtime/wasmtime.pyd`. You can
 download the latest development version of Wasmtime by running a script in the
 top-level directory of the package's source (this is what CI does):
 
-[wasmtime]: https://wasmtime.dev/ 
+[wasmtime]: https://wasmtime.dev/
 
 ```sh
 $ python download-wasmtime.py
