@@ -4,6 +4,12 @@ from wasmtime import Store, FuncType, Val, Trap, WasmtimeError
 import sys
 import traceback
 from ._extern import wrap_extern
+import typing
+
+if typing.TYPE_CHECKING:
+    from ._exportable import Exportable
+    from ._value import P_wasm_val_t
+
 
 dll.wasm_func_new_with_env.restype = P_wasm_func_t
 dll.wasmtime_func_new_with_env.restype = P_wasm_func_t
@@ -16,7 +22,7 @@ dll.wasmtime_caller_export_get.restype = P_wasm_extern_t
 
 
 class Func:
-    def __init__(self, store, ty, func, access_caller=False):
+    def __init__(self, store: Store, ty: FuncType, func: typing.Callable, access_caller: bool = False):
         """
         Creates a new func in `store` with the given `ty` which calls the closure
         given
@@ -49,7 +55,7 @@ class Func:
         self.__owner__ = None
 
     @classmethod
-    def __from_ptr__(cls, ptr, owner):
+    def __from_ptr__(cls, ptr: P_wasm_func_t, owner) -> "Func":
         ty = cls.__new__(cls)
         if not isinstance(ptr, P_wasm_func_t):
             raise TypeError("wrong pointer type")
@@ -58,7 +64,7 @@ class Func:
         return ty
 
     @property
-    def type(self):
+    def type(self) -> FuncType:
         """
         Gets the type of this func as a `FuncType`
         """
@@ -66,14 +72,14 @@ class Func:
         return FuncType.__from_ptr__(ptr, None)
 
     @property
-    def param_arity(self):
+    def param_arity(self) -> int:
         """
         Returns the number of parameters this function expects
         """
         return dll.wasm_func_param_arity(self.__ptr__)
 
     @property
-    def result_arity(self):
+    def result_arity(self) -> int:
         """
         Returns the number of results this function produces
         """
@@ -129,7 +135,7 @@ class Func:
         else:
             return results
 
-    def _as_extern(self):
+    def _as_extern(self) -> P_wasm_extern_t:
         return dll.wasm_func_as_extern(self.__ptr__)
 
     def __del__(self):
@@ -138,10 +144,10 @@ class Func:
 
 
 class Caller:
-    def __init__(self, ptr):
+    def __init__(self, ptr: P_wasmtime_caller_t):
         self.__ptr__ = ptr
 
-    def __getitem__(self, name):
+    def __getitem__(self, name) -> "Exportable":
         """
         Looks up an export with `name` on the calling module.
 
@@ -156,7 +162,7 @@ class Caller:
             raise KeyError("failed to find export {}".format(name))
         return ret
 
-    def get(self, name):
+    def get(self, name: str) -> typing.Optional["Exportable"]:
         """
         Looks up an export with `name` on the calling module.
 
@@ -180,7 +186,7 @@ class Caller:
             return None
 
 
-def extract_val(val):
+def extract_val(val: Val):
     a = val.value
     if a is not None:
         return a
@@ -188,7 +194,7 @@ def extract_val(val):
 
 
 @CFUNCTYPE(c_size_t, c_size_t, POINTER(wasm_val_t), POINTER(wasm_val_t))
-def trampoline(idx, params_ptr, results_ptr):
+def trampoline(idx: int, params_ptr: "P_wasm_val_t", results_ptr: "P_wasm_val_t") -> int:
     return invoke(idx, params_ptr, results_ptr, [])
 
 
@@ -199,7 +205,8 @@ def trampoline(idx, params_ptr, results_ptr):
     POINTER(wasm_val_t),
     POINTER(wasm_val_t),
 )
-def trampoline_with_caller(caller, idx, params_ptr, results_ptr):
+def trampoline_with_caller(caller: P_wasmtime_caller_t, idx: int,
+                           params_ptr: P_wasm_val_t, results_ptr: P_wasm_val_t) -> int:
     caller = Caller(caller)
     try:
         return invoke(idx, params_ptr, results_ptr, [caller])
@@ -207,7 +214,7 @@ def trampoline_with_caller(caller, idx, params_ptr, results_ptr):
         delattr(caller, '__ptr__')
 
 
-def invoke(idx, params_ptr, results_ptr, params):
+def invoke(idx: int, params_ptr: "P_wasm_val_t", results_ptr: "P_wasm_val_t", params) -> int:
     func, param_tys, result_tys, store = FUNCTIONS.get(idx)
 
     try:
@@ -239,7 +246,7 @@ def invoke(idx, params_ptr, results_ptr, params):
 
 
 @CFUNCTYPE(None, c_size_t)
-def finalize(idx):
+def finalize(idx: int) -> None:
     FUNCTIONS.deallocate(idx)
     pass
 
@@ -249,7 +256,7 @@ class Slab:
         self.list = []
         self.next = 0
 
-    def allocate(self, val):
+    def allocate(self, val: typing.Tuple) -> int:
         idx = self.next
 
         if len(self.list) == idx:
@@ -261,10 +268,10 @@ class Slab:
         self.list[idx] = val
         return idx
 
-    def get(self, idx):
+    def get(self, idx: int) -> typing.Tuple:
         return self.list[idx]
 
-    def deallocate(self, idx):
+    def deallocate(self, idx: int) -> None:
         self.list[idx] = self.next
         self.next = idx
 

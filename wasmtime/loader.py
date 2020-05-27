@@ -12,9 +12,13 @@ from wasmtime import Func, Table, Global, Memory
 import sys
 import os.path
 import importlib
+import typing
 
 from importlib.abc import Loader, MetaPathFinder
 from importlib.util import spec_from_file_location
+
+if typing.TYPE_CHECKING:
+    from importlib.machinery import ModuleSpec
 
 store = Store()
 linker = Linker(store)
@@ -28,7 +32,7 @@ linker.allow_shadowing = True
 
 
 class _WasmtimeMetaFinder(MetaPathFinder):
-    def find_spec(self, fullname, path, target=None):
+    def find_spec(self, fullname: str, path: str, target=None) -> typing.Optional["ModuleSpec"]:
         if path is None or path == "":
             path = [os.getcwd()]  # top level import --
             path.extend(sys.path)
@@ -57,7 +61,7 @@ class _WasmtimeLoader(Loader):
     def create_module(self, spec):
         return None  # use default module creation semantics
 
-    def exec_module(self, module):
+    def exec_module(self, module) -> None:
         wasm_module = Module.from_file(store, self.filename)
 
         for wasm_import in wasm_module.imports:

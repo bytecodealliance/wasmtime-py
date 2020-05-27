@@ -1,5 +1,9 @@
 from ._ffi import *
 from ctypes import *
+import typing
+
+if typing.TYPE_CHECKING:
+    from ._value import P_wasm_valtype_vec_t
 
 dll.wasm_valtype_new.restype = P_wasm_valtype_t
 dll.wasm_functype_new.restype = P_wasm_functype_t
@@ -32,32 +36,32 @@ dll.wasm_globaltype_mutability.restype = c_uint8
 
 class ValType:
     @classmethod
-    def i32(cls):
+    def i32(cls) -> "ValType":
         ptr = dll.wasm_valtype_new(WASM_I32)
         return ValType.__from_ptr__(ptr, None)
 
     @classmethod
-    def i64(cls):
+    def i64(cls) -> "ValType":
         ptr = dll.wasm_valtype_new(WASM_I64)
         return ValType.__from_ptr__(ptr, None)
 
     @classmethod
-    def f32(cls):
+    def f32(cls) -> "ValType":
         ptr = dll.wasm_valtype_new(WASM_F32)
         return ValType.__from_ptr__(ptr, None)
 
     @classmethod
-    def f64(cls):
+    def f64(cls) -> "ValType":
         ptr = dll.wasm_valtype_new(WASM_F64)
         return ValType.__from_ptr__(ptr, None)
 
     @classmethod
-    def anyref(cls):
+    def anyref(cls) -> "ValType":
         ptr = dll.wasm_valtype_new(WASM_ANYREF)
         return ValType.__from_ptr__(ptr, None)
 
     @classmethod
-    def funcref(cls):
+    def funcref(cls) -> "ValType":
         ptr = dll.wasm_valtype_new(WASM_FUNCREF)
         return ValType.__from_ptr__(ptr, None)
 
@@ -65,7 +69,7 @@ class ValType:
         raise WasmtimeError("cannot construct directly")
 
     @classmethod
-    def __from_ptr__(cls, ptr, owner):
+    def __from_ptr__(cls, ptr: P_wasm_valtype_t, owner) -> "ValType":
         ty = cls.__new__(cls)
         if not isinstance(ptr, P_wasm_valtype_t):
             raise TypeError("wrong pointer type")
@@ -73,7 +77,7 @@ class ValType:
         ty.__owner__ = owner
         return ty
 
-    def __eq__(self, other):
+    def __eq__(self, other: "ValType"):
         if not isinstance(other, ValType):
             return False
         assert(self.__ptr__ is not None)
@@ -82,13 +86,13 @@ class ValType:
         kind2 = dll.wasm_valtype_kind(other.__ptr__)
         return kind1 == kind2
 
-    def __ne__(self, other):
+    def __ne__(self, other: "ValType"):
         return not self.__eq__(other)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         assert(self.__ptr__ is not None)
         kind = dll.wasm_valtype_kind(self.__ptr__)
         if kind == WASM_I32.value:
@@ -114,14 +118,14 @@ class ValType:
             dll.wasm_valtype_delete(self.__ptr__)
 
     @classmethod
-    def __from_list__(cls, items, owner):
+    def __from_list__(cls, items: "P_wasm_valtype_vec_t", owner) -> typing.List["ValType"]:
         types = []
         for i in range(0, items.contents.size):
             types.append(ValType.__from_ptr__(items.contents.data[i], owner))
         return types
 
 
-def take_owned_valtype(ty):
+def take_owned_valtype(ty: ValType) -> P_wasm_valtype_t:
     if not isinstance(ty, ValType):
         raise TypeError("expected valtype")
 
@@ -133,7 +137,7 @@ def take_owned_valtype(ty):
 
 
 class FuncType:
-    def __init__(self, params, results):
+    def __init__(self, params: typing.List[ValType], results: typing.List[ValType]):
         for param in params:
             if not isinstance(param, ValType):
                 raise TypeError("expected ValType")
@@ -159,7 +163,7 @@ class FuncType:
         self.__owner__ = None
 
     @classmethod
-    def __from_ptr__(cls, ptr, owner):
+    def __from_ptr__(cls, ptr, owner) -> "FuncType":
         ty = cls.__new__(cls)
         if not isinstance(ptr, P_wasm_functype_t):
             raise TypeError("wrong pointer type")
@@ -168,7 +172,7 @@ class FuncType:
         return ty
 
     @property
-    def params(self):
+    def params(self) -> typing.List["ValType"]:
         """
         Returns the list of parameter types for this function type
         """
@@ -177,7 +181,7 @@ class FuncType:
         return ValType.__from_list__(ptr, self)
 
     @property
-    def results(self):
+    def results(self) -> typing.List["ValType"]:
         """
         Returns the list of result types for this function type
         """
@@ -185,7 +189,7 @@ class FuncType:
         ptr = dll.wasm_functype_results(self.__ptr__)
         return ValType.__from_list__(ptr, self)
 
-    def _as_extern(self):
+    def _as_extern(self) -> P_wasm_externtype_t:
         return dll.wasm_functype_as_externtype_const(self.__ptr__)
 
     def __del__(self):
@@ -194,7 +198,7 @@ class FuncType:
 
 
 class GlobalType:
-    def __init__(self, valtype, mutable):
+    def __init__(self, valtype: ValType, mutable: bool):
         if mutable:
             mutability = WASM_VAR
         else:
@@ -207,7 +211,7 @@ class GlobalType:
         self.__owner__ = None
 
     @classmethod
-    def __from_ptr__(cls, ptr, owner):
+    def __from_ptr__(cls, ptr: P_wasm_globaltype_t, owner) -> "GlobalType":
         ty = cls.__new__(cls)
         if not isinstance(ptr, P_wasm_globaltype_t):
             raise TypeError("wrong pointer type")
@@ -216,7 +220,7 @@ class GlobalType:
         return ty
 
     @property
-    def content(self):
+    def content(self) -> ValType:
         """
         Returns the type this global contains
         """
@@ -225,14 +229,14 @@ class GlobalType:
         return ValType.__from_ptr__(ptr, self)
 
     @property
-    def mutable(self):
+    def mutable(self) -> bool:
         """
         Returns whether this global is mutable or not
         """
         val = dll.wasm_globaltype_mutability(self.__ptr__)
         return val == WASM_VAR.value
 
-    def _as_extern(self):
+    def _as_extern(self) -> P_wasm_externtype_t:
         return dll.wasm_globaltype_as_externtype_const(self.__ptr__)
 
     def __del__(self):
@@ -241,21 +245,21 @@ class GlobalType:
 
 
 class Limits:
-    def __init__(self, min, max):
+    def __init__(self, min: int, max: typing.Optional[int]):
         self.min = min
         self.max = max
 
-    def __ffi__(self):
+    def __ffi__(self) -> wasm_limits_t:
         max = self.max
         if max is None:
             max = 0xffffffff
         return wasm_limits_t(self.min, max)
 
-    def __eq__(self, other):
+    def __eq__(self, other: "Limits"):
         return self.min == other.min and self.max == other.max
 
     @classmethod
-    def __from_ffi__(cls, val):
+    def __from_ffi__(cls, val: "P_wasm_limits_t"):
         min = val.contents.min
         max = val.contents.max
         if max == 0xffffffff:
@@ -264,7 +268,7 @@ class Limits:
 
 
 class TableType:
-    def __init__(self, valtype, limits):
+    def __init__(self, valtype: ValType, limits: Limits):
         if not isinstance(limits, Limits):
             raise TypeError("expected Limits")
         type_ptr = take_owned_valtype(valtype)
@@ -275,7 +279,7 @@ class TableType:
         self.__owner__ = None
 
     @classmethod
-    def __from_ptr__(cls, ptr, owner):
+    def __from_ptr__(cls, ptr: P_wasm_tabletype_t, owner) -> "TableType":
         ty = cls.__new__(cls)
         if not isinstance(ptr, P_wasm_tabletype_t):
             raise TypeError("wrong pointer type")
@@ -284,7 +288,7 @@ class TableType:
         return ty
 
     @property
-    def element(self):
+    def element(self) -> ValType:
         """
         Returns the type of this table's elements
         """
@@ -292,7 +296,7 @@ class TableType:
         return ValType.__from_ptr__(ptr, self)
 
     @property
-    def limits(self):
+    def limits(self) -> Limits:
         """
         Returns the limits on the size of thi stable
         """
@@ -308,7 +312,7 @@ class TableType:
 
 
 class MemoryType:
-    def __init__(self, limits):
+    def __init__(self, limits: Limits):
         if not isinstance(limits, Limits):
             raise TypeError("expected Limits")
         ptr = dll.wasm_memorytype_new(byref(limits.__ffi__()))
@@ -318,7 +322,7 @@ class MemoryType:
         self.__owner__ = None
 
     @classmethod
-    def __from_ptr__(cls, ptr, owner):
+    def __from_ptr__(cls, ptr, owner) -> "MemoryType":
         ty = cls.__new__(cls)
         if not isinstance(ptr, P_wasm_memorytype_t):
             raise TypeError("wrong pointer type")
@@ -327,14 +331,14 @@ class MemoryType:
         return ty
 
     @property
-    def limits(self):
+    def limits(self) -> Limits:
         """
         Returns the limits on the size of this table
         """
         val = dll.wasm_memorytype_limits(self.__ptr__)
         return Limits.__from_ffi__(val)
 
-    def _as_extern(self):
+    def _as_extern(self) -> P_wasm_externtype_t:
         return dll.wasm_memorytype_as_externtype_const(self.__ptr__)
 
     def __del__(self):
@@ -342,7 +346,7 @@ class MemoryType:
             dll.wasm_memorytype_delete(self.__ptr__)
 
 
-def wrap_externtype(ptr, owner):
+def wrap_externtype(ptr: P_wasm_externtype_t, owner) -> "ExternalType":
     if not isinstance(ptr, P_wasm_externtype_t):
         raise TypeError("wrong pointer type")
     val = dll.wasm_externtype_as_functype_const(ptr)
@@ -361,7 +365,7 @@ def wrap_externtype(ptr, owner):
 
 class ImportType:
     @classmethod
-    def __from_ptr__(cls, ptr, owner):
+    def __from_ptr__(cls, ptr: P_wasm_importtype_t, owner) -> "ImportType":
         ty = cls.__new__(cls)
         if not isinstance(ptr, P_wasm_importtype_t):
             raise TypeError("wrong pointer type")
@@ -370,7 +374,7 @@ class ImportType:
         return ty
 
     @property
-    def module(self):
+    def module(self) -> str:
         """
         Returns the module this import type refers to
         """
@@ -378,14 +382,14 @@ class ImportType:
         return dll.wasm_importtype_module(self.__ptr__).contents.to_str()
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
         Returns the name in the modulethis import type refers to
         """
         return dll.wasm_importtype_name(self.__ptr__).contents.to_str()
 
     @property
-    def type(self):
+    def type(self) -> "ExternalType":
         """
         Returns the type that this import refers to
         """
@@ -399,7 +403,7 @@ class ImportType:
 
 class ExportType:
     @classmethod
-    def __from_ptr__(cls, ptr, owner):
+    def __from_ptr__(cls, ptr: P_wasm_exporttype_t, owner):
         ty = cls.__new__(cls)
         if not isinstance(ptr, P_wasm_exporttype_t):
             raise TypeError("wrong pointer type")
@@ -408,14 +412,14 @@ class ExportType:
         return ty
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
         Returns the name in the modulethis export type refers to
         """
         return dll.wasm_exporttype_name(self.__ptr__).contents.to_str()
 
     @property
-    def type(self):
+    def type(self) -> "ExternalType":
         """
         Returns the type that this export refers to
         """
@@ -425,3 +429,6 @@ class ExportType:
     def __del__(self):
         if self.__owner__ is None:
             dll.wasm_exporttype_delete(self.__ptr__)
+
+
+ExternalType = typing.Union[FuncType, TableType, MemoryType, GlobalType]

@@ -9,7 +9,7 @@ dll.wasmtime_global_set.restype = P_wasmtime_error_t
 
 
 class Global:
-    def __init__(self, store, ty, val):
+    def __init__(self, store: Store, ty: GlobalType, val):
         if not isinstance(store, Store):
             raise TypeError("expected a Store")
         if not isinstance(ty, GlobalType):
@@ -27,7 +27,7 @@ class Global:
         self.__owner__ = None
 
     @classmethod
-    def __from_ptr__(cls, ptr, owner):
+    def __from_ptr__(cls, ptr: P_wasm_global_t, owner) -> "Global":
         ty = cls.__new__(cls)
         if not isinstance(ptr, P_wasm_global_t):
             raise TypeError("wrong pointer type")
@@ -36,7 +36,7 @@ class Global:
         return ty
 
     @property
-    def type(self):
+    def type(self) -> GlobalType:
         """
         Gets the type of this global as a `GlobalType`
         """
@@ -65,7 +65,7 @@ class Global:
         if error:
             raise WasmtimeError.__from_ptr__(error)
 
-    def _as_extern(self):
+    def _as_extern(self) -> P_wasm_extern_t:
         return dll.wasm_global_as_extern(self.__ptr__)
 
     def __del__(self):

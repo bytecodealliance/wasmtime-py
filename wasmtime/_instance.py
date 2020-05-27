@@ -1,13 +1,17 @@
 from ._ffi import *
 from ctypes import *
 from wasmtime import Module, Trap, WasmtimeError
-from ._extern import wrap_extern, get_extern_ptr
+from ._extern import wrap_extern, get_extern_ptr, Extern
+import typing
+
+if typing.TYPE_CHECKING:
+    from ._exportable import Exportable
 
 dll.wasmtime_instance_new.restype = P_wasmtime_error_t
 
 
 class Instance:
-    def __init__(self, module, imports):
+    def __init__(self, module: Module, imports: typing.Iterable[typing.Union["Exportable", Extern]]):
         """
         Creates a new instance by instantiating the `module` given with the
         `imports` provided.
@@ -44,7 +48,7 @@ class Instance:
         self._exports = None
 
     @classmethod
-    def __from_ptr__(cls, ptr, module):
+    def __from_ptr__(cls, ptr: P_wasm_instance_t, module: Module) -> "Instance":
         ty = cls.__new__(cls)
         if not isinstance(ptr, P_wasm_instance_t):
             raise TypeError("wrong pointer type")
@@ -54,7 +58,7 @@ class Instance:
         return ty
 
     @property
-    def exports(self):
+    def exports(self) -> "InstanceExports":
         """
         Returns the exports of this module
 
@@ -76,14 +80,14 @@ class Instance:
 
 
 class InstanceExports:
-    def __init__(self, extern_list, module):
+    def __init__(self, extern_list, module: Module):
         self._extern_list = extern_list
         self._extern_map = {}
         exports = module.exports
         for i, extern in enumerate(extern_list):
             self._extern_map[exports[i].name] = extern
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int):
         ret = self.get(idx)
         if ret is None:
             msg = "failed to find export {}".format(idx)
@@ -98,7 +102,7 @@ class InstanceExports:
     def __iter__(self):
         return iter(self._extern_list)
 
-    def get(self, idx):
+    def get(self, idx: int) -> typing.Optional["Exportable"]:
         if isinstance(idx, str):
             return self._extern_map.get(idx)
         if idx < len(self._extern_list):

@@ -225,18 +225,24 @@ class wasm_valtype_vec_t(Structure):
     _fields_ = [("size", c_size_t), ("data", POINTER(P_wasm_valtype_t))]
 
 
+P_wasm_valtype_vec_t = POINTER(wasm_valtype_vec_t)
+
+
 class wasm_limits_t(Structure):
     _fields_ = [("min", c_uint32), ("max", c_uint32)]
+
+
+P_wasm_limits_t = POINTER(wasm_limits_t)
 
 
 class wasm_byte_vec_t(Structure):
     _fields_ = [("size", c_size_t), ("data", POINTER(c_uint8))]
 
-    def to_bytes(self):
+    def to_bytes(self) -> bytearray:
         ty = c_uint8 * self.size
         return bytearray(ty.from_address(addressof(self.data.contents)))
 
-    def to_str(self):
+    def to_str(self) -> str:
         return self.to_bytes().decode("utf-8")
 
 
@@ -272,7 +278,10 @@ class wasm_val_t(Structure):
     _fields_ = [("kind", c_uint8), ("of", wasm_val_union)]
 
 
-def str_to_name(s, trailing_nul=False):
+P_wasm_val_t = POINTER(wasm_val_t)
+
+
+def str_to_name(s: str, trailing_nul: bool = False) -> wasm_byte_vec_t:
     if not isinstance(s, str):
         raise TypeError("expected a string")
     s = s.encode('utf8')

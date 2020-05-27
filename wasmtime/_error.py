@@ -1,4 +1,8 @@
 from ctypes import byref
+import typing
+
+if typing.TYPE_CHECKING:
+    from ._ffi import P_wasmtime_error_t
 
 
 class WasmtimeError(Exception):
@@ -6,7 +10,7 @@ class WasmtimeError(Exception):
         self.message = message
 
     @classmethod
-    def __from_ptr__(cls, ptr):
+    def __from_ptr__(cls, ptr: "P_wasmtime_error_t") -> "WasmtimeError":
         from ._ffi import P_wasmtime_error_t, wasm_byte_vec_t, dll  # Avoid circular import
         if not isinstance(ptr, P_wasmtime_error_t):
             raise TypeError("wrong pointer type")

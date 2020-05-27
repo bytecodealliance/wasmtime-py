@@ -1,6 +1,8 @@
 from ._ffi import *
 from ctypes import *
 from wasmtime import TableType, Store, Func, WasmtimeError
+import typing
+
 
 dll.wasm_table_as_extern.restype = P_wasm_extern_t
 dll.wasm_table_type.restype = P_wasm_tabletype_t
@@ -11,7 +13,7 @@ dll.wasmtime_funcref_table_set.restype = P_wasmtime_error_t
 dll.wasmtime_funcref_table_grow.restype = P_wasmtime_error_t
 
 
-def get_func_ptr(init):
+def get_func_ptr(init: typing.Optional[Func]) -> typing.Union[P_wasm_func_t, int]:
     if init is None:
         return 0
     elif isinstance(init, Func):
@@ -21,7 +23,7 @@ def get_func_ptr(init):
 
 
 class Table:
-    def __init__(self, store, ty, init):
+    def __init__(self, store: Store, ty: TableType, init: typing.Optional[Func]):
         """
         Creates a new table within `store` with the specified `ty`.
 
@@ -43,7 +45,7 @@ class Table:
         self.__owner__ = None
 
     @classmethod
-    def __from_ptr__(cls, ptr, owner):
+    def __from_ptr__(cls, ptr: P_wasm_table_t, owner) -> "Table":
         ty = cls.__new__(cls)
         if not isinstance(ptr, P_wasm_table_t):
             raise TypeError("wrong pointer type")
@@ -52,7 +54,7 @@ class Table:
         return ty
 
     @property
-    def type(self):
+    def type(self) -> TableType:
         """
         Gets the type of this table as a `TableType`
         """
@@ -61,14 +63,14 @@ class Table:
         return TableType.__from_ptr__(ptr, None)
 
     @property
-    def size(self):
+    def size(self) -> int:
         """
         Gets the size, in elements, of this table
         """
 
         return dll.wasm_table_size(self.__ptr__)
 
-    def grow(self, amt, init):
+    def grow(self, amt: int, init: typing.Optional[Func]) -> int:
         """
         Grows this table by the specified number of slots, using the specified
         initializer for all new table slots.
@@ -84,7 +86,7 @@ class Table:
             raise WasmtimeError("failed to grow table")
         return prev.value
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int) -> typing.Optional[Func]:
         """
         Gets an individual element within this table. Currently only works on
         `funcref` tables.
@@ -103,7 +105,7 @@ class Table:
             return None
         raise WasmtimeError("table index out of bounds")
 
-    def __setitem__(self, idx, val):
+    def __setitem__(self, idx: int, val: typing.Optional[Func]) -> None:
         """
         Sets an individual element within this table. Currently only works on
         `funcref` tables.
@@ -120,7 +122,7 @@ class Table:
         if error:
             raise WasmtimeError.__from_ptr__(error)
 
-    def _as_extern(self):
+    def _as_extern(self) -> P_wasm_extern_t:
         return dll.wasm_table_as_extern(self.__ptr__)
 
     def __del__(self):

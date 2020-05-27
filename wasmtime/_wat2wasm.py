@@ -1,11 +1,12 @@
 from ._ffi import *
 from ctypes import *
 from wasmtime import WasmtimeError
+import typing
 
 dll.wasmtime_wat2wasm.restype = P_wasmtime_error_t
 
 
-def wat2wasm(wat):
+def wat2wasm(wat: typing.Union[str, bytes]) -> bytearray:
     """
     Converts the [WebAssembly Text format][wat] to the binary format.
 

@@ -1,6 +1,7 @@
 from ._ffi import *
 from ctypes import *
 from wasmtime import Store
+import typing
 
 dll.wasm_trap_new.restype = P_wasm_trap_t
 dll.wasm_frame_func_index.restype = c_uint32
@@ -11,7 +12,7 @@ dll.wasm_frame_func_offset.restype = c_size_t
 
 
 class Trap(Exception):
-    def __init__(self, store, message):
+    def __init__(self, store: Store, message: str):
         """
         Creates a new trap in `store` with the given `message`
         """
@@ -27,7 +28,7 @@ class Trap(Exception):
         self.__ptr__ = ptr
 
     @classmethod
-    def __from_ptr__(cls, ptr):
+    def __from_ptr__(cls, ptr: P_wasm_trap_t) -> "Trap":
         if not isinstance(ptr, P_wasm_trap_t):
             raise TypeError("wrong pointer type")
         trap = cls.__new__(cls)
@@ -35,7 +36,7 @@ class Trap(Exception):
         return trap
 
     @property
-    def message(self):
+    def message(self) -> str:
         """
         Returns the message for this trap
         """
@@ -50,7 +51,7 @@ class Trap(Exception):
         return ret
 
     @property
-    def frames(self):
+    def frames(self) -> typing.List["Frame"]:
         frames = FrameList()
         dll.wasm_trap_trace(self.__ptr__, byref(frames.vec))
         ret = []
@@ -58,7 +59,7 @@ class Trap(Exception):
             ret.append(Frame.__from_ptr__(frames.vec.data[i], frames))
         return ret
 
-    def __str__(self):
+    def __str__(self) -> str:
         frames = self.frames
         message = self.message
         if len(frames) > 0:
@@ -77,7 +78,7 @@ class Trap(Exception):
 
 class Frame:
     @classmethod
-    def __from_ptr__(cls, ptr, owner):
+    def __from_ptr__(cls, ptr: P_wasm_frame_t, owner) -> "Frame":
         ty = cls.__new__(cls)
         if not isinstance(ptr, P_wasm_frame_t):
             raise TypeError("wrong pointer type")
@@ -86,7 +87,7 @@ class Frame:
         return ty
 
     @property
-    def func_index(self):
+    def func_index(self) -> int:
         """
         Returns the function index this frame corresponds to in its wasm module
         """
@@ -94,7 +95,7 @@ class Frame:
         return dll.wasm_frame_func_index(self.__ptr__)
 
     @property
-    def func_name(self):
+    def func_name(self) -> typing.Optional[str]:
         """
         Returns the name of the function this frame corresponds to
 
@@ -108,7 +109,7 @@ class Frame:
             return None
 
     @property
-    def module_name(self):
+    def module_name(self) -> typing.Optional[str]:
         """
         Returns the name of the module this frame corresponds to
 
@@ -122,7 +123,7 @@ class Frame:
             return None
 
     @property
-    def module_offset(self):
+    def module_offset(self) -> int:
         """
         Returns the offset of this frame's program counter into the original
         wasm source module.
@@ -131,7 +132,7 @@ class Frame:
         return dll.wasm_frame_module_offset(self.__ptr__)
 
     @property
-    def func_offset(self):
+    def func_offset(self) -> int:
         """
         Returns the offset of this frame's program counter into the original
         wasm function.
