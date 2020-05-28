@@ -5,6 +5,9 @@ from ._extern import wrap_extern
 from ._config import setter_property
 import typing
 
+if typing.TYPE_CHECKING:
+    from _exportable import Exportable
+
 dll.wasi_config_new.restype = P_wasi_config_t
 dll.wasi_instance_new.restype = P_wasi_instance_t
 dll.wasi_instance_bind_import.restype = P_wasm_extern_t
@@ -110,7 +113,7 @@ class WasiInstance:
         self.__ptr__ = ptr
         self.store = store
 
-    def bind(self, import_: ImportType) -> typing.Optional["XInstance"]:
+    def bind(self, import_: ImportType) -> typing.Optional["Exportable"]:
         if not isinstance(import_, ImportType):
             raise TypeError("expected an `ImportType`")
         ptr = dll.wasi_instance_bind_import(self.__ptr__, import_.__ptr__)
