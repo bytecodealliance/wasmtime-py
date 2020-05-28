@@ -1,9 +1,10 @@
-from ._ffi import *
-from ctypes import *
 __all__ = [
     "wrap_extern",
     "get_extern_ptr",
 ]
+
+from ._ffi import (dll, P_wasm_func_t, P_wasm_table_t, P_wasm_global_t, P_wasm_memory_t,
+                   P_wasm_externtype_t, P_wasm_extern_t)
 
 dll.wasm_extern_as_func.restype = P_wasm_func_t
 dll.wasm_extern_as_table.restype = P_wasm_table_t

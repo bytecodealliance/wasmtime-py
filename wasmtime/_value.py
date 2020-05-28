@@ -1,8 +1,10 @@
-from ._ffi import *
-from wasmtime import ValType
 __all__ = [
     "Val",
 ]
+
+from ._error import WasmtimeError
+from ._ffi import wasm_val_t, WASM_I32, WASM_I64, WASM_F32, WASM_F64, dll
+from ._types import ValType
 
 
 class Val:

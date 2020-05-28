@@ -1,13 +1,18 @@
-from ._ffi import *
-from ctypes import *
-from wasmtime import Store, Instance
-from wasmtime import Module, Trap, WasiInstance, WasmtimeError
-from ._extern import get_extern_ptr
 __all__ = [
     "Linker",
 ]
 
+from ctypes import byref
+
 from ._config import setter_property
+from ._error import WasmtimeError
+from ._extern import get_extern_ptr
+from ._ffi import P_wasmtime_linker_t, P_wasmtime_error_t, dll, str_to_name, P_wasm_trap_t, P_wasm_instance_t
+from ._instance import Instance
+from ._module import Module
+from ._store import Store
+from ._trap import Trap
+from ._wasi import WasiInstance
 
 dll.wasmtime_linker_new.restype = P_wasmtime_linker_t
 dll.wasmtime_linker_define.restype = P_wasmtime_error_t

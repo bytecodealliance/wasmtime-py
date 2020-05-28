@@ -1,10 +1,15 @@
-from ._ffi import *
-from ctypes import *
-from wasmtime import Store, wat2wasm, ImportType, ExportType, WasmtimeError
 __all__ = [
     "Module",
 ]
 
+from ctypes import byref, c_uint8
+
+from ._error import WasmtimeError
+from ._ffi import (dll, P_wasmtime_error_t, wasm_byte_vec_t, P_wasm_module_t,
+                   wasm_importtype_vec_t, wasm_exporttype_vec_t)
+from ._store import Store
+from ._types import ImportType, ExportType
+from ._wat2wasm import wat2wasm
 
 dll.wasmtime_module_new.restype = P_wasmtime_error_t
 dll.wasmtime_module_validate.restype = P_wasmtime_error_t

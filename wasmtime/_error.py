@@ -11,7 +11,7 @@ class WasmtimeError(Exception):
 
     @classmethod
     def __from_ptr__(cls, ptr):
-        from ._ffi import P_wasmtime_error_t, wasm_byte_vec_t, dll  # Avoid circular import
+        from ._ffi import dll, P_wasmtime_error_t, wasm_byte_vec_t
         if not isinstance(ptr, P_wasmtime_error_t):
             raise TypeError("wrong pointer type")
         message_vec = wasm_byte_vec_t()

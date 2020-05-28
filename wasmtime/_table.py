@@ -1,9 +1,15 @@
-from ._ffi import *
-from ctypes import *
-from wasmtime import TableType, Store, Func, WasmtimeError
 __all__ = [
     "Table",
 ]
+
+from ctypes import c_uint32, c_bool, byref
+
+from ._error import WasmtimeError
+from ._ffi import dll, P_wasm_extern_t, P_wasm_tabletype_t, P_wasmtime_error_t, P_wasm_table_t, P_wasm_func_t
+from ._func import Func
+from ._store import Store
+from ._types import TableType
+
 
 dll.wasm_table_as_extern.restype = P_wasm_extern_t
 dll.wasm_table_type.restype = P_wasm_tabletype_t

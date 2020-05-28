@@ -7,14 +7,20 @@ can `import your_wasm_file` which will automatically compile and instantiate
 `your_wasm_file.wasm` and hook it up into Python's module system.
 """
 
-from wasmtime import Module, Linker, Store, WasiInstance, WasiConfig
-from wasmtime import Func, Table, Global, Memory
-import sys
-import os.path
 import importlib
-
+import os.path
+import sys
 from importlib.abc import Loader, MetaPathFinder
 from importlib.util import spec_from_file_location
+
+from ._func import Func
+from ._globals import Global
+from ._linker import Linker
+from ._memory import Memory
+from ._module import Module
+from ._store import Store
+from ._table import Table
+from ._wasi import WasiInstance, WasiConfig
 
 store = Store()
 linker = Linker(store)

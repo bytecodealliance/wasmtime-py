@@ -1,9 +1,11 @@
-from ._ffi import *
-from ctypes import *
-from wasmtime import WasmtimeError
 __all__ = [
     "wat2wasm",
 ]
+
+from ctypes import cast, create_string_buffer, POINTER, c_uint8, byref
+
+from ._error import WasmtimeError
+from ._ffi import dll, P_wasmtime_error_t, wasm_byte_vec_t
 
 dll.wasmtime_wat2wasm.restype = P_wasmtime_error_t
 

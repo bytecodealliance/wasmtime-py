@@ -1,12 +1,18 @@
-from ._ffi import *
-from ctypes import *
-from wasmtime import Store, Trap, ImportType
-from ._extern import wrap_extern
 __all__ = [
     "WasiConfig",
     "WasiInstance",
 ]
+
+from ctypes import c_int, c_char_p, byref
+
 from ._config import setter_property
+from ._error import WasmtimeError
+from ._extern import wrap_extern
+from ._ffi import dll, P_wasi_config_t, P_wasm_extern_t, P_wasi_instance_t, P_wasm_trap_t
+from ._store import Store
+from ._trap import Trap
+from ._types import ImportType
+
 
 dll.wasi_config_new.restype = P_wasi_config_t
 dll.wasi_instance_new.restype = P_wasi_instance_t

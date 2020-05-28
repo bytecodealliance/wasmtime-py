@@ -1,5 +1,3 @@
-from ._ffi import *
-from ctypes import *
 __all__ = [
     "ValType",
     "FuncType",
@@ -10,6 +8,14 @@ __all__ = [
     "ImportType",
     "ExportType",
 ]
+
+from ctypes import POINTER, c_uint8, byref, c_void_p, cast
+
+from ._error import WasmtimeError
+from ._ffi import (dll, P_wasm_valtype_t, P_wasm_functype_t, wasm_valtype_vec_t, P_wasm_globaltype_t,
+                   P_wasm_tabletype_t, P_wasm_memorytype_t, wasm_limits_t, P_wasm_externtype_t, WASM_I32, WASM_I64,
+                   WASM_F32, WASM_F64, WASM_ANYREF, WASM_FUNCREF, WASM_VAR, WASM_CONST, P_wasm_importtype_t,
+                   P_wasm_exporttype_t, wasm_name_t)
 
 dll.wasm_valtype_new.restype = P_wasm_valtype_t
 dll.wasm_functype_new.restype = P_wasm_functype_t

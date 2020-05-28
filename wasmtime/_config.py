@@ -1,11 +1,12 @@
-from ._ffi import *
-from ctypes import *
-from wasmtime import WasmtimeError
 __all__ = [
     "Config",
     "setter_property",
 ]
 
+from ctypes import c_char_p
+
+from ._error import WasmtimeError
+from ._ffi import dll, P_wasm_config_t, P_wasmtime_error_t
 
 dll.wasm_config_new.restype = P_wasm_config_t
 dll.wasmtime_config_strategy_set.restype = P_wasmtime_error_t

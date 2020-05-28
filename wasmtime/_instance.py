@@ -1,11 +1,14 @@
-from ._ffi import *
-from ctypes import *
-from wasmtime import Module, Trap, WasmtimeError
 __all__ = [
     "Instance",
 ]
 
+from ctypes import byref
+
+from ._error import WasmtimeError
 from ._extern import wrap_extern, get_extern_ptr
+from ._ffi import P_wasmtime_error_t, dll, P_wasm_extern_t, P_wasm_instance_t, P_wasm_trap_t, wasm_extern_vec_t
+from ._module import Module
+from ._trap import Trap
 
 dll.wasmtime_instance_new.restype = P_wasmtime_error_t
 

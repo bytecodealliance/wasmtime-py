@@ -1,10 +1,14 @@
-from ._ffi import *
-from ctypes import *
-from wasmtime import Store
 __all__ = [
     "Trap",
     "Frame",
 ]
+
+from ctypes import c_uint32, POINTER, c_size_t, byref
+
+from ._store import Store
+from ._error import WasmtimeError
+from ._ffi import dll, P_wasm_trap_t, wasm_byte_vec_t, str_to_name, P_wasm_frame_t, wasm_frame_vec_t
+
 
 dll.wasm_trap_new.restype = P_wasm_trap_t
 dll.wasm_frame_func_index.restype = c_uint32

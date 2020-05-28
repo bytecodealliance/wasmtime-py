@@ -1,4 +1,3 @@
-from ctypes import *
 __all__ = [
     "P_wasi_config_t",
     "P_wasi_instance_t",
@@ -51,7 +50,24 @@ import os
 import sys
 import platform
 
-from wasmtime import WasmtimeError
+from ctypes import (
+    POINTER,
+    Structure,
+    Union,
+    addressof,
+    c_double,
+    c_float,
+    c_int32,
+    c_int64,
+    c_size_t,
+    c_uint32,
+    c_uint8,
+    cast,
+    cdll,
+    create_string_buffer,
+)
+
+from ._error import WasmtimeError
 
 if sys.maxsize <= 2**32:
     raise WasmtimeError("wasmtime only works on 64-bit platforms right now")

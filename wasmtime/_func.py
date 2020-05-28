@@ -1,6 +1,3 @@
-from ._ffi import *
-from ctypes import *
-from wasmtime import Store, FuncType, Val, Trap, WasmtimeError
 __all__ = [
     "Func",
     "Caller",
@@ -9,7 +6,17 @@ __all__ = [
 
 import sys
 import traceback
+from ctypes import c_size_t, byref, POINTER, CFUNCTYPE, c_void_p, cast
+
+from ._error import WasmtimeError
 from ._extern import wrap_extern
+from ._ffi import (dll, P_wasm_func_t, P_wasm_functype_t, P_wasmtime_error_t, P_wasm_extern_t, wasm_val_t,
+                   P_wasm_trap_t, str_to_name, P_wasmtime_caller_t)
+from ._store import Store
+from ._trap import Trap
+from ._types import FuncType
+from ._value import Val
+
 
 dll.wasm_func_new_with_env.restype = P_wasm_func_t
 dll.wasmtime_func_new_with_env.restype = P_wasm_func_t

@@ -1,10 +1,10 @@
-from ._ffi import *
-from ctypes import *
-from wasmtime import Config, WasmtimeError
 __all__ = [
     "Engine",
 ]
 
+from ._config import Config
+from ._error import WasmtimeError
+from ._ffi import P_wasm_engine_t, dll
 
 dll.wasm_engine_new.restype = P_wasm_engine_t
 dll.wasm_engine_new_with_config.restype = P_wasm_engine_t
