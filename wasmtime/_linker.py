@@ -3,6 +3,10 @@ from ctypes import *
 from wasmtime import Store, Instance
 from wasmtime import Module, Trap, WasiInstance, WasmtimeError
 from ._extern import get_extern_ptr
+__all__ = [
+    "Linker",
+]
+
 from ._config import setter_property
 
 dll.wasmtime_linker_new.restype = P_wasmtime_linker_t

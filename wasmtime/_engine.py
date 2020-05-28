@@ -1,6 +1,10 @@
 from ._ffi import *
 from ctypes import *
 from wasmtime import Config, WasmtimeError
+__all__ = [
+    "Engine",
+]
+
 
 dll.wasm_engine_new.restype = P_wasm_engine_t
 dll.wasm_engine_new_with_config.restype = P_wasm_engine_t

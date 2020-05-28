@@ -1,6 +1,9 @@
 from ._ffi import *
 from ctypes import *
 from wasmtime import Store, MemoryType, WasmtimeError
+__all__ = [
+    "Memory",
+]
 
 dll.wasm_memory_data.restype = POINTER(c_uint8)
 dll.wasm_memory_data_size.restype = c_size_t

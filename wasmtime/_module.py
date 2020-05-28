@@ -1,6 +1,10 @@
 from ._ffi import *
 from ctypes import *
 from wasmtime import Store, wat2wasm, ImportType, ExportType, WasmtimeError
+__all__ = [
+    "Module",
+]
+
 
 dll.wasmtime_module_new.restype = P_wasmtime_error_t
 dll.wasmtime_module_validate.restype = P_wasmtime_error_t

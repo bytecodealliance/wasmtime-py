@@ -1,6 +1,9 @@
 from ._ffi import *
 from ctypes import *
 from wasmtime import Engine, WasmtimeError
+__all__ = [
+    "Store",
+]
 
 dll.wasm_store_new.restype = P_wasm_store_t
 dll.wasmtime_interrupt_handle_new.restype = P_wasmtime_interrupt_handle_t

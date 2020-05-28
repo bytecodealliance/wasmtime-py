@@ -1,6 +1,10 @@
 from ._ffi import *
 from ctypes import *
 from wasmtime import Store
+__all__ = [
+    "Trap",
+    "Frame",
+]
 
 dll.wasm_trap_new.restype = P_wasm_trap_t
 dll.wasm_frame_func_index.restype = c_uint32

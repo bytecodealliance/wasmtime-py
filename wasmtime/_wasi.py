@@ -2,6 +2,10 @@ from ._ffi import *
 from ctypes import *
 from wasmtime import Store, Trap, ImportType
 from ._extern import wrap_extern
+__all__ = [
+    "WasiConfig",
+    "WasiInstance",
+]
 from ._config import setter_property
 
 dll.wasi_config_new.restype = P_wasi_config_t

@@ -1,3 +1,7 @@
+__all__ = [
+    "WasmtimeError",
+]
+
 from ctypes import byref
 
 

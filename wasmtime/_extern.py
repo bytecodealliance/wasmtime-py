@@ -1,5 +1,9 @@
 from ._ffi import *
 from ctypes import *
+__all__ = [
+    "wrap_extern",
+    "get_extern_ptr",
+]
 
 dll.wasm_extern_as_func.restype = P_wasm_func_t
 dll.wasm_extern_as_table.restype = P_wasm_table_t

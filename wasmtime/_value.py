@@ -1,5 +1,8 @@
 from ._ffi import *
 from wasmtime import ValType
+__all__ = [
+    "Val",
+]
 
 
 class Val:

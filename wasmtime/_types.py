@@ -1,5 +1,15 @@
 from ._ffi import *
 from ctypes import *
+__all__ = [
+    "ValType",
+    "FuncType",
+    "GlobalType",
+    "Limits",
+    "TableType",
+    "MemoryType",
+    "ImportType",
+    "ExportType",
+]
 
 dll.wasm_valtype_new.restype = P_wasm_valtype_t
 dll.wasm_functype_new.restype = P_wasm_functype_t

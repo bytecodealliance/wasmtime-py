@@ -1,6 +1,12 @@
 from ._ffi import *
 from ctypes import *
 from wasmtime import Store, FuncType, Val, Trap, WasmtimeError
+__all__ = [
+    "Func",
+    "Caller",
+]
+
+
 import sys
 import traceback
 from ._extern import wrap_extern

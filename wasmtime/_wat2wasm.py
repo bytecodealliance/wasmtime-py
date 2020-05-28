@@ -1,6 +1,9 @@
 from ._ffi import *
 from ctypes import *
 from wasmtime import WasmtimeError
+__all__ = [
+    "wat2wasm",
+]
 
 dll.wasmtime_wat2wasm.restype = P_wasmtime_error_t
 

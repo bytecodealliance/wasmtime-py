@@ -1,6 +1,9 @@
 from ._ffi import *
 from ctypes import *
 from wasmtime import Store, GlobalType, Val, WasmtimeError
+__all__ = [
+    "Global",
+]
 
 dll.wasmtime_global_new.restype = P_wasmtime_error_t
 dll.wasm_global_type.restype = P_wasm_globaltype_t
