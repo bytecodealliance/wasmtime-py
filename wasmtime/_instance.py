@@ -11,7 +11,7 @@ dll.wasmtime_instance_new.restype = P_wasmtime_error_t
 
 
 class Instance:
-    def __init__(self, module: Module, imports: typing.Iterable[typing.Union["Exportable", Extern]]):
+    def __init__(self, module: Module, imports: typing.Sequence[typing.Union["Exportable", Extern]]):
         """
         Creates a new instance by instantiating the `module` given with the
         `imports` provided.
@@ -87,7 +87,7 @@ class InstanceExports:
         for i, extern in enumerate(extern_list):
             self._extern_map[exports[i].name] = extern
 
-    def __getitem__(self, idx: int):
+    def __getitem__(self, idx: typing.Union[int, str]):
         ret = self.get(idx)
         if ret is None:
             msg = "failed to find export {}".format(idx)
@@ -102,7 +102,7 @@ class InstanceExports:
     def __iter__(self):
         return iter(self._extern_list)
 
-    def get(self, idx: int) -> typing.Optional["Exportable"]:
+    def get(self, idx: typing.Union[int, str]) -> typing.Optional["Exportable"]:
         if isinstance(idx, str):
             return self._extern_map.get(idx)
         if idx < len(self._extern_list):
