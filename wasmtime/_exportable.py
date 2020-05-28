@@ -1,7 +1,3 @@
-__all__ = (
-    "Exportable",
-)
-
 import typing
 
 from ._func import Func
