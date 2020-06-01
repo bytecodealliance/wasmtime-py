@@ -59,16 +59,7 @@ class Trap(Exception):
         return ret
 
     def __str__(self):
-        frames = self.frames
-        message = self.message
-        if len(frames) > 0:
-            message += "\nwasm backtrace:\n"
-            for i, frame in enumerate(frames):
-                module = frame.module_name or '<unknown>'
-                default_func_name = '<wasm function %d>' % frame.func_index
-                func = frame.func_name or default_func_name
-                message += "  {}: {:#6x} - {}!{}\n".format(i, frame.module_offset, module, func)
-        return message
+        return self.message
 
     def __del__(self):
         if hasattr(self, '__ptr__'):
