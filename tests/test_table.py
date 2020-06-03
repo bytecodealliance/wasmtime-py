@@ -9,7 +9,7 @@ class TestTable(unittest.TestCase):
         module = Module(store, """
             (module (table (export "") 1 funcref))
         """)
-        table = Instance(module, []).exports[0]
+        table = Instance(store, module, []).exports[0]
         self.assertTrue(isinstance(table, Table))
         self.assertEqual(table.type.limits, Limits(1, None))
         self.assertEqual(table.size, 1)

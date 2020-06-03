@@ -24,7 +24,7 @@ def callback(a, b):
 callback_func = Func(store, callback_type, callback)
 
 print("Instantiating module...")
-instance = Instance(module, [callback_func])
+instance = Instance(store, module, [callback_func])
 
 print("Extracting export...")
 g = instance.exports["g"]

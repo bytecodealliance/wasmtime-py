@@ -128,7 +128,7 @@ class TestFunc(unittest.TestCase):
             )
         """)
         func = Func(store, FuncType([], []), runtest2, access_caller=True)
-        Instance(module, [func])
+        Instance(store, module, [func])
         self.assertTrue(hit['yes'])
         self.assertTrue(hit['caller'].get('foo') is None)
 
@@ -142,5 +142,5 @@ class TestFunc(unittest.TestCase):
 
         func = Func(store, FuncType([], []), runtest3, access_caller=True)
         with self.assertRaises(Trap):
-            Instance(module, [func])
+            Instance(store, module, [func])
         self.assertTrue(hit2['caller'].get('foo') is None)

@@ -28,7 +28,7 @@ class TestTrap(unittest.TestCase):
                     unreachable)
             )
         """)
-        i = Instance(module, [])
+        i = Instance(store, module, [])
         try:
             i.exports[0]()
         except Trap as e:
@@ -63,7 +63,7 @@ wasm backtrace:
                 (func (export "init") unreachable)
             )
         """)
-        i = Instance(module, [])
+        i = Instance(store, module, [])
         try:
             i.exports[0]()
         except Trap as e:

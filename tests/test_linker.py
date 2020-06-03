@@ -21,7 +21,7 @@ class TestLinker(unittest.TestCase):
         module = Module(store, """
             (module (table (export "") 1 funcref))
         """)
-        table = Instance(module, []).exports[0]
+        table = Instance(store, module, []).exports[0]
         linker.define("", "g", table)
 
         with self.assertRaises(WasmtimeError):
@@ -43,10 +43,10 @@ class TestLinker(unittest.TestCase):
             linker.define_instance("x", 2)
 
         module = Module(store, "(module)")
-        linker.define_instance("a", Instance(module, []))
+        linker.define_instance("a", Instance(store, module, []))
 
         module = Module(store, "(module (func (export \"foo\")))")
-        instance = Instance(module, [])
+        instance = Instance(store, module, [])
         linker.define_instance("b", instance)
         with self.assertRaises(WasmtimeError):
             linker.define_instance("b", instance)
@@ -64,7 +64,7 @@ class TestLinker(unittest.TestCase):
         linker = Linker(store)
 
         module = Module(store, "(module (func (export \"foo\")))")
-        instance = Instance(module, [])
+        instance = Instance(store, module, [])
         linker.define_instance("x", instance)
 
         func = Func(store, FuncType([], []), lambda: None)

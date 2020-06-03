@@ -10,7 +10,7 @@ from wasmtime import Store, Module, Instance, Trap, MemoryType, Memory, Limits
 # instance from the compiled module all in one go.
 wasmtime_store = Store()
 module = Module.from_file(wasmtime_store, "examples/memory.wat")
-instance = Instance(module, [])
+instance = Instance(wasmtime_store, module, [])
 
 # Load up our exports from the instance
 memory = instance.exports["memory"]
