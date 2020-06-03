@@ -58,7 +58,7 @@ def say_hello():
     print("Hello from Python!")
 hello = Func(store, FuncType([], []), say_hello)
 
-instance = Instance(module, [hello])
+instance = Instance(store, module, [hello])
 run = instance.exports["run"]
 run()
 ```
