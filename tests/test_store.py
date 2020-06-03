@@ -37,4 +37,4 @@ class TestStore(unittest.TestCase):
         """)
         interrupt = Func(store, FuncType([], []), lambda: interrupt_handle.interrupt())
         with self.assertRaises(Trap):
-            Instance(module, [interrupt])
+            Instance(store, module, [interrupt])

@@ -1,25 +1,27 @@
 from ._ffi import *
 from ctypes import *
-from wasmtime import Module, Trap, WasmtimeError
+from wasmtime import Module, Trap, WasmtimeError, Store
 from ._extern import wrap_extern, get_extern_ptr
 
 dll.wasmtime_instance_new.restype = P_wasmtime_error_t
 
 
 class Instance:
-    def __init__(self, module, imports):
+    def __init__(self, store, module, imports):
         """
         Creates a new instance by instantiating the `module` given with the
-        `imports` provided.
+        `imports` into the `store` provided.
 
-        The `module` must have type `Module`, and the `imports` must be an
-        iterable of external values, either `Extern`, `Func`, `Table`, `Memory`,
-        or `Global`.
+        The `store` must have type `Store`, the `module` must have type
+        `Module`, and the `imports` must be an iterable of external values,
+        either `Extern`, `Func`, `Table`, `Memory`, or `Global`.
 
         Raises an error if instantiation fails (e.g. linking or trap) and
         otherwise initializes the new instance.
         """
 
+        if not isinstance(store, Store):
+            raise TypeError("expected a Store")
         if not isinstance(module, Module):
             raise TypeError("expected a Module")
 
@@ -30,6 +32,7 @@ class Instance:
         instance = P_wasm_instance_t()
         trap = P_wasm_trap_t()
         error = dll.wasmtime_instance_new(
+            store.__ptr__,
             module.__ptr__,
             imports_ptr,
             len(imports),
