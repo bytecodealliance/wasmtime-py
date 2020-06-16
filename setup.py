@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 version = "0.17.0"
 
 # Give unique version numbers to all commits so our publication-on-each commit
-# works on master
+# works on main
 if 'PROD' not in os.environ:
     stream = os.popen('git rev-list HEAD --count')
     output = stream.read()
