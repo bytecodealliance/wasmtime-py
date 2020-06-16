@@ -19,10 +19,10 @@
       <img src="https://img.shields.io/pypi/pyversions/wasmtime.svg" alt="Latest Version"/>
     </a>
     <a href="https://bytecodealliance.github.io/wasmtime-py/">
-      <img src="https://img.shields.io/badge/docs-master-green" alt="Documentation"/>
+      <img src="https://img.shields.io/badge/docs-main-green" alt="Documentation"/>
     </a>
     <a href="https://bytecodealliance.github.io/wasmtime-py/coverage/">
-      <img src="https://img.shields.io/badge/coverage-master-green" alt="Code Coverage"/>
+      <img src="https://img.shields.io/badge/coverage-main-green" alt="Code Coverage"/>
     </a>
   </p>
 
@@ -66,7 +66,7 @@ run()
 Be sure to check out the [`examples` directory], which has other usage patterns
 as well as the [full API documentation][apidoc] of the `wasmtime-py` package.
 
-[`examples` directory]: https://github.com/bytecodealliance/wasmtime-py/tree/master/examples
+[`examples` directory]: https://github.com/bytecodealliance/wasmtime-py/tree/main/examples
 [apidoc]: https://bytecodealliance.github.io/wasmtime-py/
 
 If your WebAssembly module works this way, then you can also import the WebAssembly module
@@ -125,11 +125,11 @@ After that you should be good to go!
 
 The CI for this project does a few different things:
 
-* API docs are generated for pushes to the master branch and are [published
+* API docs are generated for pushes to the `main` branch and are [published
     online][apidoc].
-* Test coverage information is generated for pushes to the master branch and are
+* Test coverage information is generated for pushes to the `main` branch and are
   [available online](https://bytecodealliance.github.io/wasmtime-py/coverage/).
-* Each push to `master` will publish a release to
+* Each push to `main` will publish a release to
   [test.pypi.org](https://test.pypi.org/project/wasmtime/) for local inspection.
 * Tagged commits will automatically be published to
   [pypi.org](https://pypi.org/project/wasmtime/).
