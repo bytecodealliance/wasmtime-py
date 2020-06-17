@@ -1,9 +1,10 @@
 from . import _ffi as ffi
 from ctypes import *
 from wasmtime import WasmtimeError
+import typing
 
 
-def setter_property(fset):
+def setter_property(fset: typing.Callable) -> property:
     prop = property(fset=fset)
     if fset.__doc__:
         prop.__doc__ = fset.__doc__
@@ -23,7 +24,7 @@ class Config:
         self.__ptr__ = ffi.wasm_config_new()
 
     @setter_property
-    def debug_info(self, enable):
+    def debug_info(self, enable: bool):
         """
         Configures whether DWARF debug information is emitted for the generated
         code. This can improve profiling and the debugging experience.
@@ -34,7 +35,7 @@ class Config:
         ffi.wasmtime_config_debug_info_set(self.__ptr__, enable)
 
     @setter_property
-    def wasm_threads(self, enable):
+    def wasm_threads(self, enable: bool):
         """
         Configures whether the wasm [threads proposal] is enabled.
 
@@ -46,7 +47,7 @@ class Config:
         ffi.wasmtime_config_wasm_threads_set(self.__ptr__, enable)
 
     @setter_property
-    def wasm_reference_types(self, enable):
+    def wasm_reference_types(self, enable: bool):
         """
         Configures whether the wasm [reference types proposal] is enabled.
 
@@ -58,7 +59,7 @@ class Config:
         ffi.wasmtime_config_wasm_reference_types_set(self.__ptr__, enable)
 
     @setter_property
-    def wasm_simd(self, enable):
+    def wasm_simd(self, enable: bool):
         """
         Configures whether the wasm [SIMD proposal] is enabled.
 
@@ -70,7 +71,7 @@ class Config:
         ffi.wasmtime_config_wasm_simd_set(self.__ptr__, enable)
 
     @setter_property
-    def wasm_bulk_memory(self, enable):
+    def wasm_bulk_memory(self, enable: bool):
         """
         Configures whether the wasm [bulk memory proposal] is enabled.
 
@@ -82,7 +83,7 @@ class Config:
         ffi.wasmtime_config_wasm_bulk_memory_set(self.__ptr__, enable)
 
     @setter_property
-    def wasm_multi_value(self, enable):
+    def wasm_multi_value(self, enable: bool):
         """
         Configures whether the wasm [multi value proposal] is enabled.
 
@@ -94,7 +95,7 @@ class Config:
         ffi.wasmtime_config_wasm_multi_value_set(self.__ptr__, enable)
 
     @setter_property
-    def strategy(self, strategy):
+    def strategy(self, strategy: str):
         """
         Configures the compilation strategy used for wasm code.
 
@@ -117,13 +118,13 @@ class Config:
             raise WasmtimeError.__from_ptr__(error)
 
     @setter_property
-    def cranelift_debug_verifier(self, enable):
+    def cranelift_debug_verifier(self, enable: bool):
         if not isinstance(enable, bool):
             raise TypeError('expected a bool')
         ffi.wasmtime_config_cranelift_debug_verifier_set(self.__ptr__, enable)
 
     @setter_property
-    def cranelift_opt_level(self, opt_level):
+    def cranelift_opt_level(self, opt_level: str):
         if opt_level == "none":
             ffi.wasmtime_config_cranelift_opt_level_set(self.__ptr__, 0)
         elif opt_level == "speed":
@@ -134,7 +135,7 @@ class Config:
             raise WasmtimeError("unknown opt level: " + str(opt_level))
 
     @setter_property
-    def profiler(self, profiler):
+    def profiler(self, profiler: str):
         if profiler == "none":
             error = ffi.wasmtime_config_profiler_set(self.__ptr__, 0)
         elif profiler == "jitdump":
@@ -145,7 +146,7 @@ class Config:
             raise WasmtimeError.__from_ptr__(error)
 
     @setter_property
-    def cache(self, enabled):
+    def cache(self, enabled: bool):
         """
         Configures whether code caching is enabled for this `Config`.
 
@@ -170,7 +171,7 @@ class Config:
             raise WasmtimeError.__from_ptr__(error)
 
     @setter_property
-    def interruptable(self, enabled):
+    def interruptable(self, enabled: bool):
         """
         Configures whether wasm execution can be interrupted via interrupt
         handles.

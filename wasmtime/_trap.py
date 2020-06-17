@@ -1,10 +1,11 @@
 from . import _ffi as ffi
 from ctypes import *
 from wasmtime import Store
+import typing
 
 
 class Trap(Exception):
-    def __init__(self, store, message):
+    def __init__(self, store: Store, message: str):
         """
         Creates a new trap in `store` with the given `message`
         """
@@ -28,7 +29,7 @@ class Trap(Exception):
         return trap
 
     @property
-    def message(self):
+    def message(self) -> str:
         """
         Returns the message for this trap
         """
@@ -43,7 +44,7 @@ class Trap(Exception):
         return ret
 
     @property
-    def frames(self):
+    def frames(self) -> typing.List["Frame"]:
         frames = FrameList()
         ffi.wasm_trap_trace(self.__ptr__, byref(frames.vec))
         ret = []
@@ -61,7 +62,7 @@ class Trap(Exception):
 
 class Frame:
     @classmethod
-    def __from_ptr__(cls, ptr, owner):
+    def __from_ptr__(cls, ptr: pointer, owner) -> "Frame":
         ty = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_frame_t)):
             raise TypeError("wrong pointer type")
@@ -70,7 +71,7 @@ class Frame:
         return ty
 
     @property
-    def func_index(self):
+    def func_index(self) -> int:
         """
         Returns the function index this frame corresponds to in its wasm module
         """
@@ -78,7 +79,7 @@ class Frame:
         return ffi.wasm_frame_func_index(self.__ptr__)
 
     @property
-    def func_name(self):
+    def func_name(self) -> typing.Optional[str]:
         """
         Returns the name of the function this frame corresponds to
 
@@ -92,7 +93,7 @@ class Frame:
             return None
 
     @property
-    def module_name(self):
+    def module_name(self) -> typing.Optional[str]:
         """
         Returns the name of the module this frame corresponds to
 
@@ -106,7 +107,7 @@ class Frame:
             return None
 
     @property
-    def module_offset(self):
+    def module_offset(self) -> int:
         """
         Returns the offset of this frame's program counter into the original
         wasm source module.
@@ -115,7 +116,7 @@ class Frame:
         return ffi.wasm_frame_module_offset(self.__ptr__)
 
     @property
-    def func_offset(self):
+    def func_offset(self) -> int:
         """
         Returns the offset of this frame's program counter into the original
         wasm function.

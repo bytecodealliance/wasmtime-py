@@ -1,5 +1,6 @@
 from . import _ffi as ffi
 from ctypes import *
+import typing
 
 
 class ValType:
@@ -37,7 +38,7 @@ class ValType:
         raise WasmtimeError("cannot construct directly")
 
     @classmethod
-    def __from_ptr__(cls, ptr, owner):
+    def __from_ptr__(cls, ptr: pointer, owner) -> "ValType":
         ty = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_valtype_t)):
             raise TypeError("wrong pointer type")
@@ -45,7 +46,7 @@ class ValType:
         ty.__owner__ = owner
         return ty
 
-    def __eq__(self, other):
+    def __eq__(self, other: "ValType"):
         if not isinstance(other, ValType):
             return False
         assert(self.__ptr__ is not None)
@@ -54,13 +55,13 @@ class ValType:
         kind2 = ffi.wasm_valtype_kind(other.__ptr__)
         return kind1 == kind2
 
-    def __ne__(self, other):
+    def __ne__(self, other: "ValType"):
         return not self.__eq__(other)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         assert(self.__ptr__ is not None)
         kind = ffi.wasm_valtype_kind(self.__ptr__)
         if kind == WASM_I32.value:
@@ -86,14 +87,14 @@ class ValType:
             ffi.wasm_valtype_delete(self.__ptr__)
 
     @classmethod
-    def __from_list__(cls, items, owner):
+    def __from_list__(cls, items: "P_wasm_valtype_vec_t", owner) -> typing.List["ValType"]:
         types = []
         for i in range(0, items.contents.size):
             types.append(ValType.__from_ptr__(items.contents.data[i], owner))
         return types
 
 
-def take_owned_valtype(ty):
+def take_owned_valtype(ty: ValType) -> pointer:
     if not isinstance(ty, ValType):
         raise TypeError("expected valtype")
 
@@ -105,7 +106,7 @@ def take_owned_valtype(ty):
 
 
 class FuncType:
-    def __init__(self, params, results):
+    def __init__(self, params: typing.List[ValType], results: typing.List[ValType]):
         for param in params:
             if not isinstance(param, ValType):
                 raise TypeError("expected ValType")
@@ -131,7 +132,7 @@ class FuncType:
         self.__owner__ = None
 
     @classmethod
-    def __from_ptr__(cls, ptr, owner):
+    def __from_ptr__(cls, ptr, owner) -> "FuncType":
         ty = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_functype_t)):
             raise TypeError("wrong pointer type")
@@ -140,7 +141,7 @@ class FuncType:
         return ty
 
     @property
-    def params(self):
+    def params(self) -> typing.List["ValType"]:
         """
         Returns the list of parameter types for this function type
         """
@@ -149,7 +150,7 @@ class FuncType:
         return ValType.__from_list__(ptr, self)
 
     @property
-    def results(self):
+    def results(self) -> typing.List["ValType"]:
         """
         Returns the list of result types for this function type
         """
@@ -166,7 +167,7 @@ class FuncType:
 
 
 class GlobalType:
-    def __init__(self, valtype, mutable):
+    def __init__(self, valtype: ValType, mutable: bool):
         if mutable:
             mutability = ffi.WASM_VAR
         else:
@@ -179,7 +180,7 @@ class GlobalType:
         self.__owner__ = None
 
     @classmethod
-    def __from_ptr__(cls, ptr, owner):
+    def __from_ptr__(cls, ptr: pointer, owner) -> "GlobalType":
         ty = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_globaltype_t)):
             raise TypeError("wrong pointer type")
@@ -188,7 +189,7 @@ class GlobalType:
         return ty
 
     @property
-    def content(self):
+    def content(self) -> ValType:
         """
         Returns the type this global contains
         """
@@ -197,7 +198,7 @@ class GlobalType:
         return ValType.__from_ptr__(ptr, self)
 
     @property
-    def mutable(self):
+    def mutable(self) -> bool:
         """
         Returns whether this global is mutable or not
         """
@@ -213,21 +214,21 @@ class GlobalType:
 
 
 class Limits:
-    def __init__(self, min, max):
+    def __init__(self, min: int, max: typing.Optional[int]):
         self.min = min
         self.max = max
 
-    def __ffi__(self):
+    def __ffi__(self) -> ffi.wasm_limits_t:
         max = self.max
         if max is None:
             max = 0xffffffff
         return ffi.wasm_limits_t(self.min, max)
 
-    def __eq__(self, other):
+    def __eq__(self, other: "Limits"):
         return self.min == other.min and self.max == other.max
 
     @classmethod
-    def __from_ffi__(cls, val):
+    def __from_ffi__(cls, val: pointer):
         min = val.contents.min
         max = val.contents.max
         if max == 0xffffffff:
@@ -236,7 +237,7 @@ class Limits:
 
 
 class TableType:
-    def __init__(self, valtype, limits):
+    def __init__(self, valtype: ValType, limits: Limits):
         if not isinstance(limits, Limits):
             raise TypeError("expected Limits")
         type_ptr = take_owned_valtype(valtype)
@@ -247,7 +248,7 @@ class TableType:
         self.__owner__ = None
 
     @classmethod
-    def __from_ptr__(cls, ptr, owner):
+    def __from_ptr__(cls, ptr: pointer, owner) -> "TableType":
         ty = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_tabletype_t)):
             raise TypeError("wrong pointer type")
@@ -256,7 +257,7 @@ class TableType:
         return ty
 
     @property
-    def element(self):
+    def element(self) -> ValType:
         """
         Returns the type of this table's elements
         """
@@ -264,7 +265,7 @@ class TableType:
         return ValType.__from_ptr__(ptr, self)
 
     @property
-    def limits(self):
+    def limits(self) -> Limits:
         """
         Returns the limits on the size of thi stable
         """
@@ -280,7 +281,7 @@ class TableType:
 
 
 class MemoryType:
-    def __init__(self, limits):
+    def __init__(self, limits: Limits):
         if not isinstance(limits, Limits):
             raise TypeError("expected Limits")
         ptr = ffi.wasm_memorytype_new(byref(limits.__ffi__()))
@@ -290,7 +291,7 @@ class MemoryType:
         self.__owner__ = None
 
     @classmethod
-    def __from_ptr__(cls, ptr, owner):
+    def __from_ptr__(cls, ptr, owner) -> "MemoryType":
         ty = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_memorytype_t)):
             raise TypeError("wrong pointer type")
@@ -299,7 +300,7 @@ class MemoryType:
         return ty
 
     @property
-    def limits(self):
+    def limits(self) -> Limits:
         """
         Returns the limits on the size of this table
         """
@@ -333,7 +334,7 @@ def wrap_externtype(ptr, owner):
 
 class ImportType:
     @classmethod
-    def __from_ptr__(cls, ptr, owner):
+    def __from_ptr__(cls, ptr: pointer, owner) -> "ImportType":
         ty = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_importtype_t)):
             raise TypeError("wrong pointer type")
@@ -342,7 +343,7 @@ class ImportType:
         return ty
 
     @property
-    def module(self):
+    def module(self) -> str:
         """
         Returns the module this import type refers to
         """
@@ -350,14 +351,14 @@ class ImportType:
         return ffi.to_str(ffi.wasm_importtype_module(self.__ptr__).contents)
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
         Returns the name in the modulethis import type refers to
         """
         return ffi.to_str(ffi.wasm_importtype_name(self.__ptr__).contents)
 
     @property
-    def type(self):
+    def type(self) -> "ExternalType":
         """
         Returns the type that this import refers to
         """
@@ -371,7 +372,7 @@ class ImportType:
 
 class ExportType:
     @classmethod
-    def __from_ptr__(cls, ptr, owner):
+    def __from_ptr__(cls, ptr: pointer, owner):
         ty = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_exporttype_t)):
             raise TypeError("wrong pointer type")
@@ -380,14 +381,14 @@ class ExportType:
         return ty
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
         Returns the name in the modulethis export type refers to
         """
         return ffi.to_str(ffi.wasm_exporttype_name(self.__ptr__).contents)
 
     @property
-    def type(self):
+    def type(self) -> "ExternalType":
         """
         Returns the type that this export refers to
         """
@@ -397,3 +398,6 @@ class ExportType:
     def __del__(self):
         if self.__owner__ is None:
             ffi.wasm_exporttype_delete(self.__ptr__)
+
+
+ExternalType = typing.Union[FuncType, TableType, MemoryType, GlobalType]

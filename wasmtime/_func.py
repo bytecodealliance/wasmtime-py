@@ -4,10 +4,11 @@ import sys
 import traceback
 from . import _ffi as ffi
 from ._extern import wrap_extern
+import typing
 
 
 class Func:
-    def __init__(self, store, ty, func, access_caller=False):
+    def __init__(self, store: Store, ty: FuncType, func: typing.Callable, access_caller: bool = False):
         """
         Creates a new func in `store` with the given `ty` which calls the closure
         given
@@ -40,7 +41,7 @@ class Func:
         self.__owner__ = None
 
     @classmethod
-    def __from_ptr__(cls, ptr, owner):
+    def __from_ptr__(cls, ptr: pointer, owner) -> "Func":
         ty = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_func_t)):
             raise TypeError("wrong pointer type")
@@ -49,7 +50,7 @@ class Func:
         return ty
 
     @property
-    def type(self):
+    def type(self) -> FuncType:
         """
         Gets the type of this func as a `FuncType`
         """
@@ -57,14 +58,14 @@ class Func:
         return FuncType.__from_ptr__(ptr, None)
 
     @property
-    def param_arity(self):
+    def param_arity(self) -> int:
         """
         Returns the number of parameters this function expects
         """
         return ffi.wasm_func_param_arity(self.__ptr__)
 
     @property
-    def result_arity(self):
+    def result_arity(self) -> int:
         """
         Returns the number of results this function produces
         """
@@ -120,7 +121,7 @@ class Func:
         else:
             return results
 
-    def _as_extern(self):
+    def _as_extern(self) -> pointer:
         return ffi.wasm_func_as_extern(self.__ptr__)
 
     def __del__(self):
@@ -129,10 +130,10 @@ class Func:
 
 
 class Caller:
-    def __init__(self, ptr):
+    def __init__(self, ptr: pointer):
         self.__ptr__ = ptr
 
-    def __getitem__(self, name):
+    def __getitem__(self, name) -> "Exportable":
         """
         Looks up an export with `name` on the calling module.
 
@@ -147,7 +148,7 @@ class Caller:
             raise KeyError("failed to find export {}".format(name))
         return ret
 
-    def get(self, name):
+    def get(self, name: str) -> typing.Optional["Exportable"]:
         """
         Looks up an export with `name` on the calling module.
 
@@ -171,7 +172,7 @@ class Caller:
             return None
 
 
-def extract_val(val):
+def extract_val(val: Val):
     a = val.value
     if a is not None:
         return a
@@ -226,7 +227,6 @@ def invoke(idx, params_ptr, results_ptr, params):
 @CFUNCTYPE(None, c_void_p)
 def finalize(idx):
     FUNCTIONS.deallocate(idx or 0)
-    pass
 
 
 class Slab:
@@ -234,7 +234,7 @@ class Slab:
         self.list = []
         self.next = 0
 
-    def allocate(self, val):
+    def allocate(self, val: typing.Tuple) -> int:
         idx = self.next
 
         if len(self.list) == idx:
@@ -246,10 +246,10 @@ class Slab:
         self.list[idx] = val
         return idx
 
-    def get(self, idx):
+    def get(self, idx: int) -> typing.Tuple:
         return self.list[idx]
 
-    def deallocate(self, idx):
+    def deallocate(self, idx: int) -> None:
         self.list[idx] = self.next
         self.next = idx
 

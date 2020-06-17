@@ -55,16 +55,16 @@ class wasm_val_t(Structure):
 from ._bindings import * # noqa
 
 
-def to_bytes(vec):
+def to_bytes(vec: wasm_byte_vec_t) -> bytearray:
     ty = c_uint8 * vec.size
     return bytearray(ty.from_address(addressof(vec.data.contents)))
 
 
-def to_str(vec):
+def to_str(vec: wasm_byte_vec_t) -> str:
     return to_bytes(vec).decode("utf-8")
 
 
-def str_to_name(s, trailing_nul=False):
+def str_to_name(s: str, trailing_nul: bool = False) -> wasm_byte_vec_t:
     if not isinstance(s, str):
         raise TypeError("expected a string")
     s = s.encode('utf8')

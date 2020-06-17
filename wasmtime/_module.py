@@ -1,11 +1,12 @@
 from . import _ffi as ffi
 from ctypes import *
 from wasmtime import Store, wat2wasm, ImportType, ExportType, WasmtimeError
+import typing
 
 
 class Module:
     @classmethod
-    def from_file(cls, store, path):
+    def from_file(cls, store: Store, path):
         """
         Compiles and creates a new `Module` by reading the file at `path` and
         then delegating to the `Module` constructor.
@@ -15,7 +16,7 @@ class Module:
             contents = f.read()
         return cls(store, contents)
 
-    def __init__(self, store, wasm):
+    def __init__(self, store: Store, wasm: typing.Union[str, bytes]):
         if not isinstance(store, Store):
             raise TypeError("expected a Store")
 
@@ -43,7 +44,7 @@ class Module:
         self.store = store
 
     @classmethod
-    def validate(cls, store, wasm):
+    def validate(cls, store: Store, wasm: typing.Union[bytes, bytearray]) -> None:
         """
         Validates whether the list of bytes `wasm` provided is a valid
         WebAssembly binary given the configuration in `store`
@@ -65,7 +66,7 @@ class Module:
             raise WasmtimeError.__from_ptr__(error)
 
     @property
-    def imports(self):
+    def imports(self) -> typing.List[ImportType]:
         """
         Returns the types of imports that this module has
         """
@@ -78,7 +79,7 @@ class Module:
         return ret
 
     @property
-    def exports(self):
+    def exports(self) -> typing.List[ExportType]:
         """
         Returns the types of the exports that this module has
         """

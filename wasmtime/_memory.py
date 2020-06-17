@@ -4,7 +4,7 @@ from wasmtime import Store, MemoryType, WasmtimeError
 
 
 class Memory:
-    def __init__(self, store, ty):
+    def __init__(self, store: Store, ty: MemoryType):
         """
         Creates a new memory in `store` with the given `ty`
         """
@@ -20,7 +20,7 @@ class Memory:
         self.__owner__ = None
 
     @classmethod
-    def __from_ptr__(cls, ptr, owner):
+    def __from_ptr__(cls, ptr: pointer, owner) -> "Memory":
         ty = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_memory_t)):
             raise TypeError("wrong pointer type")
@@ -29,7 +29,7 @@ class Memory:
         return ty
 
     @property
-    def type(self):
+    def type(self) -> MemoryType:
         """
         Gets the type of this memory as a `MemoryType`
         """
@@ -37,7 +37,7 @@ class Memory:
         ptr = ffi.wasm_memory_type(self.__ptr__)
         return MemoryType.__from_ptr__(ptr, None)
 
-    def grow(self, delta):
+    def grow(self, delta: int) -> bool:
         """
         Grows this memory by the given number of pages
         """
@@ -53,7 +53,7 @@ class Memory:
             return False
 
     @property
-    def size(self):
+    def size(self) -> int:
         """
         Returns the size, in WebAssembly pages, of this memory.
         """
@@ -61,7 +61,7 @@ class Memory:
         return ffi.wasm_memory_size(self.__ptr__)
 
     @property
-    def data_ptr(self):
+    def data_ptr(self) -> POINTER(c_ubyte):
         """
         Returns the raw pointer in memory where this wasm memory lives.
 
@@ -71,7 +71,7 @@ class Memory:
         return ffi.wasm_memory_data(self.__ptr__)
 
     @property
-    def data_len(self):
+    def data_len(self) -> int:
         """
         Returns the raw byte length of this memory.
         """

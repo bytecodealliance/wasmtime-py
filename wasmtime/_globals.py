@@ -4,7 +4,7 @@ from wasmtime import Store, GlobalType, Val, WasmtimeError
 
 
 class Global:
-    def __init__(self, store, ty, val):
+    def __init__(self, store: Store, ty: GlobalType, val):
         if not isinstance(store, Store):
             raise TypeError("expected a Store")
         if not isinstance(ty, GlobalType):
@@ -22,7 +22,7 @@ class Global:
         self.__owner__ = None
 
     @classmethod
-    def __from_ptr__(cls, ptr, owner):
+    def __from_ptr__(cls, ptr: pointer, owner) -> "Global":
         ty = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_global_t)):
             raise TypeError("wrong pointer type")
@@ -31,7 +31,7 @@ class Global:
         return ty
 
     @property
-    def type(self):
+    def type(self) -> GlobalType:
         """
         Gets the type of this global as a `GlobalType`
         """

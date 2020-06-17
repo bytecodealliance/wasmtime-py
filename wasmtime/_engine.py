@@ -3,7 +3,7 @@ from wasmtime import Config, WasmtimeError
 
 
 class Engine:
-    def __init__(self, config=None):
+    def __init__(self, config: Config = None):
         if config is None:
             self.__ptr__ = ffi.wasm_engine_new()
         elif not isinstance(config, Config):

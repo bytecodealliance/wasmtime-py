@@ -3,6 +3,10 @@ from wasmtime import Store, Trap, ImportType
 from . import _ffi as ffi
 from ._extern import wrap_extern
 from ._config import setter_property
+import typing
+
+if typing.TYPE_CHECKING:
+    from _exportable import Exportable
 
 
 class WasiConfig:
@@ -10,7 +14,7 @@ class WasiConfig:
         self.__ptr__ = ffi.wasi_config_new()
 
     @setter_property
-    def set_argv(self, argv):
+    def set_argv(self, argv: typing.List[str]):
         """
         Explicitly configure the `argv` for this WASI configuration
         """
@@ -21,7 +25,7 @@ class WasiConfig:
         ffi.wasi_config_inherit_argv(self.__ptr__)
 
     @setter_property
-    def env(self, pairs):
+    def env(self, pairs: typing.Iterable[typing.Iterable]):
         """
         Configure environment variables to be returned for this WASI
         configuration.
@@ -66,7 +70,7 @@ class WasiConfig:
     def inherit_stderr(self):
         ffi.wasi_config_inherit_stderr(self.__ptr__)
 
-    def preopen_dir(self, path, guest_path):
+    def preopen_dir(self, path: str, guest_path: str) -> None:
         path_ptr = c_char_p(path.encode('utf-8'))
         guest_path_ptr = c_char_p(guest_path.encode('utf-8'))
         ffi.wasi_config_preopen_dir(self.__ptr__, path_ptr, guest_path_ptr)
@@ -76,7 +80,7 @@ class WasiConfig:
             ffi.wasi_config_delete(self.__ptr__)
 
 
-def to_char_array(strings):
+def to_char_array(strings: typing.List[str]) -> Array:
     ptrs = (c_char_p * len(strings))()
     for i, s in enumerate(strings):
         ptrs[i] = c_char_p(s.encode('utf-8'))
@@ -84,7 +88,7 @@ def to_char_array(strings):
 
 
 class WasiInstance:
-    def __init__(self, store, name, config):
+    def __init__(self, store: Store, name: str, config: WasiConfig):
         if not isinstance(store, Store):
             raise TypeError("expected a `Store`")
         if not isinstance(name, str):
@@ -105,7 +109,7 @@ class WasiInstance:
         self.__ptr__ = ptr
         self.store = store
 
-    def bind(self, import_):
+    def bind(self, import_: ImportType) -> typing.Optional["Exportable"]:
         if not isinstance(import_, ImportType):
             raise TypeError("expected an `ImportType`")
         ptr = ffi.wasi_instance_bind_import(self.__ptr__, import_.__ptr__)

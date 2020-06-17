@@ -1,9 +1,10 @@
 from . import _ffi as ffi
 from ctypes import *
 from wasmtime import WasmtimeError
+import typing
 
 
-def wat2wasm(wat):
+def wat2wasm(wat: typing.Union[str, bytes]) -> bytearray:
     """
     Converts the [WebAssembly Text format][wat] to the binary format.
 

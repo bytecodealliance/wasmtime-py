@@ -1,9 +1,11 @@
 from . import _ffi as ffi
 from ctypes import *
 from wasmtime import TableType, Store, Func, WasmtimeError
+import typing
 
 
-def get_func_ptr(init):
+
+def get_func_ptr(init: typing.Optional[Func]) -> typing.Optional[pointer]:
     if init is None:
         return None
     elif isinstance(init, Func):
@@ -13,7 +15,7 @@ def get_func_ptr(init):
 
 
 class Table:
-    def __init__(self, store, ty, init):
+    def __init__(self, store: Store, ty: TableType, init: typing.Optional[Func]):
         """
         Creates a new table within `store` with the specified `ty`.
 
@@ -35,7 +37,7 @@ class Table:
         self.__owner__ = None
 
     @classmethod
-    def __from_ptr__(cls, ptr, owner):
+    def __from_ptr__(cls, ptr: pointer, owner) -> "Table":
         ty = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_table_t)):
             raise TypeError("wrong pointer type")
@@ -44,7 +46,7 @@ class Table:
         return ty
 
     @property
-    def type(self):
+    def type(self) -> TableType:
         """
         Gets the type of this table as a `TableType`
         """
@@ -53,14 +55,14 @@ class Table:
         return TableType.__from_ptr__(ptr, None)
 
     @property
-    def size(self):
+    def size(self) -> int:
         """
         Gets the size, in elements, of this table
         """
 
         return ffi.wasm_table_size(self.__ptr__)
 
-    def grow(self, amt, init):
+    def grow(self, amt: int, init: typing.Optional[Func]) -> int:
         """
         Grows this table by the specified number of slots, using the specified
         initializer for all new table slots.
@@ -76,7 +78,7 @@ class Table:
             raise WasmtimeError("failed to grow table")
         return prev.value
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int) -> typing.Optional[Func]:
         """
         Gets an individual element within this table. Currently only works on
         `funcref` tables.
@@ -95,7 +97,7 @@ class Table:
             return None
         raise WasmtimeError("table index out of bounds")
 
-    def __setitem__(self, idx, val):
+    def __setitem__(self, idx: int, val: typing.Optional[Func]) -> None:
         """
         Sets an individual element within this table. Currently only works on
         `funcref` tables.

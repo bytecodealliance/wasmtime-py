@@ -4,17 +4,22 @@ from wasmtime import Module, Trap, WasiInstance, WasmtimeError
 from . import _ffi as ffi
 from ._extern import get_extern_ptr
 from ._config import setter_property
+import typing
+
+if typing.TYPE_CHECKING:
+    from ._exportable import Exportable
+
 
 
 class Linker:
-    def __init__(self, store):
+    def __init__(self, store: Store):
         if not isinstance(store, Store):
             raise TypeError("expected a Store")
         self.__ptr__ = ffi.wasmtime_linker_new(store.__ptr__)
         self.store = store
 
     @setter_property
-    def allow_shadowing(self, allow):
+    def allow_shadowing(self, allow: bool):
         """
         Configures whether definitions are allowed to shadow one another within
         this linker
@@ -23,7 +28,7 @@ class Linker:
             raise TypeError("expected a boolean")
         ffi.wasmtime_linker_allow_shadowing(self.__ptr__, allow)
 
-    def define(self, module, name, item):
+    def define(self, module: str, name: str, item: "Exportable") -> None:
         raw_item = get_extern_ptr(item)
         module_raw = ffi.str_to_name(module)
         name_raw = ffi.str_to_name(name)
@@ -35,7 +40,7 @@ class Linker:
         if error:
             raise WasmtimeError.__from_ptr__(error)
 
-    def define_instance(self, name, instance):
+    def define_instance(self, name: str, instance: Instance) -> None:
         if not isinstance(instance, Instance):
             raise TypeError("expected an `Instance`")
         name_raw = ffi.str_to_name(name)
@@ -44,14 +49,14 @@ class Linker:
         if error:
             raise WasmtimeError.__from_ptr__(error)
 
-    def define_wasi(self, instance):
+    def define_wasi(self, instance: WasiInstance) -> None:
         if not isinstance(instance, WasiInstance):
             raise TypeError("expected an `WasiInstance`")
         error = ffi.wasmtime_linker_define_wasi(self.__ptr__, instance.__ptr__)
         if error:
             raise WasmtimeError.__from_ptr__(error)
 
-    def instantiate(self, module):
+    def instantiate(self, module: Module) -> Instance:
         if not isinstance(module, Module):
             raise TypeError("expected a `Module`")
         trap = POINTER(ffi.wasm_trap_t)()
