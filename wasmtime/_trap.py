@@ -1,13 +1,6 @@
-from ._ffi import *
+from . import _ffi as ffi
 from ctypes import *
 from wasmtime import Store
-
-dll.wasm_trap_new.restype = P_wasm_trap_t
-dll.wasm_frame_func_index.restype = c_uint32
-dll.wasmtime_frame_func_name.restype = POINTER(wasm_byte_vec_t)
-dll.wasmtime_frame_module_name.restype = POINTER(wasm_byte_vec_t)
-dll.wasm_frame_module_offset.restype = c_size_t
-dll.wasm_frame_func_offset.restype = c_size_t
 
 
 class Trap(Exception):
@@ -20,15 +13,15 @@ class Trap(Exception):
             raise TypeError("expected a Store")
         if not isinstance(message, str):
             raise TypeError("expected a string")
-        message_raw = str_to_name(message, trailing_nul=True)
-        ptr = dll.wasm_trap_new(store.__ptr__, byref(message_raw))
+        message_raw = ffi.str_to_name(message, trailing_nul=True)
+        ptr = ffi.wasm_trap_new(store.__ptr__, byref(message_raw))
         if not ptr:
             raise WasmtimeError("failed to create trap")
         self.__ptr__ = ptr
 
     @classmethod
     def __from_ptr__(cls, ptr):
-        if not isinstance(ptr, P_wasm_trap_t):
+        if not isinstance(ptr, POINTER(ffi.wasm_trap_t)):
             raise TypeError("wrong pointer type")
         trap = cls.__new__(cls)
         trap.__ptr__ = ptr
@@ -40,19 +33,19 @@ class Trap(Exception):
         Returns the message for this trap
         """
 
-        message = wasm_byte_vec_t()
-        dll.wasm_trap_message(self.__ptr__, byref(message))
+        message = ffi.wasm_byte_vec_t()
+        ffi.wasm_trap_message(self.__ptr__, byref(message))
         # subtract one to chop off the trailing nul byte
         message.size -= 1
-        ret = message.to_str()
+        ret = ffi.to_str(message)
         message.size += 1
-        dll.wasm_byte_vec_delete(byref(message))
+        ffi.wasm_byte_vec_delete(byref(message))
         return ret
 
     @property
     def frames(self):
         frames = FrameList()
-        dll.wasm_trap_trace(self.__ptr__, byref(frames.vec))
+        ffi.wasm_trap_trace(self.__ptr__, byref(frames.vec))
         ret = []
         for i in range(0, frames.vec.size):
             ret.append(Frame.__from_ptr__(frames.vec.data[i], frames))
@@ -63,14 +56,14 @@ class Trap(Exception):
 
     def __del__(self):
         if hasattr(self, '__ptr__'):
-            dll.wasm_trap_delete(self.__ptr__)
+            ffi.wasm_trap_delete(self.__ptr__)
 
 
 class Frame:
     @classmethod
     def __from_ptr__(cls, ptr, owner):
         ty = cls.__new__(cls)
-        if not isinstance(ptr, P_wasm_frame_t):
+        if not isinstance(ptr, POINTER(ffi.wasm_frame_t)):
             raise TypeError("wrong pointer type")
         ty.__ptr__ = ptr
         ty.__owner__ = owner
@@ -82,7 +75,7 @@ class Frame:
         Returns the function index this frame corresponds to in its wasm module
         """
 
-        return dll.wasm_frame_func_index(self.__ptr__)
+        return ffi.wasm_frame_func_index(self.__ptr__)
 
     @property
     def func_name(self):
@@ -92,9 +85,9 @@ class Frame:
         May return `None` if no name can be inferred
         """
 
-        ptr = dll.wasmtime_frame_func_name(self.__ptr__)
+        ptr = ffi.wasmtime_frame_func_name(self.__ptr__)
         if ptr:
-            return ptr.contents.to_str()
+            return ffi.to_str(ptr.contents)
         else:
             return None
 
@@ -106,9 +99,9 @@ class Frame:
         May return `None` if no name can be inferred
         """
 
-        ptr = dll.wasmtime_frame_module_name(self.__ptr__)
+        ptr = ffi.wasmtime_frame_module_name(self.__ptr__)
         if ptr:
-            return ptr.contents.to_str()
+            return ffi.to_str(ptr.contents)
         else:
             return None
 
@@ -119,7 +112,7 @@ class Frame:
         wasm source module.
         """
 
-        return dll.wasm_frame_module_offset(self.__ptr__)
+        return ffi.wasm_frame_module_offset(self.__ptr__)
 
     @property
     def func_offset(self):
@@ -128,16 +121,16 @@ class Frame:
         wasm function.
         """
 
-        return dll.wasm_frame_func_offset(self.__ptr__)
+        return ffi.wasm_frame_func_offset(self.__ptr__)
 
     def __del__(self):
         if self.__owner__ is None:
-            dll.wasm_frame_delete(self.__ptr__)
+            ffi.wasm_frame_delete(self.__ptr__)
 
 
 class FrameList:
     def __init__(self):
-        self.vec = wasm_frame_vec_t(0, None)
+        self.vec = ffi.wasm_frame_vec_t(0, None)
 
     def __del__(self):
-        dll.wasm_frame_vec_delete(byref(self.vec))
+        ffi.wasm_frame_vec_delete(byref(self.vec))

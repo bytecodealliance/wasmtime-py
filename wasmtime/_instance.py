@@ -1,9 +1,7 @@
-from ._ffi import *
+from . import _ffi as ffi
 from ctypes import *
 from wasmtime import Module, Trap, WasmtimeError, Store
 from ._extern import wrap_extern, get_extern_ptr
-
-dll.wasmtime_instance_new.restype = P_wasmtime_error_t
 
 
 class Instance:
@@ -25,13 +23,13 @@ class Instance:
         if not isinstance(module, Module):
             raise TypeError("expected a Module")
 
-        imports_ptr = (P_wasm_extern_t * len(imports))()
+        imports_ptr = (POINTER(ffi.wasm_extern_t) * len(imports))()
         for i, val in enumerate(imports):
             imports_ptr[i] = get_extern_ptr(val)
 
-        instance = P_wasm_instance_t()
-        trap = P_wasm_trap_t()
-        error = dll.wasmtime_instance_new(
+        instance = POINTER(ffi.wasm_instance_t)()
+        trap = POINTER(ffi.wasm_trap_t)()
+        error = ffi.wasmtime_instance_new(
             store.__ptr__,
             module.__ptr__,
             imports_ptr,
@@ -49,7 +47,7 @@ class Instance:
     @classmethod
     def __from_ptr__(cls, ptr, module):
         ty = cls.__new__(cls)
-        if not isinstance(ptr, P_wasm_instance_t):
+        if not isinstance(ptr, POINTER(ffi.wasm_instance_t)):
             raise TypeError("wrong pointer type")
         ty.__ptr__ = ptr
         ty._module = module
@@ -66,7 +64,7 @@ class Instance:
         """
         if self._exports is None:
             externs = ExternTypeList()
-            dll.wasm_instance_exports(self.__ptr__, byref(externs.vec))
+            ffi.wasm_instance_exports(self.__ptr__, byref(externs.vec))
             extern_list = []
             for i in range(0, externs.vec.size):
                 extern_list.append(wrap_extern(externs.vec.data[i], externs))
@@ -75,7 +73,7 @@ class Instance:
 
     def __del__(self):
         if hasattr(self, '__ptr__'):
-            dll.wasm_instance_delete(self.__ptr__)
+            ffi.wasm_instance_delete(self.__ptr__)
 
 
 class InstanceExports:
@@ -111,7 +109,7 @@ class InstanceExports:
 
 class ExternTypeList:
     def __init__(self):
-        self.vec = wasm_extern_vec_t(0, None)
+        self.vec = ffi.wasm_extern_vec_t(0, None)
 
     def __del__(self):
-        dll.wasm_extern_vec_delete(byref(self.vec))
+        ffi.wasm_extern_vec_delete(byref(self.vec))
