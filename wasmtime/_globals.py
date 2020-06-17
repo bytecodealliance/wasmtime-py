@@ -1,10 +1,11 @@
 from . import _ffi as ffi
 from ctypes import *
-from wasmtime import Store, GlobalType, Val, WasmtimeError
+from wasmtime import Store, GlobalType, Val, WasmtimeError, IntoVal
+from typing import Optional, Any
 
 
 class Global:
-    def __init__(self, store: Store, ty: GlobalType, val):
+    def __init__(self, store: Store, ty: GlobalType, val: IntoVal):
         if not isinstance(store, Store):
             raise TypeError("expected a Store")
         if not isinstance(ty, GlobalType):
@@ -22,7 +23,7 @@ class Global:
         self.__owner__ = None
 
     @classmethod
-    def __from_ptr__(cls, ptr: pointer, owner) -> "Global":
+    def __from_ptr__(cls, ptr: "pointer[ffi.wasm_global_t]", owner: Optional[Any]) -> "Global":
         ty: "Global" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_global_t)):
             raise TypeError("wrong pointer type")

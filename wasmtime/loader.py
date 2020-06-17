@@ -12,11 +12,9 @@ from wasmtime import Func, Table, Global, Memory
 import sys
 import os.path
 import importlib
-from typing import Optional, Sequence, Union
 
 from importlib.abc import Loader, MetaPathFinder
 from importlib.util import spec_from_file_location
-from importlib.machinery import ModuleSpec
 
 store = Store()
 linker = Linker(store)
@@ -30,7 +28,7 @@ linker.allow_shadowing = True
 
 
 class _WasmtimeMetaFinder(MetaPathFinder):
-    def find_spec(self, fullname: str, path: Optional[Sequence[Union[bytes, str]]], target=None) -> Optional[ModuleSpec]:
+    def find_spec(self, fullname, path, target=None):
         if path is None or path == "":
             path = [os.getcwd()]  # top level import --
             path.extend(sys.path)
@@ -53,13 +51,13 @@ class _WasmtimeMetaFinder(MetaPathFinder):
 
 
 class _WasmtimeLoader(Loader):
-    def __init__(self, filename):
+    def __init__(self, filename: str):
         self.filename = filename
 
     def create_module(self, spec):
         return None  # use default module creation semantics
 
-    def exec_module(self, module) -> None:
+    def exec_module(self, module):
         wasm_module = Module.from_file(store, self.filename)
 
         for wasm_import in wasm_module.imports:

@@ -1,10 +1,10 @@
 from ctypes import POINTER, pointer, byref, CFUNCTYPE, c_void_p, cast
-from wasmtime import Store, FuncType, Val, Trap, WasmtimeError
+from wasmtime import Store, FuncType, Val, IntoVal, Trap, WasmtimeError
 import sys
 import traceback
 from . import _ffi as ffi
 from ._extern import wrap_extern
-from typing import Callable, Optional, Generic, TypeVar, List, Union, Tuple, cast as cast_type
+from typing import Callable, Optional, Generic, TypeVar, List, Union, Tuple, cast as cast_type, Any
 from ._exportable import AsExtern
 
 
@@ -44,7 +44,7 @@ class Func:
         self.__owner__ = None
 
     @classmethod
-    def __from_ptr__(cls, ptr: pointer, owner) -> "Func":
+    def __from_ptr__(cls, ptr: "pointer[ffi.wasm_func_t]", owner: Optional[Any]) -> "Func":
         ty: "Func" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_func_t)):
             raise TypeError("wrong pointer type")
@@ -136,7 +136,7 @@ class Caller:
     def __init__(self, ptr: pointer):
         self.__ptr__ = ptr
 
-    def __getitem__(self, name) -> AsExtern:
+    def __getitem__(self, name: str) -> AsExtern:
         """
         Looks up an export with `name` on the calling module.
 
@@ -175,7 +175,7 @@ class Caller:
             return None
 
 
-def extract_val(val: Val):
+def extract_val(val: Val) -> IntoVal:
     a = val.value
     if a is not None:
         return a

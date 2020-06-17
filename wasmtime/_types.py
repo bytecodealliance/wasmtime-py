@@ -42,7 +42,7 @@ class ValType:
         raise WasmtimeError("cannot construct directly")
 
     @classmethod
-    def __from_ptr__(cls, ptr: "pointer[ffi.wasm_valtype_t]", owner) -> "ValType":
+    def __from_ptr__(cls, ptr: "pointer[ffi.wasm_valtype_t]", owner: Optional[Any]) -> "ValType":
         ty: "ValType" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_valtype_t)):
             raise TypeError("wrong pointer type")
@@ -50,7 +50,7 @@ class ValType:
         ty.__owner__ = owner
         return ty
 
-    def __eq__(self, other: object):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, ValType):
             return False
         assert(self.__ptr__ is not None)
@@ -59,7 +59,7 @@ class ValType:
         kind2 = ffi.wasm_valtype_kind(other.__ptr__)
         return kind1 == kind2
 
-    def __ne__(self, other: object):
+    def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
 
     def __repr__(self) -> str:
@@ -91,7 +91,7 @@ class ValType:
             ffi.wasm_valtype_delete(self.__ptr__)
 
     @classmethod
-    def __from_list__(cls, items: "pointer[ffi.wasm_valtype_vec_t]", owner) -> List["ValType"]:
+    def __from_list__(cls, items: "pointer[ffi.wasm_valtype_vec_t]", owner: Optional[Any]) -> List["ValType"]:
         types = []
         for i in range(0, items.contents.size):
             types.append(ValType.__from_ptr__(items.contents.data[i], owner))
@@ -136,7 +136,7 @@ class FuncType:
         self.__owner__ = None
 
     @classmethod
-    def __from_ptr__(cls, ptr, owner) -> "FuncType":
+    def __from_ptr__(cls, ptr: "pointer[ffi.wasm_functype_t]", owner: Optional[Any]) -> "FuncType":
         ty: "FuncType" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_functype_t)):
             raise TypeError("wrong pointer type")
@@ -184,7 +184,7 @@ class GlobalType:
         self.__owner__ = None
 
     @classmethod
-    def __from_ptr__(cls, ptr: "pointer[ffi.wasm_globaltype_t]", owner) -> "GlobalType":
+    def __from_ptr__(cls, ptr: "pointer[ffi.wasm_globaltype_t]", owner: Optional[Any]) -> "GlobalType":
         ty: "GlobalType" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_globaltype_t)):
             raise TypeError("wrong pointer type")
@@ -228,7 +228,7 @@ class Limits:
             max = 0xffffffff
         return ffi.wasm_limits_t(self.min, max)
 
-    def __eq__(self, other: object):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Limits):
             return False
         return self.min == other.min and self.max == other.max
@@ -254,7 +254,7 @@ class TableType:
         self.__owner__ = None
 
     @classmethod
-    def __from_ptr__(cls, ptr: 'pointer[ffi.wasm_tabletype_t]', owner) -> "TableType":
+    def __from_ptr__(cls, ptr: 'pointer[ffi.wasm_tabletype_t]', owner: Optional[Any]) -> "TableType":
         ty: "TableType" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_tabletype_t)):
             raise TypeError("wrong pointer type")
@@ -297,7 +297,7 @@ class MemoryType:
         self.__owner__ = None
 
     @classmethod
-    def __from_ptr__(cls, ptr, owner) -> "MemoryType":
+    def __from_ptr__(cls, ptr: "pointer[ffi.wasm_memorytype_t]", owner: Optional[Any]) -> "MemoryType":
         ty: "MemoryType" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_memorytype_t)):
             raise TypeError("wrong pointer type")
@@ -321,7 +321,7 @@ class MemoryType:
             ffi.wasm_memorytype_delete(self.__ptr__)
 
 
-def wrap_externtype(ptr, owner) -> "AsExternType":
+def wrap_externtype(ptr: "pointer[ffi.wasm_externtype_t]", owner: Optional[Any]) -> "AsExternType":
     if not isinstance(ptr, POINTER(ffi.wasm_externtype_t)):
         raise TypeError("wrong pointer type")
     val = ffi.wasm_externtype_as_functype_const(ptr)
@@ -343,7 +343,7 @@ class ImportType:
     __owner__: Optional[Any]
 
     @classmethod
-    def __from_ptr__(cls, ptr: "pointer[ffi.wasm_importtype_t]", owner) -> "ImportType":
+    def __from_ptr__(cls, ptr: "pointer[ffi.wasm_importtype_t]", owner: Optional[Any]) -> "ImportType":
         ty: "ImportType" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_importtype_t)):
             raise TypeError("wrong pointer type")
@@ -384,8 +384,8 @@ class ExportType:
     __owner__: Optional[Any]
 
     @classmethod
-    def __from_ptr__(cls, ptr: 'pointer[ffi.wasm_exporttype_t]', owner):
-        ty = cls.__new__(cls)
+    def __from_ptr__(cls, ptr: 'pointer[ffi.wasm_exporttype_t]', owner: Optional[Any]) -> "ExportType":
+        ty: "ExportType" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_exporttype_t)):
             raise TypeError("wrong pointer type")
         ty.__ptr__ = ptr

@@ -15,7 +15,7 @@ class Linker:
         self.store = store
 
     @setter_property
-    def allow_shadowing(self, allow: bool):
+    def allow_shadowing(self, allow: bool) -> None:
         """
         Configures whether definitions are allowed to shadow one another within
         this linker

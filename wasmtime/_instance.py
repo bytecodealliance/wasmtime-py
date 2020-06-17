@@ -86,14 +86,14 @@ class InstanceExports:
     _extern_list: Sequence[AsExtern]
     _extern_map: Mapping[str, AsExtern]
 
-    def __init__(self, extern_list, module: Module):
+    def __init__(self, extern_list: Sequence[AsExtern], module: Module):
         self._extern_list = extern_list
         self._extern_map = {}
         exports = module.exports
         for i, extern in enumerate(extern_list):
             self._extern_map[exports[i].name] = extern
 
-    def __getitem__(self, idx: Union[int, str]):
+    def __getitem__(self, idx: Union[int, str]) -> AsExtern:
         ret = self.get(idx)
         if ret is None:
             msg = "failed to find export {}".format(idx)

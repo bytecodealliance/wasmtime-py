@@ -21,7 +21,7 @@ from ._types import FuncType, GlobalType, MemoryType, TableType
 from ._types import ValType, Limits, ImportType, ExportType
 from ._wat2wasm import wat2wasm
 from ._module import Module
-from ._value import Val
+from ._value import Val, IntoVal
 from ._trap import Trap, Frame
 from ._func import Func, Caller
 from ._globals import Global
@@ -44,6 +44,7 @@ __all__ = [
     'Limits',
     'ImportType',
     'ExportType',
+    'IntoVal',
     'Val',
     'Func',
     'Caller',

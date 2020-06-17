@@ -1,7 +1,7 @@
 from . import _ffi as ffi
 from ctypes import *
 from wasmtime import TableType, Store, Func, WasmtimeError
-from typing import Optional
+from typing import Optional, Any
 
 
 def get_func_ptr(init: Optional[Func]) -> Optional["pointer[ffi.wasm_func_t]"]:
@@ -38,7 +38,7 @@ class Table:
         self.__owner__ = None
 
     @classmethod
-    def __from_ptr__(cls, ptr: pointer, owner) -> "Table":
+    def __from_ptr__(cls, ptr: "pointer[ffi.wasm_table_t]", owner: Optional[Any]) -> "Table":
         ty: "Table" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_table_t)):
             raise TypeError("wrong pointer type")

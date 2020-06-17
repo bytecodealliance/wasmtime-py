@@ -6,7 +6,7 @@ import typing
 
 class Module:
     @classmethod
-    def from_file(cls, store: Store, path):
+    def from_file(cls, store: Store, path: str) -> "Module":
         """
         Compiles and creates a new `Module` by reading the file at `path` and
         then delegating to the `Module` constructor.

@@ -12,18 +12,18 @@ class WasiConfig:
         self.__ptr__ = ffi.wasi_config_new()
 
     @setter_property
-    def set_argv(self, argv: List[str]):
+    def set_argv(self, argv: List[str]) -> None:
         """
         Explicitly configure the `argv` for this WASI configuration
         """
         ptrs = to_char_array(argv)
         ffi.wasi_config_set_argv(self.__ptr__, c_int(len(argv)), ptrs)
 
-    def inherit_argv(self):
+    def inherit_argv(self) -> None:
         ffi.wasi_config_inherit_argv(self.__ptr__)
 
     @setter_property
-    def env(self, pairs: Iterable[Iterable]):
+    def env(self, pairs: Iterable[Iterable]) -> None:
         """
         Configure environment variables to be returned for this WASI
         configuration.
@@ -41,31 +41,31 @@ class WasiConfig:
         ffi.wasi_config_set_env(self.__ptr__, c_int(
             len(names)), name_ptrs, value_ptrs)
 
-    def inherit_env(self):
+    def inherit_env(self) -> None:
         ffi.wasi_config_inherit_env(self.__ptr__)
 
     @setter_property
-    def stdin_file(self, path):
+    def stdin_file(self, path: str) -> None:
         ffi.wasi_config_set_stdin_file(
             self.__ptr__, c_char_p(path.encode('utf-8')))
 
-    def inherit_stdin(self):
+    def inherit_stdin(self) -> None:
         ffi.wasi_config_inherit_stdin(self.__ptr__)
 
     @setter_property
-    def stdout_file(self, path):
+    def stdout_file(self, path: str) -> None:
         ffi.wasi_config_set_stdout_file(
             self.__ptr__, c_char_p(path.encode('utf-8')))
 
-    def inherit_stdout(self):
+    def inherit_stdout(self) -> None:
         ffi.wasi_config_inherit_stdout(self.__ptr__)
 
     @setter_property
-    def stderr_file(self, path):
+    def stderr_file(self, path: str) -> None:
         ffi.wasi_config_set_stderr_file(
             self.__ptr__, c_char_p(path.encode('utf-8')))
 
-    def inherit_stderr(self):
+    def inherit_stderr(self) -> None:
         ffi.wasi_config_inherit_stderr(self.__ptr__)
 
     def preopen_dir(self, path: str, guest_path: str) -> None:

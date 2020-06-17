@@ -1,6 +1,7 @@
 from . import _ffi as ffi
 from ctypes import *
 from wasmtime import Store, MemoryType, WasmtimeError
+from typing import Optional, Any
 
 
 class Memory:
@@ -20,7 +21,7 @@ class Memory:
         self.__owner__ = None
 
     @classmethod
-    def __from_ptr__(cls, ptr: pointer, owner) -> "Memory":
+    def __from_ptr__(cls, ptr: "pointer[ffi.wasm_memory_t]", owner: Optional[Any]) -> "Memory":
         ty: "Memory" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_memory_t)):
             raise TypeError("wrong pointer type")

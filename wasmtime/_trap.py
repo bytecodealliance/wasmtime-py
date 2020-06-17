@@ -65,7 +65,7 @@ class Frame:
     __owner__: Optional[Any]
 
     @classmethod
-    def __from_ptr__(cls, ptr: "pointer[ffi.wasm_frame_t]", owner) -> "Frame":
+    def __from_ptr__(cls, ptr: "pointer[ffi.wasm_frame_t]", owner: Optional[Any]) -> "Frame":
         ty: "Frame" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_frame_t)):
             raise TypeError("wrong pointer type")

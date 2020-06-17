@@ -54,7 +54,7 @@ class Val:
         self.__raw__ = raw
 
     @classmethod
-    def __convert__(cls, ty: ValType, val: typing.Union["Val", int, float]) -> "Val":
+    def __convert__(cls, ty: ValType, val: "IntoVal") -> "Val":
         if isinstance(val, Val):
             if ty != val.type:
                 raise TypeError("wrong type of `Val` provided")
@@ -131,3 +131,6 @@ class Val:
         """
         ptr = dll.wasm_valtype_new(self.__raw__.kind)
         return ValType.__from_ptr__(ptr, None)
+
+
+IntoVal = typing.Union[Val, int, float]
