@@ -45,8 +45,8 @@ def get_extern_ptr(item: AsExtern) -> "pointer[ffi.wasm_extern_t]":
 
 
 class Extern:
-    def __init__(self, ptr: pointer):
+    def __init__(self, ptr: "pointer[ffi.wasm_extern_t]"):
         self.ptr = ptr
 
-    def __del__(self):
+    def __del__(self) -> None:
         ffi.wasm_extern_delete(self.ptr)

@@ -52,10 +52,10 @@ class Trap(Exception):
             ret.append(Frame.__from_ptr__(frames.vec.data[i], frames))
         return ret
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.message
 
-    def __del__(self):
+    def __del__(self) -> None:
         if hasattr(self, '__ptr__'):
             ffi.wasm_trap_delete(self.__ptr__)
 
@@ -127,7 +127,7 @@ class Frame:
 
         return ffi.wasm_frame_func_offset(self.__ptr__)
 
-    def __del__(self):
+    def __del__(self) -> None:
         if self.__owner__ is None:
             ffi.wasm_frame_delete(self.__ptr__)
 
@@ -136,5 +136,5 @@ class FrameList:
     def __init__(self) -> None:
         self.vec = ffi.wasm_frame_vec_t(0, None)
 
-    def __del__(self):
+    def __del__(self) -> None:
         ffi.wasm_frame_vec_delete(byref(self.vec))

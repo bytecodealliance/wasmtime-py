@@ -15,6 +15,6 @@ class Engine:
             delattr(config, '__ptr__')
             self.__ptr__ = ffi.wasm_engine_new_with_config(ptr)
 
-    def __del__(self):
+    def __del__(self) -> None:
         if hasattr(self, '__ptr__'):
             ffi.wasm_engine_delete(self.__ptr__)

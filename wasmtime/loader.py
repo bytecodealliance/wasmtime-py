@@ -28,7 +28,7 @@ linker.allow_shadowing = True
 
 
 class _WasmtimeMetaFinder(MetaPathFinder):
-    def find_spec(self, fullname, path, target=None):
+    def find_spec(self, fullname, path, target=None):  # type: ignore
         if path is None or path == "":
             path = [os.getcwd()]  # top level import --
             path.extend(sys.path)
@@ -54,10 +54,10 @@ class _WasmtimeLoader(Loader):
     def __init__(self, filename: str):
         self.filename = filename
 
-    def create_module(self, spec):
+    def create_module(self, spec):  # type: ignore
         return None  # use default module creation semantics
 
-    def exec_module(self, module):
+    def exec_module(self, module):  # type: ignore
         wasm_module = Module.from_file(store, self.filename)
 
         for wasm_import in wasm_module.imports:

@@ -20,7 +20,7 @@ class Config:
     code is compiled or generated.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.__ptr__ = ffi.wasm_config_new()
 
     @setter_property
@@ -183,6 +183,6 @@ class Config:
             val = 0
         ffi.wasmtime_config_interruptable_set(self.__ptr__, val)
 
-    def __del__(self):
+    def __del__(self) -> None:
         if hasattr(self, '__ptr__'):
             ffi.wasm_config_delete(self.__ptr__)

@@ -41,7 +41,7 @@ class Global:
         return GlobalType.__from_ptr__(ptr, None)
 
     @property
-    def value(self):
+    def value(self) -> IntoVal:
         """
         Gets the current value of this global
 
@@ -49,10 +49,14 @@ class Global:
         """
         raw = ffi.wasm_val_t()
         ffi.wasm_global_get(self.__ptr__, byref(raw))
-        return Val(raw).value
+        val = Val(raw)
+        if val.value:
+            return val.value
+        else:
+            return val
 
     @value.setter
-    def value(self, val):
+    def value(self, val: IntoVal) -> None:
         """
         Sets the value of this global to a new value
         """
@@ -64,6 +68,6 @@ class Global:
     def _as_extern(self) -> "pointer[ffi.wasm_extern_t]":
         return ffi.wasm_global_as_extern(self.__ptr__)
 
-    def __del__(self):
+    def __del__(self) -> None:
         if hasattr(self, '__owner__') and self.__owner__ is None:
             ffi.wasm_global_delete(self.__ptr__)

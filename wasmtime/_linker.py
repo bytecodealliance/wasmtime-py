@@ -65,6 +65,6 @@ class Linker:
             raise Trap.__from_ptr__(trap)
         return Instance.__from_ptr__(instance, module)
 
-    def __del__(self):
+    def __del__(self) -> None:
         if hasattr(self, '__ptr__'):
             ffi.wasmtime_linker_delete(self.__ptr__)

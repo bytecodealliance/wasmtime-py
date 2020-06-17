@@ -17,5 +17,5 @@ class WasmtimeError(Exception):
         ffi.wasmtime_error_delete(ptr)
         return WasmtimeError(message)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.message

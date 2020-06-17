@@ -73,7 +73,7 @@ class WasiConfig:
         guest_path_ptr = c_char_p(guest_path.encode('utf-8'))
         ffi.wasi_config_preopen_dir(self.__ptr__, path_ptr, guest_path_ptr)
 
-    def __del__(self):
+    def __del__(self) -> None:
         if hasattr(self, '__ptr__'):
             ffi.wasi_config_delete(self.__ptr__)
 
@@ -86,6 +86,8 @@ def to_char_array(strings: List[str]) -> "pointer[pointer[c_char]]":
 
 
 class WasiInstance:
+    __ptr__: "pointer[ffi.wasi_instance_t]"
+
     def __init__(self, store: Store, name: str, config: WasiConfig):
         if not isinstance(store, Store):
             raise TypeError("expected a `Store`")
@@ -116,6 +118,6 @@ class WasiInstance:
         else:
             return None
 
-    def __del__(self):
+    def __del__(self) -> None:
         if hasattr(self, '__ptr__'):
             ffi.wasi_instance_delete(self.__ptr__)

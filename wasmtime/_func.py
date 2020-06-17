@@ -4,7 +4,7 @@ import sys
 import traceback
 from . import _ffi as ffi
 from ._extern import wrap_extern
-from typing import Callable, Optional, Generic, TypeVar, List, Union, Tuple, cast as cast_type, Any
+from typing import Callable, Optional, Generic, TypeVar, List, Union, Tuple, cast as cast_type, Any, Sequence
 from ._exportable import AsExtern
 
 
@@ -74,7 +74,7 @@ class Func:
         """
         return ffi.wasm_func_result_arity(self.__ptr__)
 
-    def __call__(self, *params):
+    def __call__(self, *params: IntoVal) -> Union[IntoVal, Sequence[IntoVal], None]:
         """
         Calls this function with the given parameters
 
@@ -127,7 +127,7 @@ class Func:
     def _as_extern(self) -> "pointer[ffi.wasm_extern_t]":
         return ffi.wasm_func_as_extern(self.__ptr__)
 
-    def __del__(self):
+    def __del__(self) -> None:
         if hasattr(self, '__owner__') and self.__owner__ is None:
             ffi.wasm_func_delete(self.__ptr__)
 
@@ -183,12 +183,12 @@ def extract_val(val: Val) -> IntoVal:
 
 
 @ffi.wasm_func_callback_with_env_t  # type: ignore
-def trampoline(idx, params_ptr, results_ptr):
+def trampoline(idx, params_ptr, results_ptr):  # type: ignore
     return invoke(idx, params_ptr, results_ptr, [])
 
 
 @ffi.wasmtime_func_callback_with_env_t  # type: ignore
-def trampoline_with_caller(caller, idx, params_ptr, results_ptr):
+def trampoline_with_caller(caller, idx, params_ptr, results_ptr):  # type: ignore
     caller = Caller(caller)
     try:
         return invoke(idx, params_ptr, results_ptr, [caller])
@@ -196,7 +196,7 @@ def trampoline_with_caller(caller, idx, params_ptr, results_ptr):
         delattr(caller, '__ptr__')
 
 
-def invoke(idx, params_ptr, results_ptr, params):
+def invoke(idx, params_ptr, results_ptr, params):  # type: ignore
     func, param_tys, result_tys, store = FUNCTIONS.get(idx or 0)
 
     try:
@@ -228,7 +228,7 @@ def invoke(idx, params_ptr, results_ptr, params):
 
 
 @CFUNCTYPE(None, c_void_p)
-def finalize(idx):
+def finalize(idx):  # type: ignore
     FUNCTIONS.deallocate(idx or 0)
 
 

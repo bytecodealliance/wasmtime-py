@@ -28,7 +28,7 @@ class Store:
 
         return InterruptHandle(self)
 
-    def __del__(self):
+    def __del__(self) -> None:
         if hasattr(self, '__ptr__'):
             ffi.wasm_store_delete(self.__ptr__)
 
@@ -57,6 +57,6 @@ class InterruptHandle:
         """
         ffi.wasmtime_interrupt_handle_interrupt(self.__ptr__)
 
-    def __del__(self):
+    def __del__(self) -> None:
         if hasattr(self, '__ptr__'):
             ffi.wasmtime_interrupt_handle_delete(self.__ptr__)

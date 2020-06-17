@@ -3,7 +3,7 @@ from ctypes import POINTER, pointer, byref
 from wasmtime import Module, Trap, WasmtimeError, Store
 from ._extern import wrap_extern, get_extern_ptr
 from ._exportable import AsExtern
-from typing import Sequence, Union, Optional, Mapping
+from typing import Sequence, Union, Optional, Mapping, Iterable
 
 
 class Instance:
@@ -77,7 +77,7 @@ class Instance:
             self._exports = InstanceExports(extern_list, self._module)
         return self._exports
 
-    def __del__(self):
+    def __del__(self) -> None:
         if hasattr(self, '__ptr__'):
             ffi.wasm_instance_delete(self.__ptr__)
 
@@ -102,10 +102,10 @@ class InstanceExports:
             raise IndexError(msg)
         return ret
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._extern_list)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterable[AsExtern]:
         return iter(self._extern_list)
 
     def get(self, idx: Union[int, str]) -> Optional[AsExtern]:
@@ -120,5 +120,5 @@ class ExternTypeList:
     def __init__(self) -> None:
         self.vec = ffi.wasm_extern_vec_t(0, None)
 
-    def __del__(self):
+    def __del__(self) -> None:
         ffi.wasm_extern_vec_delete(byref(self.vec))

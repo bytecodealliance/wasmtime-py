@@ -82,7 +82,7 @@ class ValType:
             return 'funcref'
         return 'ValType(%d)' % kind.value
 
-    def __del__(self):
+    def __del__(self) -> None:
         if not hasattr(self, '__owner__') or not hasattr(self, '__ptr__'):
             return
         # If this is owned by another object we don't free it since that object
@@ -162,10 +162,10 @@ class FuncType:
         ptr = ffi.wasm_functype_results(self.__ptr__)
         return ValType.__from_list__(ptr, self)
 
-    def _as_extern(self):
+    def _as_extern(self) -> "pointer[ffi.wasm_externtype_t]":
         return ffi.wasm_functype_as_externtype_const(self.__ptr__)
 
-    def __del__(self):
+    def __del__(self) -> None:
         if hasattr(self, '__owner__') and self.__owner__ is None:
             ffi.wasm_functype_delete(self.__ptr__)
 
@@ -209,10 +209,10 @@ class GlobalType:
         val = ffi.wasm_globaltype_mutability(self.__ptr__)
         return val == ffi.WASM_VAR.value
 
-    def _as_extern(self):
+    def _as_extern(self) -> "pointer[ffi.wasm_externtype_t]":
         return ffi.wasm_globaltype_as_externtype_const(self.__ptr__)
 
-    def __del__(self):
+    def __del__(self) -> None:
         if hasattr(self, '__owner__') and self.__owner__ is None:
             ffi.wasm_globaltype_delete(self.__ptr__)
 
@@ -278,10 +278,10 @@ class TableType:
         val = ffi.wasm_tabletype_limits(self.__ptr__)
         return Limits.__from_ffi__(val)
 
-    def _as_extern(self):
+    def _as_extern(self) -> "pointer[ffi.wasm_externtype_t]":
         return ffi.wasm_tabletype_as_externtype_const(self.__ptr__)
 
-    def __del__(self):
+    def __del__(self) -> None:
         if hasattr(self, '__owner__') and self.__owner__ is None:
             ffi.wasm_tabletype_delete(self.__ptr__)
 
@@ -313,10 +313,10 @@ class MemoryType:
         val = ffi.wasm_memorytype_limits(self.__ptr__)
         return Limits.__from_ffi__(val)
 
-    def _as_extern(self):
+    def _as_extern(self) -> "pointer[ffi.wasm_externtype_t]":
         return ffi.wasm_memorytype_as_externtype_const(self.__ptr__)
 
-    def __del__(self):
+    def __del__(self) -> None:
         if hasattr(self, '__owner__') and self.__owner__ is None:
             ffi.wasm_memorytype_delete(self.__ptr__)
 
@@ -374,7 +374,7 @@ class ImportType:
         ptr = ffi.wasm_importtype_type(self.__ptr__)
         return wrap_externtype(ptr, self.__owner__ or self)
 
-    def __del__(self):
+    def __del__(self) -> None:
         if self.__owner__ is None:
             ffi.wasm_importtype_delete(self.__ptr__)
 
@@ -407,7 +407,7 @@ class ExportType:
         ptr = ffi.wasm_exporttype_type(self.__ptr__)
         return wrap_externtype(ptr, self.__owner__ or self)
 
-    def __del__(self):
+    def __del__(self) -> None:
         if self.__owner__ is None:
             ffi.wasm_exporttype_delete(self.__ptr__)
 

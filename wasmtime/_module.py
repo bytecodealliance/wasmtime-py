@@ -91,7 +91,7 @@ class Module:
             ret.append(ExportType.__from_ptr__(exports.vec.data[i], exports))
         return ret
 
-    def __del__(self):
+    def __del__(self) -> None:
         if hasattr(self, '__ptr__'):
             ffi.wasm_module_delete(self.__ptr__)
 
@@ -100,7 +100,7 @@ class ImportTypeList:
     def __init__(self) -> None:
         self.vec = ffi.wasm_importtype_vec_t(0, None)
 
-    def __del__(self):
+    def __del__(self) -> None:
         ffi.wasm_importtype_vec_delete(byref(self.vec))
 
 
@@ -108,5 +108,5 @@ class ExportTypeList:
     def __init__(self) -> None:
         self.vec = ffi.wasm_exporttype_vec_t(0, None)
 
-    def __del__(self):
+    def __del__(self) -> None:
         ffi.wasm_exporttype_vec_delete(byref(self.vec))
