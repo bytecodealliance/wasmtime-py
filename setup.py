@@ -1,3 +1,5 @@
+# type: ignore
+
 import setuptools
 import os
 
@@ -36,6 +38,8 @@ setuptools.setup(
         'testing': [
             'coverage',
             'pytest',
+            'pycparser',
+            'pytest-flake8',
         ],
     },
     classifiers=[

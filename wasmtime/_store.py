@@ -1,9 +1,5 @@
-from ._ffi import *
-from ctypes import *
+from . import _ffi as ffi
 from wasmtime import Engine, WasmtimeError
-
-dll.wasm_store_new.restype = P_wasm_store_t
-dll.wasmtime_interrupt_handle_new.restype = P_wasmtime_interrupt_handle_t
 
 
 class Store:
@@ -12,7 +8,7 @@ class Store:
             engine = Engine()
         elif not isinstance(engine, Engine):
             raise TypeError("expected an Engine")
-        self.__ptr__ = dll.wasm_store_new(engine.__ptr__)
+        self.__ptr__ = ffi.wasm_store_new(engine.__ptr__)
         self.engine = engine
 
     def interrupt_handle(self):
@@ -31,7 +27,7 @@ class Store:
 
     def __del__(self):
         if hasattr(self, '__ptr__'):
-            dll.wasm_store_delete(self.__ptr__)
+            ffi.wasm_store_delete(self.__ptr__)
 
 
 class InterruptHandle:
@@ -46,7 +42,7 @@ class InterruptHandle:
     def __init__(self, store):
         if not isinstance(store, Store):
             raise TypeError("expected a Store")
-        ptr = dll.wasmtime_interrupt_handle_new(store.__ptr__)
+        ptr = ffi.wasmtime_interrupt_handle_new(store.__ptr__)
         if not ptr:
             raise WasmtimeError("interrupts not enabled on Store")
         self.__ptr__ = ptr
@@ -56,8 +52,8 @@ class InterruptHandle:
         Schedules an interrupt to be sent to interrupt this handle's store's
         next (or current) execution of wasm code.
         """
-        dll.wasmtime_interrupt_handle_interrupt(self.__ptr__)
+        ffi.wasmtime_interrupt_handle_interrupt(self.__ptr__)
 
     def __del__(self):
         if hasattr(self, '__ptr__'):
-            dll.wasmtime_interrupt_handle_delete(self.__ptr__)
+            ffi.wasmtime_interrupt_handle_delete(self.__ptr__)

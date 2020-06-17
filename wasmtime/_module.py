@@ -1,9 +1,6 @@
-from ._ffi import *
+from . import _ffi as ffi
 from ctypes import *
 from wasmtime import Store, wat2wasm, ImportType, ExportType, WasmtimeError
-
-dll.wasmtime_module_new.restype = P_wasmtime_error_t
-dll.wasmtime_module_validate.restype = P_wasmtime_error_t
 
 
 class Module:
@@ -37,9 +34,9 @@ class Module:
         # TODO: can the copy be avoided here? I can't for the life of me
         # figure this out.
         c_ty = c_uint8 * len(wasm)
-        binary = wasm_byte_vec_t(len(wasm), c_ty.from_buffer_copy(wasm))
-        ptr = P_wasm_module_t()
-        error = dll.wasmtime_module_new(store.__ptr__, byref(binary), byref(ptr))
+        binary = ffi.wasm_byte_vec_t(len(wasm), c_ty.from_buffer_copy(wasm))
+        ptr = POINTER(ffi.wasm_module_t)()
+        error = ffi.wasmtime_module_new(store.__ptr__, byref(binary), byref(ptr))
         if error:
             raise WasmtimeError.__from_ptr__(error)
         self.__ptr__ = ptr
@@ -62,8 +59,8 @@ class Module:
         # TODO: can the copy be avoided here? I can't for the life of me
         # figure this out.
         c_ty = c_uint8 * len(wasm)
-        binary = wasm_byte_vec_t(len(wasm), c_ty.from_buffer_copy(wasm))
-        error = dll.wasmtime_module_validate(store.__ptr__, byref(binary))
+        binary = ffi.wasm_byte_vec_t(len(wasm), c_ty.from_buffer_copy(wasm))
+        error = ffi.wasmtime_module_validate(store.__ptr__, byref(binary))
         if error:
             raise WasmtimeError.__from_ptr__(error)
 
@@ -74,7 +71,7 @@ class Module:
         """
 
         imports = ImportTypeList()
-        dll.wasm_module_imports(self.__ptr__, byref(imports.vec))
+        ffi.wasm_module_imports(self.__ptr__, byref(imports.vec))
         ret = []
         for i in range(0, imports.vec.size):
             ret.append(ImportType.__from_ptr__(imports.vec.data[i], imports))
@@ -87,7 +84,7 @@ class Module:
         """
 
         exports = ExportTypeList()
-        dll.wasm_module_exports(self.__ptr__, byref(exports.vec))
+        ffi.wasm_module_exports(self.__ptr__, byref(exports.vec))
         ret = []
         for i in range(0, exports.vec.size):
             ret.append(ExportType.__from_ptr__(exports.vec.data[i], exports))
@@ -95,20 +92,20 @@ class Module:
 
     def __del__(self):
         if hasattr(self, '__ptr__'):
-            dll.wasm_module_delete(self.__ptr__)
+            ffi.wasm_module_delete(self.__ptr__)
 
 
 class ImportTypeList:
     def __init__(self):
-        self.vec = wasm_importtype_vec_t(0, None)
+        self.vec = ffi.wasm_importtype_vec_t(0, None)
 
     def __del__(self):
-        dll.wasm_importtype_vec_delete(byref(self.vec))
+        ffi.wasm_importtype_vec_delete(byref(self.vec))
 
 
 class ExportTypeList:
     def __init__(self):
-        self.vec = wasm_exporttype_vec_t(0, None)
+        self.vec = ffi.wasm_exporttype_vec_t(0, None)
 
     def __del__(self):
-        dll.wasm_exporttype_vec_delete(byref(self.vec))
+        ffi.wasm_exporttype_vec_delete(byref(self.vec))

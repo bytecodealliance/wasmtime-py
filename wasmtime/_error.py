@@ -1,4 +1,4 @@
-from ctypes import byref
+from ctypes import byref, POINTER
 
 
 class WasmtimeError(Exception):
@@ -7,14 +7,14 @@ class WasmtimeError(Exception):
 
     @classmethod
     def __from_ptr__(cls, ptr):
-        from ._ffi import P_wasmtime_error_t, wasm_byte_vec_t, dll  # Avoid circular import
-        if not isinstance(ptr, P_wasmtime_error_t):
+        from . import _ffi as ffi
+        if not isinstance(ptr, POINTER(ffi.wasmtime_error_t)):
             raise TypeError("wrong pointer type")
-        message_vec = wasm_byte_vec_t()
-        dll.wasmtime_error_message(ptr, byref(message_vec))
-        message = message_vec.to_str()
-        dll.wasm_byte_vec_delete(byref(message_vec))
-        dll.wasmtime_error_delete(ptr)
+        message_vec = ffi.wasm_byte_vec_t()
+        ffi.wasmtime_error_message(ptr, byref(message_vec))
+        message = ffi.to_str(message_vec)
+        ffi.wasm_byte_vec_delete(byref(message_vec))
+        ffi.wasmtime_error_delete(ptr)
         return WasmtimeError(message)
 
     def __str__(self):

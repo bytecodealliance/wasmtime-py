@@ -37,33 +37,45 @@ def main(platform, arch):
         shutil.rmtree(os.path.dirname(dst))
     except Exception:
         pass
+    try:
+        shutil.rmtree(os.path.join('wasmtime', 'include'))
+    except Exception:
+        pass
     os.makedirs(os.path.dirname(dst))
+    os.makedirs(os.path.join('wasmtime', 'include'))
 
     with urllib.request.urlopen(url) as f:
         contents = f.read()
 
+    def final_loc(name):
+        if name.endswith('.h'):
+            return os.path.join('wasmtime', 'include', os.path.basename(name))
+        elif name.endswith('.dll') or name.endswith('.so') or name.endswith('.dylib'):
+            return dst
+        else:
+            return None
+
     if is_zip:
         t = zipfile.ZipFile(io.BytesIO(contents))
         for member in t.namelist():
-            if not member.endswith('.dll'):
+            loc = final_loc(member)
+            if not loc:
                 continue
             contents = t.read(member)
-            with open(dst, "wb") as f:
+            with open(loc, "wb") as f:
                 f.write(contents)
-            sys.exit(0)
     else:
         t = tarfile.open(fileobj=io.BytesIO(contents))
         for member in t.getmembers():
-            linux_so = member.name.endswith('.so')
-            macos_dylib = member.name.endswith('.dylib')
-            if not linux_so and not macos_dylib:
+            loc = final_loc(member.name)
+            if not loc:
                 continue
             contents = t.extractfile(member).read()
-            with open(dst, "wb") as f:
+            with open(loc, "wb") as f:
                 f.write(contents)
-            sys.exit(0)
 
-    raise RuntimeError("failed to find dynamic library")
+    if not os.path.exists(dst):
+        raise RuntimeError("failed to find dynamic library")
 
 
 if __name__ == '__main__':

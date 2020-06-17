@@ -1,19 +1,11 @@
-from ._ffi import *
+from . import _ffi as ffi
 from ctypes import *
 from wasmtime import TableType, Store, Func, WasmtimeError
-
-dll.wasm_table_as_extern.restype = P_wasm_extern_t
-dll.wasm_table_type.restype = P_wasm_tabletype_t
-dll.wasm_table_size.restype = c_uint32
-dll.wasmtime_funcref_table_new.restype = P_wasmtime_error_t
-dll.wasmtime_funcref_table_get.restype = c_bool
-dll.wasmtime_funcref_table_set.restype = P_wasmtime_error_t
-dll.wasmtime_funcref_table_grow.restype = P_wasmtime_error_t
 
 
 def get_func_ptr(init):
     if init is None:
-        return 0
+        return None
     elif isinstance(init, Func):
         return init.__ptr__
     else:
@@ -35,8 +27,8 @@ class Table:
             raise TypeError("expected a `TableType`")
 
         init_ptr = get_func_ptr(init)
-        ptr = P_wasm_table_t()
-        error = dll.wasmtime_funcref_table_new(store.__ptr__, ty.__ptr__, init_ptr, byref(ptr))
+        ptr = POINTER(ffi.wasm_table_t)()
+        error = ffi.wasmtime_funcref_table_new(store.__ptr__, ty.__ptr__, init_ptr, byref(ptr))
         if error:
             raise WasmtimeError.__from_ptr__(error)
         self.__ptr__ = ptr
@@ -45,7 +37,7 @@ class Table:
     @classmethod
     def __from_ptr__(cls, ptr, owner):
         ty = cls.__new__(cls)
-        if not isinstance(ptr, P_wasm_table_t):
+        if not isinstance(ptr, POINTER(ffi.wasm_table_t)):
             raise TypeError("wrong pointer type")
         ty.__ptr__ = ptr
         ty.__owner__ = owner
@@ -57,7 +49,7 @@ class Table:
         Gets the type of this table as a `TableType`
         """
 
-        ptr = dll.wasm_table_type(self.__ptr__)
+        ptr = ffi.wasm_table_type(self.__ptr__)
         return TableType.__from_ptr__(ptr, None)
 
     @property
@@ -66,7 +58,7 @@ class Table:
         Gets the size, in elements, of this table
         """
 
-        return dll.wasm_table_size(self.__ptr__)
+        return ffi.wasm_table_size(self.__ptr__)
 
     def grow(self, amt, init):
         """
@@ -79,7 +71,7 @@ class Table:
         init_ptr = get_func_ptr(init)
 
         prev = c_uint32(0)
-        error = dll.wasmtime_funcref_table_grow(self.__ptr__, c_uint32(amt), init_ptr, byref(prev))
+        error = ffi.wasmtime_funcref_table_grow(self.__ptr__, c_uint32(amt), init_ptr, byref(prev))
         if error:
             raise WasmtimeError("failed to grow table")
         return prev.value
@@ -95,8 +87,8 @@ class Table:
         """
 
         idx = c_uint32(idx)
-        ptr = P_wasm_func_t()
-        ok = dll.wasmtime_funcref_table_get(self.__ptr__, idx, byref(ptr))
+        ptr = POINTER(ffi.wasm_func_t)()
+        ok = ffi.wasmtime_funcref_table_get(self.__ptr__, idx, byref(ptr))
         if ok:
             if ptr:
                 return Func.__from_ptr__(ptr, None)
@@ -116,13 +108,13 @@ class Table:
 
         idx = c_uint32(idx)
         val_ptr = get_func_ptr(val)
-        error = dll.wasmtime_funcref_table_set(self.__ptr__, idx, val_ptr)
+        error = ffi.wasmtime_funcref_table_set(self.__ptr__, idx, val_ptr)
         if error:
             raise WasmtimeError.__from_ptr__(error)
 
     def _as_extern(self):
-        return dll.wasm_table_as_extern(self.__ptr__)
+        return ffi.wasm_table_as_extern(self.__ptr__)
 
     def __del__(self):
         if hasattr(self, '__owner__') and self.__owner__ is None:
-            dll.wasm_table_delete(self.__ptr__)
+            ffi.wasm_table_delete(self.__ptr__)

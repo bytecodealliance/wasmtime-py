@@ -11,3 +11,4 @@ htmlcov
 wasmtime/linux-*
 wasmtime/darwin-*
 wasmtime/win32-*
+wasmtime/include

@@ -1,18 +1,9 @@
-from ._ffi import *
 from ctypes import *
 from wasmtime import Store, FuncType, Val, Trap, WasmtimeError
 import sys
 import traceback
+from . import _ffi as ffi
 from ._extern import wrap_extern
-
-dll.wasm_func_new_with_env.restype = P_wasm_func_t
-dll.wasmtime_func_new_with_env.restype = P_wasm_func_t
-dll.wasm_func_type.restype = P_wasm_functype_t
-dll.wasm_func_param_arity.restype = c_size_t
-dll.wasm_func_result_arity.restype = c_size_t
-dll.wasmtime_func_call.restype = P_wasmtime_error_t
-dll.wasm_func_as_extern.restype = P_wasm_extern_t
-dll.wasmtime_caller_export_get.restype = P_wasm_extern_t
 
 
 class Func:
@@ -33,14 +24,14 @@ class Func:
             raise TypeError("expected a FuncType")
         idx = FUNCTIONS.allocate((func, ty.params, ty.results, store))
         if access_caller:
-            ptr = dll.wasmtime_func_new_with_env(
+            ptr = ffi.wasmtime_func_new_with_env(
                 store.__ptr__,
                 ty.__ptr__,
                 trampoline_with_caller,
                 idx,
                 finalize)
         else:
-            ptr = dll.wasm_func_new_with_env(
+            ptr = ffi.wasm_func_new_with_env(
                 store.__ptr__, ty.__ptr__, trampoline, idx, finalize)
         if not ptr:
             FUNCTIONS.deallocate(idx)
@@ -51,7 +42,7 @@ class Func:
     @classmethod
     def __from_ptr__(cls, ptr, owner):
         ty = cls.__new__(cls)
-        if not isinstance(ptr, P_wasm_func_t):
+        if not isinstance(ptr, POINTER(ffi.wasm_func_t)):
             raise TypeError("wrong pointer type")
         ty.__ptr__ = ptr
         ty.__owner__ = owner
@@ -62,7 +53,7 @@ class Func:
         """
         Gets the type of this func as a `FuncType`
         """
-        ptr = dll.wasm_func_type(self.__ptr__)
+        ptr = ffi.wasm_func_type(self.__ptr__)
         return FuncType.__from_ptr__(ptr, None)
 
     @property
@@ -70,14 +61,14 @@ class Func:
         """
         Returns the number of parameters this function expects
         """
-        return dll.wasm_func_param_arity(self.__ptr__)
+        return ffi.wasm_func_param_arity(self.__ptr__)
 
     @property
     def result_arity(self):
         """
         Returns the number of results this function produces
         """
-        return dll.wasm_func_result_arity(self.__ptr__)
+        return ffi.wasm_func_result_arity(self.__ptr__)
 
     def __call__(self, *params):
         """
@@ -96,7 +87,7 @@ class Func:
 
         ty = self.type
         param_tys = ty.params
-        params_ptr = (wasm_val_t * len(params))()
+        params_ptr = (ffi.wasm_val_t * len(params))()
         for i, param in enumerate(params):
             if i >= len(param_tys):
                 raise WasmtimeError("too many parameters provided")
@@ -104,10 +95,10 @@ class Func:
             params_ptr[i] = val.__raw__
 
         result_tys = ty.results
-        results_ptr = (wasm_val_t * len(result_tys))()
+        results_ptr = (ffi.wasm_val_t * len(result_tys))()
 
-        trap = P_wasm_trap_t()
-        error = dll.wasmtime_func_call(
+        trap = POINTER(ffi.wasm_trap_t)()
+        error = ffi.wasmtime_func_call(
             self.__ptr__,
             params_ptr,
             len(params),
@@ -130,11 +121,11 @@ class Func:
             return results
 
     def _as_extern(self):
-        return dll.wasm_func_as_extern(self.__ptr__)
+        return ffi.wasm_func_as_extern(self.__ptr__)
 
     def __del__(self):
         if hasattr(self, '__owner__') and self.__owner__ is None:
-            dll.wasm_func_delete(self.__ptr__)
+            ffi.wasm_func_delete(self.__ptr__)
 
 
 class Caller:
@@ -166,14 +157,14 @@ class Caller:
         """
 
         # First convert to a raw name so we can typecheck our argument
-        name_raw = str_to_name(name)
+        name_raw = ffi.str_to_name(name)
 
         # Next see if we've been invalidated
         if not hasattr(self, '__ptr__'):
             return None
 
         # And if we're not invalidated we can perform the actual lookup
-        ptr = dll.wasmtime_caller_export_get(self.__ptr__, byref(name_raw))
+        ptr = ffi.wasmtime_caller_export_get(self.__ptr__, byref(name_raw))
         if ptr:
             return wrap_extern(ptr, None)
         else:
@@ -187,18 +178,12 @@ def extract_val(val):
     return val
 
 
-@CFUNCTYPE(c_size_t, c_size_t, POINTER(wasm_val_t), POINTER(wasm_val_t))
+@ffi.wasm_func_callback_with_env_t
 def trampoline(idx, params_ptr, results_ptr):
     return invoke(idx, params_ptr, results_ptr, [])
 
 
-@CFUNCTYPE(
-    c_size_t,
-    P_wasmtime_caller_t,
-    c_size_t,
-    POINTER(wasm_val_t),
-    POINTER(wasm_val_t),
-)
+@ffi.wasmtime_func_callback_with_env_t
 def trampoline_with_caller(caller, idx, params_ptr, results_ptr):
     caller = Caller(caller)
     try:
@@ -208,7 +193,7 @@ def trampoline_with_caller(caller, idx, params_ptr, results_ptr):
 
 
 def invoke(idx, params_ptr, results_ptr, params):
-    func, param_tys, result_tys, store = FUNCTIONS.get(idx)
+    func, param_tys, result_tys, store = FUNCTIONS.get(idx or 0)
 
     try:
         for i in range(0, len(param_tys)):
@@ -238,9 +223,9 @@ def invoke(idx, params_ptr, results_ptr, params):
     return 0
 
 
-@CFUNCTYPE(None, c_size_t)
+@CFUNCTYPE(None, c_void_p)
 def finalize(idx):
-    FUNCTIONS.deallocate(idx)
+    FUNCTIONS.deallocate(idx or 0)
     pass
 
 

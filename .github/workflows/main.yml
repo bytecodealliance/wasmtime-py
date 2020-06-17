@@ -26,7 +26,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: python download-wasmtime.py
-      - run: pip install pytest
+      - run: pip install -e ".[testing]"
       - run: pytest
 
   build:
@@ -76,16 +76,6 @@ jobs:
         name: wheels
         path: dist
 
-  flake8:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.x'
-      - run: pip install flake8
-      - run: flake8
-
   docs:
     runs-on: ubuntu-latest
     steps:
@@ -109,7 +99,7 @@ jobs:
       with:
         python-version: '3.x'
     - run: python download-wasmtime.py
-    - run: pip install coverage pytest
+    - run: pip install -e ".[testing]"
     - run: coverage run -m pytest
     - run: coverage html
     - uses: actions/upload-artifact@v1
