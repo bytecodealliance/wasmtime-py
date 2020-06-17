@@ -1,11 +1,10 @@
 from . import _ffi as ffi
 from ctypes import *
 from wasmtime import TableType, Store, Func, WasmtimeError
-import typing
+from typing import Optional
 
 
-
-def get_func_ptr(init: typing.Optional[Func]) -> typing.Optional[pointer]:
+def get_func_ptr(init: Optional[Func]) -> Optional["pointer[ffi.wasm_func_t]"]:
     if init is None:
         return None
     elif isinstance(init, Func):
@@ -15,7 +14,9 @@ def get_func_ptr(init: typing.Optional[Func]) -> typing.Optional[pointer]:
 
 
 class Table:
-    def __init__(self, store: Store, ty: TableType, init: typing.Optional[Func]):
+    __ptr__: "pointer[ffi.wasm_table_t]"
+
+    def __init__(self, store: Store, ty: TableType, init: Optional[Func]):
         """
         Creates a new table within `store` with the specified `ty`.
 
@@ -62,7 +63,7 @@ class Table:
 
         return ffi.wasm_table_size(self.__ptr__)
 
-    def grow(self, amt: int, init: typing.Optional[Func]) -> int:
+    def grow(self, amt: int, init: Optional[Func]) -> int:
         """
         Grows this table by the specified number of slots, using the specified
         initializer for all new table slots.
@@ -78,7 +79,7 @@ class Table:
             raise WasmtimeError("failed to grow table")
         return prev.value
 
-    def __getitem__(self, idx: int) -> typing.Optional[Func]:
+    def __getitem__(self, idx: int) -> Optional[Func]:
         """
         Gets an individual element within this table. Currently only works on
         `funcref` tables.
@@ -88,7 +89,6 @@ class Table:
         Raises an `WasmtimeError` if `idx` is out of bounds.
         """
 
-        idx = c_uint32(idx)
         ptr = POINTER(ffi.wasm_func_t)()
         ok = ffi.wasmtime_funcref_table_get(self.__ptr__, idx, byref(ptr))
         if ok:
@@ -97,7 +97,7 @@ class Table:
             return None
         raise WasmtimeError("table index out of bounds")
 
-    def __setitem__(self, idx: int, val: typing.Optional[Func]) -> None:
+    def __setitem__(self, idx: int, val: Optional[Func]) -> None:
         """
         Sets an individual element within this table. Currently only works on
         `funcref` tables.
@@ -108,7 +108,6 @@ class Table:
         Raises a `WasmtimeError` if `idx` is out of bounds.
         """
 
-        idx = c_uint32(idx)
         val_ptr = get_func_ptr(val)
         error = ffi.wasmtime_funcref_table_set(self.__ptr__, idx, val_ptr)
         if error:

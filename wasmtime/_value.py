@@ -59,15 +59,17 @@ class Val:
             if ty != val.type:
                 raise TypeError("wrong type of `Val` provided")
             return val
-        if ty == ValType.i32():
-            return Val.i32(val)
-        if ty == ValType.i64():
-            return Val.i64(val)
-        if ty == ValType.f32():
-            return Val.f32(val)
-        if ty == ValType.f64():
-            return Val.f64(val)
-        raise WasmtimeError("don't know how to convert %r to %s" % (val, ty))
+        elif isinstance(val, int):
+            if ty == ValType.i32():
+                return Val.i32(val)
+            if ty == ValType.i64():
+                return Val.i64(val)
+        elif isinstance(val, float):
+            if ty == ValType.f32():
+                return Val.f32(val)
+            if ty == ValType.f64():
+                return Val.f64(val)
+        raise TypeError("don't know how to convert %r to %s" % (val, ty))
 
     @property
     def value(self) -> typing.Optional[typing.Union[int, float]]:

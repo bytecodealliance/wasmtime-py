@@ -4,11 +4,14 @@ import sys
 import traceback
 from . import _ffi as ffi
 from ._extern import wrap_extern
-import typing
+from typing import Callable, Optional, Tuple
+from ._exportable import AsExtern
 
 
 class Func:
-    def __init__(self, store: Store, ty: FuncType, func: typing.Callable, access_caller: bool = False):
+    __ptr__: "pointer[ffi.wasm_func_t]"
+
+    def __init__(self, store: Store, ty: FuncType, func: Callable, access_caller: bool = False):
         """
         Creates a new func in `store` with the given `ty` which calls the closure
         given
@@ -133,7 +136,7 @@ class Caller:
     def __init__(self, ptr: pointer):
         self.__ptr__ = ptr
 
-    def __getitem__(self, name) -> "Exportable":
+    def __getitem__(self, name) -> AsExtern:
         """
         Looks up an export with `name` on the calling module.
 
@@ -148,7 +151,7 @@ class Caller:
             raise KeyError("failed to find export {}".format(name))
         return ret
 
-    def get(self, name: str) -> typing.Optional["Exportable"]:
+    def get(self, name: str) -> Optional[AsExtern]:
         """
         Looks up an export with `name` on the calling module.
 
@@ -234,7 +237,7 @@ class Slab:
         self.list = []
         self.next = 0
 
-    def allocate(self, val: typing.Tuple) -> int:
+    def allocate(self, val: Tuple) -> int:
         idx = self.next
 
         if len(self.list) == idx:
@@ -246,7 +249,7 @@ class Slab:
         self.list[idx] = val
         return idx
 
-    def get(self, idx: int) -> typing.Tuple:
+    def get(self, idx: int) -> Tuple:
         return self.list[idx]
 
     def deallocate(self, idx: int) -> None:

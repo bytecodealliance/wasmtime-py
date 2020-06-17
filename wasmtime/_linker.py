@@ -4,11 +4,7 @@ from wasmtime import Module, Trap, WasiInstance, WasmtimeError
 from . import _ffi as ffi
 from ._extern import get_extern_ptr
 from ._config import setter_property
-import typing
-
-if typing.TYPE_CHECKING:
-    from ._exportable import Exportable
-
+from ._exportable import AsExtern
 
 
 class Linker:
@@ -28,7 +24,7 @@ class Linker:
             raise TypeError("expected a boolean")
         ffi.wasmtime_linker_allow_shadowing(self.__ptr__, allow)
 
-    def define(self, module: str, name: str, item: "Exportable") -> None:
+    def define(self, module: str, name: str, item: AsExtern) -> None:
         raw_item = get_extern_ptr(item)
         module_raw = ffi.str_to_name(module)
         name_raw = ffi.str_to_name(name)

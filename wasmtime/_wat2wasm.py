@@ -25,9 +25,9 @@ def wat2wasm(wat: typing.Union[str, bytes]) -> bytearray:
     if isinstance(wat, str):
         wat = wat.encode('utf8')
     wat_buffer = cast(create_string_buffer(wat), POINTER(c_uint8))
-    wat = ffi.wasm_byte_vec_t(len(wat), wat_buffer)
+    wat_bytes = ffi.wasm_byte_vec_t(len(wat), wat_buffer)
     wasm = ffi.wasm_byte_vec_t()
-    error = ffi.wasmtime_wat2wasm(byref(wat), byref(wasm))
+    error = ffi.wasmtime_wat2wasm(byref(wat_bytes), byref(wasm))
     if error:
         raise WasmtimeError.__from_ptr__(error)
     else:

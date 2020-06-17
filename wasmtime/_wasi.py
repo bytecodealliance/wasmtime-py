@@ -1,12 +1,10 @@
 from ctypes import *
-from wasmtime import Store, Trap, ImportType
+from wasmtime import Store, Trap, ImportType, WasmtimeError
 from . import _ffi as ffi
 from ._extern import wrap_extern
 from ._config import setter_property
-import typing
-
-if typing.TYPE_CHECKING:
-    from _exportable import Exportable
+from typing import Optional, List, Iterable
+from ._exportable import AsExtern
 
 
 class WasiConfig:
@@ -14,7 +12,7 @@ class WasiConfig:
         self.__ptr__ = ffi.wasi_config_new()
 
     @setter_property
-    def set_argv(self, argv: typing.List[str]):
+    def set_argv(self, argv: List[str]):
         """
         Explicitly configure the `argv` for this WASI configuration
         """
@@ -25,7 +23,7 @@ class WasiConfig:
         ffi.wasi_config_inherit_argv(self.__ptr__)
 
     @setter_property
-    def env(self, pairs: typing.Iterable[typing.Iterable]):
+    def env(self, pairs: Iterable[Iterable]):
         """
         Configure environment variables to be returned for this WASI
         configuration.
@@ -80,7 +78,7 @@ class WasiConfig:
             ffi.wasi_config_delete(self.__ptr__)
 
 
-def to_char_array(strings: typing.List[str]) -> Array:
+def to_char_array(strings: List[str]) -> "pointer[pointer[c_char]]":
     ptrs = (c_char_p * len(strings))()
     for i, s in enumerate(strings):
         ptrs[i] = c_char_p(s.encode('utf-8'))
@@ -93,7 +91,7 @@ class WasiInstance:
             raise TypeError("expected a `Store`")
         if not isinstance(name, str):
             raise TypeError("expected a `str`")
-        name = name.encode('utf-8')
+        name_bytes = name.encode('utf-8')
         if not isinstance(config, WasiConfig):
             raise TypeError("expected a `WasiConfig`")
         ptr = config.__ptr__
@@ -101,7 +99,7 @@ class WasiInstance:
 
         trap = POINTER(ffi.wasm_trap_t)()
         ptr = ffi.wasi_instance_new(
-            store.__ptr__, c_char_p(name), ptr, byref(trap))
+            store.__ptr__, c_char_p(name_bytes), ptr, byref(trap))
         if not ptr:
             if trap:
                 raise Trap.__from_ptr__(trap)
@@ -109,7 +107,7 @@ class WasiInstance:
         self.__ptr__ = ptr
         self.store = store
 
-    def bind(self, import_: ImportType) -> typing.Optional["Exportable"]:
+    def bind(self, import_: ImportType) -> Optional[AsExtern]:
         if not isinstance(import_, ImportType):
             raise TypeError("expected an `ImportType`")
         ptr = ffi.wasi_instance_bind_import(self.__ptr__, import_.__ptr__)

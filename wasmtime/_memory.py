@@ -61,7 +61,7 @@ class Memory:
         return ffi.wasm_memory_size(self.__ptr__)
 
     @property
-    def data_ptr(self) -> POINTER(c_ubyte):
+    def data_ptr(self) -> "pointer[c_ubyte]":
         """
         Returns the raw pointer in memory where this wasm memory lives.
 

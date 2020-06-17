@@ -1,8 +1,10 @@
 from . import _ffi as ffi
+from ctypes import pointer
 from wasmtime import Engine, WasmtimeError
 
 
 class Store:
+    __ptr__: "pointer[ffi.wasm_store_t]"
 
     def __init__(self, engine: Engine = None):
         if engine is None:

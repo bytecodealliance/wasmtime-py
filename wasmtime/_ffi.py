@@ -67,10 +67,10 @@ def to_str(vec: wasm_byte_vec_t) -> str:
 def str_to_name(s: str, trailing_nul: bool = False) -> wasm_byte_vec_t:
     if not isinstance(s, str):
         raise TypeError("expected a string")
-    s = s.encode('utf8')
-    buf = cast(create_string_buffer(s), POINTER(c_uint8))
+    s_bytes = s.encode('utf8')
+    buf = cast(create_string_buffer(s_bytes), POINTER(c_uint8))
     if trailing_nul:
         extra = 1
     else:
         extra = 0
-    return wasm_byte_vec_t(len(s) + extra, buf)
+    return wasm_byte_vec_t(len(s_bytes) + extra, buf)

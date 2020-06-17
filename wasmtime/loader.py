@@ -12,13 +12,11 @@ from wasmtime import Func, Table, Global, Memory
 import sys
 import os.path
 import importlib
-import typing
+from typing import Optional, Sequence, Union
 
 from importlib.abc import Loader, MetaPathFinder
 from importlib.util import spec_from_file_location
-
-if typing.TYPE_CHECKING:
-    from importlib.machinery import ModuleSpec
+from importlib.machinery import ModuleSpec
 
 store = Store()
 linker = Linker(store)
@@ -32,7 +30,7 @@ linker.allow_shadowing = True
 
 
 class _WasmtimeMetaFinder(MetaPathFinder):
-    def find_spec(self, fullname: str, path: str, target=None) -> typing.Optional["ModuleSpec"]:
+    def find_spec(self, fullname: str, path: Optional[Sequence[Union[bytes, str]]], target=None) -> Optional[ModuleSpec]:
         if path is None or path == "":
             path = [os.getcwd()]  # top level import --
             path.extend(sys.path)
@@ -41,13 +39,13 @@ class _WasmtimeMetaFinder(MetaPathFinder):
         else:
             name = fullname
         for entry in path:
-            py = os.path.join(entry, name + ".py")
+            py = os.path.join(str(entry), name + ".py")
             if os.path.exists(py):
                 continue
-            wasm = os.path.join(entry, name + ".wasm")
+            wasm = os.path.join(str(entry), name + ".wasm")
             if os.path.exists(wasm):
                 return spec_from_file_location(fullname, wasm, loader=_WasmtimeLoader(wasm))
-            wat = os.path.join(entry, name + ".wat")
+            wat = os.path.join(str(entry), name + ".wat")
             if os.path.exists(wat):
                 return spec_from_file_location(fullname, wat, loader=_WasmtimeLoader(wat))
 

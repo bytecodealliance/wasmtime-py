@@ -1,6 +1,6 @@
 from . import _ffi as ffi
-from ctypes import *
-from wasmtime import Store
+from ctypes import byref, POINTER, pointer
+from wasmtime import Store, WasmtimeError
 import typing
 
 
@@ -61,8 +61,10 @@ class Trap(Exception):
 
 
 class Frame:
+    __ptr__: "pointer[ffi.wasm_frame_t]"
+
     @classmethod
-    def __from_ptr__(cls, ptr: pointer, owner) -> "Frame":
+    def __from_ptr__(cls, ptr: "pointer[ffi.wasm_frame_t]", owner) -> "Frame":
         ty = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_frame_t)):
             raise TypeError("wrong pointer type")

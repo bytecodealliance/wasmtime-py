@@ -1,5 +1,5 @@
 from . import _ffi as ffi
-from ctypes import *
+from ctypes import POINTER, pointer, byref
 from wasmtime import Module, Trap, WasmtimeError, Store
 from ._extern import wrap_extern, get_extern_ptr
 from ._exportable import AsExtern
@@ -7,6 +7,10 @@ from typing import Sequence, Union, Optional
 
 
 class Instance:
+    __ptr__: "pointer[ffi.wasm_instance_t]"
+    _module: Module
+    _exports: Optional["InstanceExports"]
+
     def __init__(self, store: Store, module: Module, imports: Sequence[AsExtern]):
         """
         Creates a new instance by instantiating the `module` given with the
