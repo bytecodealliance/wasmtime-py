@@ -12,7 +12,7 @@ class WasiConfig:
         self.__ptr__ = ffi.wasi_config_new()
 
     @setter_property
-    def set_argv(self, argv: List[str]) -> None:
+    def argv(self, argv: List[str]) -> None:
         """
         Explicitly configure the `argv` for this WASI configuration
         """

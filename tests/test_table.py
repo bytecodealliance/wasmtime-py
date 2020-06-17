@@ -11,6 +11,7 @@ class TestTable(unittest.TestCase):
         """)
         table = Instance(store, module, []).exports[0]
         self.assertTrue(isinstance(table, Table))
+        assert(isinstance(table.type, TableType))
         self.assertEqual(table.type.limits, Limits(1, None))
         self.assertEqual(table.size, 1)
 
@@ -32,9 +33,9 @@ class TestTable(unittest.TestCase):
 
         # type errors
         with self.assertRaises(TypeError):
-            table.grow('x', None)
+            table.grow('x', None)  # type: ignore
         with self.assertRaises(TypeError):
-            table.grow(2, 'x')
+            table.grow(2, 'x')  # type: ignore
 
         # growth works
         table.grow(1, None)
@@ -60,6 +61,7 @@ class TestTable(unittest.TestCase):
         func = Func(store, FuncType([], []), set_called)
         table.grow(1, func)
         assert(not called['hit'])
+        assert(isinstance(table[1], Func))
         table[1]()
         assert(called['hit'])
 
@@ -75,7 +77,7 @@ class TestTable(unittest.TestCase):
     def test_errors(self):
         ty = TableType(ValType.i32(), Limits(1, 2))
         with self.assertRaises(TypeError):
-            Table(1, ty, 2)
+            Table(1, ty, 2)  # type: ignore
         store = Store()
         with self.assertRaises(TypeError):
-            Table(store, 2, 2)
+            Table(store, 2, 2)  # type: ignore

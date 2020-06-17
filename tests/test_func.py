@@ -47,9 +47,9 @@ class TestFunc(unittest.TestCase):
         store = Store()
         ty = FuncType([], [])
         with self.assertRaises(TypeError):
-            Func(1, ty, lambda: None)
+            Func(1, ty, lambda: None)  # type: ignore
         with self.assertRaises(TypeError):
-            Func(store, 1, lambda: None)
+            Func(store, 1, lambda: None)  # type: ignore
         func = Func(store, ty, lambda: None)
         with self.assertRaises(WasmtimeError):
             func(2)
@@ -130,7 +130,7 @@ class TestFunc(unittest.TestCase):
         func = Func(store, FuncType([], []), runtest2, access_caller=True)
         Instance(store, module, [func])
         self.assertTrue(hit['yes'])
-        self.assertTrue(hit['caller'].get('foo') is None)
+        self.assertTrue(hit['caller'].get('foo') is None)  # type: ignore
 
         # Test that `Caller` is invalidated even on exceptions
         hit2 = {}

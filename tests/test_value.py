@@ -6,9 +6,9 @@ from wasmtime import *
 class TestValue(unittest.TestCase):
     def test_i32(self):
         with self.assertRaises(TypeError):
-            Val.i32('')
+            Val.i32('')  # type: ignore
         with self.assertRaises(TypeError):
-            Val.i32(1.2)
+            Val.i32(1.2)  # type: ignore
 
         i = Val.i32(1)
         self.assertEqual(i.as_i32(), 1)
@@ -24,9 +24,9 @@ class TestValue(unittest.TestCase):
 
     def test_i64(self):
         with self.assertRaises(TypeError):
-            Val.i64('')
+            Val.i64('')  # type: ignore
         with self.assertRaises(TypeError):
-            Val.i64(1.2)
+            Val.i64(1.2)  # type: ignore
 
         i = Val.i64(1)
         self.assertEqual(i.as_i64(), 1)
@@ -46,7 +46,7 @@ class TestValue(unittest.TestCase):
 
     def test_f32(self):
         with self.assertRaises(TypeError):
-            Val.f32('')
+            Val.f32('')  # type: ignore
         with self.assertRaises(TypeError):
             Val.f32(1)
 
@@ -59,7 +59,7 @@ class TestValue(unittest.TestCase):
 
     def test_f64(self):
         with self.assertRaises(TypeError):
-            Val.f64('')
+            Val.f64('')  # type: ignore
         with self.assertRaises(TypeError):
             Val.f64(1)
 

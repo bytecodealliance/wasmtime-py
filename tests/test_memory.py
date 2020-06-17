@@ -15,7 +15,7 @@ class TestMemory(unittest.TestCase):
         self.assertTrue(memory.grow(0))
         self.assertEqual(memory.size, 2)
         with self.assertRaises(TypeError):
-            memory.grow('')
+            memory.grow('')  # type: ignore
         with self.assertRaises(WasmtimeError):
             memory.grow(-1)
         self.assertEqual(memory.data_ptr[0], 0)
@@ -34,6 +34,6 @@ class TestMemory(unittest.TestCase):
         store = Store()
         ty = MemoryType(Limits(1, 2))
         with self.assertRaises(TypeError):
-            Memory(1, ty)
+            Memory(1, ty)  # type: ignore
         with self.assertRaises(TypeError):
-            Memory(store, 1)
+            Memory(store, 1)  # type: ignore

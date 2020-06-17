@@ -11,13 +11,13 @@ class TestModule(unittest.TestCase):
 
     def test_invalid(self):
         with self.assertRaises(TypeError):
-            Module.validate(1, b'')
+            Module.validate(1, b'')  # type: ignore
         with self.assertRaises(TypeError):
-            Module.validate(Store(), 2)
+            Module.validate(Store(), 2)  # type: ignore
         with self.assertRaises(TypeError):
-            Module(1, b'')
+            Module(1, b'')  # type: ignore
         with self.assertRaises(TypeError):
-            Module(Store(), 2)
+            Module(Store(), 2)  # type: ignore
         with self.assertRaises(WasmtimeError):
             Module(Store(), b'')
         with self.assertRaises(WasmtimeError):

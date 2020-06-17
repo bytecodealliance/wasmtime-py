@@ -15,18 +15,18 @@ class TestInstance(unittest.TestCase):
         instance = Instance(store, module, [])
         self.assertEqual(len(instance.exports), 1)
         extern = instance.exports[0]
-        self.assertTrue(isinstance(extern, Func))
-        self.assertTrue(isinstance(extern.type, FuncType))
+        assert(isinstance(extern, Func))
+        assert(isinstance(extern.type, FuncType))
 
         extern()
 
-        self.assertTrue(instance.exports[''] is not None)
+        assert(instance.exports[''] is not None)
         with self.assertRaises(KeyError):
             instance.exports['x']
         with self.assertRaises(IndexError):
             instance.exports[100]
-        self.assertTrue(instance.exports.get('x') is None)
-        self.assertTrue(instance.exports.get(2) is None)
+        assert(instance.exports.get('x') is None)
+        assert(instance.exports.get(2) is None)
 
     def test_export_global(self):
         store = Store()
@@ -35,9 +35,9 @@ class TestInstance(unittest.TestCase):
         instance = Instance(store, module, [])
         self.assertEqual(len(instance.exports), 1)
         extern = instance.exports[0]
-        self.assertTrue(isinstance(extern, Global))
+        assert(isinstance(extern, Global))
         self.assertEqual(extern.value, 3)
-        self.assertTrue(isinstance(extern.type, GlobalType))
+        assert(isinstance(extern.type, GlobalType))
 
     def test_export_memory(self):
         store = Store()
@@ -45,7 +45,7 @@ class TestInstance(unittest.TestCase):
         instance = Instance(store, module, [])
         self.assertEqual(len(instance.exports), 1)
         extern = instance.exports[0]
-        self.assertTrue(isinstance(extern, Memory))
+        assert(isinstance(extern, Memory))
         self.assertEqual(extern.size, 1)
 
     def test_export_table(self):
@@ -54,7 +54,7 @@ class TestInstance(unittest.TestCase):
         instance = Instance(store, module, [])
         self.assertEqual(len(instance.exports), 1)
         extern = instance.exports[0]
-        self.assertTrue(isinstance(extern, Table))
+        assert(isinstance(extern, Table))
 
     def test_multiple_exports(self):
         store = Store()
@@ -67,9 +67,9 @@ class TestInstance(unittest.TestCase):
         """)
         instance = Instance(store, module, [])
         self.assertEqual(len(instance.exports), 3)
-        self.assertTrue(isinstance(instance.exports[0], Func))
-        self.assertTrue(isinstance(instance.exports[1], Func))
-        self.assertTrue(isinstance(instance.exports[2], Global))
+        assert(isinstance(instance.exports[0], Func))
+        assert(isinstance(instance.exports[1], Func))
+        assert(isinstance(instance.exports[2], Global))
 
     def test_import_func(self):
         store = Store()
@@ -82,9 +82,9 @@ class TestInstance(unittest.TestCase):
         hit = []
         func = Func(module.store, FuncType([], []), lambda: hit.append(True))
         Instance(store, module, [func])
-        self.assertTrue(len(hit) == 1)
+        assert(len(hit) == 1)
         Instance(store, module, [func])
-        self.assertTrue(len(hit) == 2)
+        assert(len(hit) == 2)
 
     def test_import_global(self):
         store = Store()
@@ -100,17 +100,24 @@ class TestInstance(unittest.TestCase):
         """)
         g = Global(module.store, GlobalType(ValType.i32(), True), 2)
         instance = Instance(store, module, [g])
-        self.assertEqual(instance.exports[0](), 2)
+        f = instance.exports[0]
+        assert(isinstance(f, Func))
+
+        self.assertEqual(f(), 2)
         g.value = 4
-        self.assertEqual(instance.exports[0](), 4)
+        self.assertEqual(f(), 4)
 
         instance2 = Instance(store, module, [g])
-        self.assertEqual(instance.exports[0](), 4)
-        self.assertEqual(instance2.exports[0](), 4)
+        f2 = instance2.exports[0]
+        assert(isinstance(f2, Func))
+        self.assertEqual(f(), 4)
+        self.assertEqual(f2(), 4)
 
-        instance.exports[1]()
-        self.assertEqual(instance.exports[0](), 5)
-        self.assertEqual(instance2.exports[0](), 5)
+        update = instance.exports[1]
+        assert(isinstance(update, Func))
+        update()
+        self.assertEqual(f(), 5)
+        self.assertEqual(f2(), 5)
 
     def test_import_memory(self):
         store = Store()
@@ -141,9 +148,9 @@ class TestInstance(unittest.TestCase):
     def test_invalid(self):
         store = Store()
         with self.assertRaises(TypeError):
-            Instance(store, 1, [])
+            Instance(store, 1, [])  # type: ignore
         with self.assertRaises(TypeError):
-            Instance(store, Module(store, '(module (import "" "" (func)))'), [1])
+            Instance(store, Module(store, '(module (import "" "" (func)))'), [1])  # type: ignore
 
         val = Func(store, FuncType([], []), lambda: None)
         module = Module(store, '(module (import "" "" (func)))')
