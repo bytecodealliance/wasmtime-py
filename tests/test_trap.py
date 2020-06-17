@@ -12,9 +12,9 @@ class TestTrap(unittest.TestCase):
     def test_errors(self):
         store = Store()
         with self.assertRaises(TypeError):
-            Trap(1, '')
+            Trap(1, '')  # type: ignore
         with self.assertRaises(TypeError):
-            Trap(store, 1)
+            Trap(store, 1)  # type: ignore
 
     def test_frames(self):
         store = Store()
@@ -30,7 +30,9 @@ class TestTrap(unittest.TestCase):
         """)
         i = Instance(store, module, [])
         try:
-            i.exports[0]()
+            e = i.exports[0]
+            assert(isinstance(e, Func))
+            e()
         except Trap as e:
             trap = e
 
@@ -65,7 +67,9 @@ wasm backtrace:
         """)
         i = Instance(store, module, [])
         try:
-            i.exports[0]()
+            e = i.exports[0]
+            assert(isinstance(e, Func))
+            e()
         except Trap as e:
             trap = e
 

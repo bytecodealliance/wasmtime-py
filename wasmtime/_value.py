@@ -1,10 +1,11 @@
 from ._ffi import *
 from wasmtime import ValType
+import typing
 
 
 class Val:
     @classmethod
-    def i32(cls, val):
+    def i32(cls, val: int) -> "Val":
         """
         Create a new 32-bit integer value
         """
@@ -15,7 +16,7 @@ class Val:
         return Val(ffi)
 
     @classmethod
-    def i64(cls, val):
+    def i64(cls, val: int) -> "Val":
         """
         Create a new 64-bit integer value
         """
@@ -26,7 +27,7 @@ class Val:
         return Val(ffi)
 
     @classmethod
-    def f32(cls, val):
+    def f32(cls, val: float) -> "Val":
         """
         Create a new 32-bit float value
         """
@@ -37,7 +38,7 @@ class Val:
         return Val(ffi)
 
     @classmethod
-    def f64(cls, val):
+    def f64(cls, val: float) -> "Val":
         """
         Create a new 64-bit float value
         """
@@ -47,29 +48,31 @@ class Val:
         ffi.of.f64 = val
         return Val(ffi)
 
-    def __init__(self, raw):
+    def __init__(self, raw: wasm_val_t):
         if not isinstance(raw, wasm_val_t):
             raise TypeError("expected a raw value")
         self.__raw__ = raw
 
     @classmethod
-    def __convert__(cls, ty, val):
+    def __convert__(cls, ty: ValType, val: "IntoVal") -> "Val":
         if isinstance(val, Val):
             if ty != val.type:
                 raise TypeError("wrong type of `Val` provided")
             return val
-        if ty == ValType.i32():
-            return Val.i32(val)
-        if ty == ValType.i64():
-            return Val.i64(val)
-        if ty == ValType.f32():
-            return Val.f32(val)
-        if ty == ValType.f64():
-            return Val.f64(val)
-        raise WasmtimeError("don't know how to convert %r to %s" % (val, ty))
+        elif isinstance(val, int):
+            if ty == ValType.i32():
+                return Val.i32(val)
+            if ty == ValType.i64():
+                return Val.i64(val)
+        elif isinstance(val, float):
+            if ty == ValType.f32():
+                return Val.f32(val)
+            if ty == ValType.f64():
+                return Val.f64(val)
+        raise TypeError("don't know how to convert %r to %s" % (val, ty))
 
     @property
-    def value(self):
+    def value(self) -> typing.Optional[typing.Union[int, float]]:
         """
         Get the the underlying value as a python value
 
@@ -85,7 +88,7 @@ class Val:
             return self.__raw__.of.f64
         return None
 
-    def as_i32(self):
+    def as_i32(self) -> typing.Optional[int]:
         """
         Get the 32-bit integer value of this value, or `None` if it's not an i32
         """
@@ -94,7 +97,7 @@ class Val:
         else:
             return None
 
-    def as_i64(self):
+    def as_i64(self) -> typing.Optional[int]:
         """
         Get the 64-bit integer value of this value, or `None` if it's not an i64
         """
@@ -103,7 +106,7 @@ class Val:
         else:
             return None
 
-    def as_f32(self):
+    def as_f32(self) -> typing.Optional[float]:
         """
         Get the 32-bit float value of this value, or `None` if it's not an f32
         """
@@ -112,7 +115,7 @@ class Val:
         else:
             return None
 
-    def as_f64(self):
+    def as_f64(self) -> typing.Optional[float]:
         """
         Get the 64-bit float value of this value, or `None` if it's not an f64
         """
@@ -122,9 +125,12 @@ class Val:
             return None
 
     @property
-    def type(self):
+    def type(self) -> ValType:
         """
         Returns the `ValType` corresponding to this `Val`
         """
         ptr = dll.wasm_valtype_new(self.__raw__.kind)
         return ValType.__from_ptr__(ptr, None)
+
+
+IntoVal = typing.Union[Val, int, float]

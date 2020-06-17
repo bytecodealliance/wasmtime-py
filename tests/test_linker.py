@@ -30,17 +30,17 @@ class TestLinker(unittest.TestCase):
         linker.define("", "a", func)
 
         with self.assertRaises(TypeError):
-            linker.define("", "", 2)
+            linker.define("", "", 2)  # type: ignore
         with self.assertRaises(TypeError):
-            linker.define(2, "", func)
+            linker.define(2, "", func)  # type: ignore
         with self.assertRaises(TypeError):
-            linker.define("", 2, func)
+            linker.define("", 2, func)  # type: ignore
 
     def test_define_instance(self):
         store = Store()
         linker = Linker(store)
         with self.assertRaises(TypeError):
-            linker.define_instance("x", 2)
+            linker.define_instance("x", 2)  # type: ignore
 
         module = Module(store, "(module)")
         linker.define_instance("a", Instance(store, module, []))
@@ -104,6 +104,6 @@ class TestLinker(unittest.TestCase):
         with self.assertRaises(TypeError):
             linker.allow_shadowing = 2
         with self.assertRaises(TypeError):
-            Linker(2)
+            Linker(2)  # type: ignore
         with self.assertRaises(TypeError):
-            linker.instantiate(3)
+            linker.instantiate(3)  # type: ignore

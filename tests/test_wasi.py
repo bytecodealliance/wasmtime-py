@@ -34,13 +34,13 @@ class TestWasi(unittest.TestCase):
 
         # Type errors
         with self.assertRaises(TypeError):
-            WasiInstance(1, "nonexistent_wasi", config)
+            WasiInstance(1, "nonexistent_wasi", config)  # type: ignore
         with self.assertRaises(TypeError):
-            WasiInstance(Store(), 1, config)
+            WasiInstance(Store(), 1, config)  # type: ignore
         with self.assertRaises(TypeError):
-            WasiInstance(Store(), "nonexistent_wasi", 1)
+            WasiInstance(Store(), "nonexistent_wasi", 1)  # type: ignore
         with self.assertRaises(TypeError):
-            instance.bind(3)
+            instance.bind(3)  # type: ignore
 
         module = Module(instance.store, """
             (module
@@ -51,6 +51,7 @@ class TestWasi(unittest.TestCase):
         imp = module.imports[0]
         binding = instance.bind(imp)
         self.assertTrue(isinstance(binding, Func))
+        assert(isinstance(binding, Func))
         binding(1, 2)  # should return EFAULT basically
 
     def test_preview1(self):
@@ -66,4 +67,5 @@ class TestWasi(unittest.TestCase):
         imp = module.imports[0]
         binding = instance.bind(imp)
         self.assertTrue(isinstance(binding, Func))
+        assert(isinstance(binding, Func))
         binding(1, 2)  # should return EFAULT basically

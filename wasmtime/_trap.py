@@ -1,10 +1,11 @@
 from . import _ffi as ffi
-from ctypes import *
-from wasmtime import Store
+from ctypes import byref, POINTER, pointer
+from wasmtime import Store, WasmtimeError
+from typing import Optional, Any, List
 
 
 class Trap(Exception):
-    def __init__(self, store, message):
+    def __init__(self, store: Store, message: str):
         """
         Creates a new trap in `store` with the given `message`
         """
@@ -20,15 +21,15 @@ class Trap(Exception):
         self.__ptr__ = ptr
 
     @classmethod
-    def __from_ptr__(cls, ptr):
+    def __from_ptr__(cls, ptr: "pointer[ffi.wasm_trap_t]") -> "Trap":
         if not isinstance(ptr, POINTER(ffi.wasm_trap_t)):
             raise TypeError("wrong pointer type")
-        trap = cls.__new__(cls)
+        trap: "Trap" = cls.__new__(cls)
         trap.__ptr__ = ptr
         return trap
 
     @property
-    def message(self):
+    def message(self) -> str:
         """
         Returns the message for this trap
         """
@@ -43,7 +44,7 @@ class Trap(Exception):
         return ret
 
     @property
-    def frames(self):
+    def frames(self) -> List["Frame"]:
         frames = FrameList()
         ffi.wasm_trap_trace(self.__ptr__, byref(frames.vec))
         ret = []
@@ -51,18 +52,21 @@ class Trap(Exception):
             ret.append(Frame.__from_ptr__(frames.vec.data[i], frames))
         return ret
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.message
 
-    def __del__(self):
+    def __del__(self) -> None:
         if hasattr(self, '__ptr__'):
             ffi.wasm_trap_delete(self.__ptr__)
 
 
 class Frame:
+    __ptr__: "pointer[ffi.wasm_frame_t]"
+    __owner__: Optional[Any]
+
     @classmethod
-    def __from_ptr__(cls, ptr, owner):
-        ty = cls.__new__(cls)
+    def __from_ptr__(cls, ptr: "pointer[ffi.wasm_frame_t]", owner: Optional[Any]) -> "Frame":
+        ty: "Frame" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_frame_t)):
             raise TypeError("wrong pointer type")
         ty.__ptr__ = ptr
@@ -70,7 +74,7 @@ class Frame:
         return ty
 
     @property
-    def func_index(self):
+    def func_index(self) -> int:
         """
         Returns the function index this frame corresponds to in its wasm module
         """
@@ -78,7 +82,7 @@ class Frame:
         return ffi.wasm_frame_func_index(self.__ptr__)
 
     @property
-    def func_name(self):
+    def func_name(self) -> Optional[str]:
         """
         Returns the name of the function this frame corresponds to
 
@@ -92,7 +96,7 @@ class Frame:
             return None
 
     @property
-    def module_name(self):
+    def module_name(self) -> Optional[str]:
         """
         Returns the name of the module this frame corresponds to
 
@@ -106,7 +110,7 @@ class Frame:
             return None
 
     @property
-    def module_offset(self):
+    def module_offset(self) -> int:
         """
         Returns the offset of this frame's program counter into the original
         wasm source module.
@@ -115,7 +119,7 @@ class Frame:
         return ffi.wasm_frame_module_offset(self.__ptr__)
 
     @property
-    def func_offset(self):
+    def func_offset(self) -> int:
         """
         Returns the offset of this frame's program counter into the original
         wasm function.
@@ -123,14 +127,14 @@ class Frame:
 
         return ffi.wasm_frame_func_offset(self.__ptr__)
 
-    def __del__(self):
+    def __del__(self) -> None:
         if self.__owner__ is None:
             ffi.wasm_frame_delete(self.__ptr__)
 
 
 class FrameList:
-    def __init__(self):
+    def __init__(self) -> None:
         self.vec = ffi.wasm_frame_vec_t(0, None)
 
-    def __del__(self):
+    def __del__(self) -> None:
         ffi.wasm_frame_vec_delete(byref(self.vec))

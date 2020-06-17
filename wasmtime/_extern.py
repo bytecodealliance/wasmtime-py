@@ -1,8 +1,10 @@
 from . import _ffi as ffi
 from ctypes import *
+from ._exportable import AsExtern
+from typing import Optional, Any
 
 
-def wrap_extern(ptr, owner):
+def wrap_extern(ptr: 'pointer[ffi.wasm_extern_t]', owner: Optional[Any]) -> AsExtern:
     from wasmtime import Func, Table, Global, Memory
 
     if not isinstance(ptr, POINTER(ffi.wasm_extern_t)):
@@ -27,7 +29,7 @@ def wrap_extern(ptr, owner):
     return Memory.__from_ptr__(val, owner)
 
 
-def get_extern_ptr(item):
+def get_extern_ptr(item: AsExtern) -> "pointer[ffi.wasm_extern_t]":
     from wasmtime import Func, Table, Global, Memory
 
     if isinstance(item, Func):
@@ -43,8 +45,8 @@ def get_extern_ptr(item):
 
 
 class Extern:
-    def __init__(self, ptr):
+    def __init__(self, ptr: "pointer[ffi.wasm_extern_t]"):
         self.ptr = ptr
 
-    def __del__(self):
+    def __del__(self) -> None:
         ffi.wasm_extern_delete(self.ptr)

@@ -40,6 +40,7 @@ setuptools.setup(
             'pytest',
             'pycparser',
             'pytest-flake8',
+            'pytest-mypy',
         ],
     },
     classifiers=[

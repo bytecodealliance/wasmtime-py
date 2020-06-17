@@ -1,9 +1,10 @@
 from . import _ffi as ffi
 from ctypes import *
 from wasmtime import TableType, Store, Func, WasmtimeError
+from typing import Optional, Any
 
 
-def get_func_ptr(init):
+def get_func_ptr(init: Optional[Func]) -> Optional["pointer[ffi.wasm_func_t]"]:
     if init is None:
         return None
     elif isinstance(init, Func):
@@ -13,7 +14,9 @@ def get_func_ptr(init):
 
 
 class Table:
-    def __init__(self, store, ty, init):
+    __ptr__: "pointer[ffi.wasm_table_t]"
+
+    def __init__(self, store: Store, ty: TableType, init: Optional[Func]):
         """
         Creates a new table within `store` with the specified `ty`.
 
@@ -35,8 +38,8 @@ class Table:
         self.__owner__ = None
 
     @classmethod
-    def __from_ptr__(cls, ptr, owner):
-        ty = cls.__new__(cls)
+    def __from_ptr__(cls, ptr: "pointer[ffi.wasm_table_t]", owner: Optional[Any]) -> "Table":
+        ty: "Table" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_table_t)):
             raise TypeError("wrong pointer type")
         ty.__ptr__ = ptr
@@ -44,7 +47,7 @@ class Table:
         return ty
 
     @property
-    def type(self):
+    def type(self) -> TableType:
         """
         Gets the type of this table as a `TableType`
         """
@@ -53,14 +56,14 @@ class Table:
         return TableType.__from_ptr__(ptr, None)
 
     @property
-    def size(self):
+    def size(self) -> int:
         """
         Gets the size, in elements, of this table
         """
 
         return ffi.wasm_table_size(self.__ptr__)
 
-    def grow(self, amt, init):
+    def grow(self, amt: int, init: Optional[Func]) -> int:
         """
         Grows this table by the specified number of slots, using the specified
         initializer for all new table slots.
@@ -76,7 +79,7 @@ class Table:
             raise WasmtimeError("failed to grow table")
         return prev.value
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int) -> Optional[Func]:
         """
         Gets an individual element within this table. Currently only works on
         `funcref` tables.
@@ -86,7 +89,6 @@ class Table:
         Raises an `WasmtimeError` if `idx` is out of bounds.
         """
 
-        idx = c_uint32(idx)
         ptr = POINTER(ffi.wasm_func_t)()
         ok = ffi.wasmtime_funcref_table_get(self.__ptr__, idx, byref(ptr))
         if ok:
@@ -95,7 +97,7 @@ class Table:
             return None
         raise WasmtimeError("table index out of bounds")
 
-    def __setitem__(self, idx, val):
+    def __setitem__(self, idx: int, val: Optional[Func]) -> None:
         """
         Sets an individual element within this table. Currently only works on
         `funcref` tables.
@@ -106,15 +108,14 @@ class Table:
         Raises a `WasmtimeError` if `idx` is out of bounds.
         """
 
-        idx = c_uint32(idx)
         val_ptr = get_func_ptr(val)
         error = ffi.wasmtime_funcref_table_set(self.__ptr__, idx, val_ptr)
         if error:
             raise WasmtimeError.__from_ptr__(error)
 
-    def _as_extern(self):
+    def _as_extern(self) -> "pointer[ffi.wasm_extern_t]":
         return ffi.wasm_table_as_extern(self.__ptr__)
 
-    def __del__(self):
+    def __del__(self) -> None:
         if hasattr(self, '__owner__') and self.__owner__ is None:
             ffi.wasm_table_delete(self.__ptr__)

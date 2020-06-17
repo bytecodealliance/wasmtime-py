@@ -1,13 +1,17 @@
-from ctypes import *
-from wasmtime import Store, FuncType, Val, Trap, WasmtimeError
+from ctypes import POINTER, pointer, byref, CFUNCTYPE, c_void_p, cast
+from wasmtime import Store, FuncType, Val, IntoVal, Trap, WasmtimeError
 import sys
 import traceback
 from . import _ffi as ffi
 from ._extern import wrap_extern
+from typing import Callable, Optional, Generic, TypeVar, List, Union, Tuple, cast as cast_type, Any, Sequence
+from ._exportable import AsExtern
 
 
 class Func:
-    def __init__(self, store, ty, func, access_caller=False):
+    __ptr__: "pointer[ffi.wasm_func_t]"
+
+    def __init__(self, store: Store, ty: FuncType, func: Callable, access_caller: bool = False):
         """
         Creates a new func in `store` with the given `ty` which calls the closure
         given
@@ -40,8 +44,8 @@ class Func:
         self.__owner__ = None
 
     @classmethod
-    def __from_ptr__(cls, ptr, owner):
-        ty = cls.__new__(cls)
+    def __from_ptr__(cls, ptr: "pointer[ffi.wasm_func_t]", owner: Optional[Any]) -> "Func":
+        ty: "Func" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_func_t)):
             raise TypeError("wrong pointer type")
         ty.__ptr__ = ptr
@@ -49,7 +53,7 @@ class Func:
         return ty
 
     @property
-    def type(self):
+    def type(self) -> FuncType:
         """
         Gets the type of this func as a `FuncType`
         """
@@ -57,20 +61,20 @@ class Func:
         return FuncType.__from_ptr__(ptr, None)
 
     @property
-    def param_arity(self):
+    def param_arity(self) -> int:
         """
         Returns the number of parameters this function expects
         """
         return ffi.wasm_func_param_arity(self.__ptr__)
 
     @property
-    def result_arity(self):
+    def result_arity(self) -> int:
         """
         Returns the number of results this function produces
         """
         return ffi.wasm_func_result_arity(self.__ptr__)
 
-    def __call__(self, *params):
+    def __call__(self, *params: IntoVal) -> Union[IntoVal, Sequence[IntoVal], None]:
         """
         Calls this function with the given parameters
 
@@ -120,19 +124,19 @@ class Func:
         else:
             return results
 
-    def _as_extern(self):
+    def _as_extern(self) -> "pointer[ffi.wasm_extern_t]":
         return ffi.wasm_func_as_extern(self.__ptr__)
 
-    def __del__(self):
+    def __del__(self) -> None:
         if hasattr(self, '__owner__') and self.__owner__ is None:
             ffi.wasm_func_delete(self.__ptr__)
 
 
 class Caller:
-    def __init__(self, ptr):
+    def __init__(self, ptr: pointer):
         self.__ptr__ = ptr
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> AsExtern:
         """
         Looks up an export with `name` on the calling module.
 
@@ -147,7 +151,7 @@ class Caller:
             raise KeyError("failed to find export {}".format(name))
         return ret
 
-    def get(self, name):
+    def get(self, name: str) -> Optional[AsExtern]:
         """
         Looks up an export with `name` on the calling module.
 
@@ -171,20 +175,20 @@ class Caller:
             return None
 
 
-def extract_val(val):
+def extract_val(val: Val) -> IntoVal:
     a = val.value
     if a is not None:
         return a
     return val
 
 
-@ffi.wasm_func_callback_with_env_t
-def trampoline(idx, params_ptr, results_ptr):
+@ffi.wasm_func_callback_with_env_t  # type: ignore
+def trampoline(idx, params_ptr, results_ptr):  # type: ignore
     return invoke(idx, params_ptr, results_ptr, [])
 
 
-@ffi.wasmtime_func_callback_with_env_t
-def trampoline_with_caller(caller, idx, params_ptr, results_ptr):
+@ffi.wasmtime_func_callback_with_env_t  # type: ignore
+def trampoline_with_caller(caller, idx, params_ptr, results_ptr):  # type: ignore
     caller = Caller(caller)
     try:
         return invoke(idx, params_ptr, results_ptr, [caller])
@@ -192,7 +196,7 @@ def trampoline_with_caller(caller, idx, params_ptr, results_ptr):
         delattr(caller, '__ptr__')
 
 
-def invoke(idx, params_ptr, results_ptr, params):
+def invoke(idx, params_ptr, results_ptr, params):  # type: ignore
     func, param_tys, result_tys, store = FUNCTIONS.get(idx or 0)
 
     try:
@@ -224,34 +228,39 @@ def invoke(idx, params_ptr, results_ptr, params):
 
 
 @CFUNCTYPE(None, c_void_p)
-def finalize(idx):
+def finalize(idx):  # type: ignore
     FUNCTIONS.deallocate(idx or 0)
-    pass
 
 
-class Slab:
-    def __init__(self):
+T = TypeVar('T')
+
+
+class Slab(Generic[T]):
+    list: List[Union[int, T]]
+    next: int
+
+    def __init__(self) -> None:
         self.list = []
         self.next = 0
 
-    def allocate(self, val):
+    def allocate(self, val: T) -> int:
         idx = self.next
 
         if len(self.list) == idx:
-            self.list.append(None)
+            self.list.append(0)
             self.next += 1
         else:
-            self.next = self.list[idx]
+            self.next = cast_type(int, self.list[idx])
 
         self.list[idx] = val
         return idx
 
-    def get(self, idx):
-        return self.list[idx]
+    def get(self, idx: int) -> T:
+        return cast_type(T, self.list[idx])
 
-    def deallocate(self, idx):
+    def deallocate(self, idx: int) -> None:
         self.list[idx] = self.next
         self.next = idx
 
 
-FUNCTIONS = Slab()
+FUNCTIONS: Slab[Tuple] = Slab()

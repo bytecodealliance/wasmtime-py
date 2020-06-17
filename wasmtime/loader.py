@@ -28,7 +28,7 @@ linker.allow_shadowing = True
 
 
 class _WasmtimeMetaFinder(MetaPathFinder):
-    def find_spec(self, fullname, path, target=None):
+    def find_spec(self, fullname, path, target=None):  # type: ignore
         if path is None or path == "":
             path = [os.getcwd()]  # top level import --
             path.extend(sys.path)
@@ -37,13 +37,13 @@ class _WasmtimeMetaFinder(MetaPathFinder):
         else:
             name = fullname
         for entry in path:
-            py = os.path.join(entry, name + ".py")
+            py = os.path.join(str(entry), name + ".py")
             if os.path.exists(py):
                 continue
-            wasm = os.path.join(entry, name + ".wasm")
+            wasm = os.path.join(str(entry), name + ".wasm")
             if os.path.exists(wasm):
                 return spec_from_file_location(fullname, wasm, loader=_WasmtimeLoader(wasm))
-            wat = os.path.join(entry, name + ".wat")
+            wat = os.path.join(str(entry), name + ".wat")
             if os.path.exists(wat):
                 return spec_from_file_location(fullname, wat, loader=_WasmtimeLoader(wat))
 
@@ -51,13 +51,13 @@ class _WasmtimeMetaFinder(MetaPathFinder):
 
 
 class _WasmtimeLoader(Loader):
-    def __init__(self, filename):
+    def __init__(self, filename: str):
         self.filename = filename
 
-    def create_module(self, spec):
+    def create_module(self, spec):  # type: ignore
         return None  # use default module creation semantics
 
-    def exec_module(self, module):
+    def exec_module(self, module):  # type: ignore
         wasm_module = Module.from_file(store, self.filename)
 
         for wasm_import in wasm_module.imports:

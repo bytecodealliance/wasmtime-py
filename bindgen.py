@@ -18,7 +18,9 @@ class Visitor(c_ast.NodeVisitor):
         self.ret += '# instead edit `./bindgen.py` at the root of the repo\n'
         self.ret += '\n'
         self.ret += 'from ctypes import *\n'
+        self.ret += 'from typing import Any\n'
         self.ret += 'from ._ffi import dll, wasm_val_t\n'
+        self.generated_wasm_ref_t = False
 
     # Skip all function definitions, we don't bind those
     def visit_FuncDef(self, node):
@@ -27,8 +29,18 @@ class Visitor(c_ast.NodeVisitor):
     def visit_Struct(self, node):
         if not node.name or not node.name.startswith('was'):
             return
+
+        # This is hand-generated since it has an anonymous union in it
         if node.name == 'wasm_val_t':
             return
+
+        # This is defined twice in the header file, but we only want to insert
+        # one definition.
+        if node.name == 'wasm_ref_t':
+            if self.generated_wasm_ref_t:
+                return
+            self.generated_wasm_ref_t = True
+
         self.ret += "\n"
         self.ret += "class {}(Structure):\n".format(node.name)
         if node.decls:
@@ -89,7 +101,7 @@ class Visitor(c_ast.NodeVisitor):
                 argname = param.name
                 if not argname or argname == "import" or argname == "global":
                     argname = "arg{}".format(i)
-                argpairs.append("{}: {}".format(argname, type_name(param.type, typing=True)))
+                argpairs.append("{}: Any".format(argname))
                 argnames.append(argname)
                 argtypes.append(type_name(param.type))
         retty = type_name(node.type, ptr, typing=True)
@@ -99,7 +111,7 @@ class Visitor(c_ast.NodeVisitor):
         self.ret += "_{}.restype = {}\n".format(name, type_name(ret, ptr))
         self.ret += "_{}.argtypes = [{}]\n".format(name, ', '.join(argtypes))
         self.ret += "def {}({}) -> {}:\n".format(name, ', '.join(argpairs), retty)
-        self.ret += "    return _{}({})\n".format(name, ', '.join(argnames))
+        self.ret += "    return _{}({})  # type: ignore\n".format(name, ', '.join(argnames))
 
 
 def type_name(ty, ptr=False, typing=False):
@@ -125,15 +137,20 @@ def type_name(ty, ptr=False, typing=False):
         elif ty.names[0] == "uint8_t":
             return "c_uint8"
         elif ty.names[0] == "uint32_t":
-            return "c_uint32"
+            return "int" if typing else "c_uint32"
         elif ty.names[0] == "uint64_t":
             return "c_uint64"
         elif ty.names[0] == "size_t":
-            return "c_size_t"
+            return "int" if typing else "c_size_t"
         elif ty.names[0] == "char":
             return "c_char"
         elif ty.names[0] == "int":
-            return "c_int"
+            return "int" if typing else "c_int"
+        # ctypes values can't stand as typedefs, so just use the pointer type here
+        elif typing and 'func_callback' in ty.names[0]:
+            return "pointer"
+        elif typing and ('size' in ty.names[0] or 'pages' in ty.names[0]):
+            return "int"
         return ty.names[0]
     elif isinstance(ty, c_ast.Struct):
         return ty.name

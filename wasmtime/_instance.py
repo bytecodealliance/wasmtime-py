@@ -1,11 +1,17 @@
 from . import _ffi as ffi
-from ctypes import *
+from ctypes import POINTER, pointer, byref
 from wasmtime import Module, Trap, WasmtimeError, Store
 from ._extern import wrap_extern, get_extern_ptr
+from ._exportable import AsExtern
+from typing import Sequence, Union, Optional, Mapping, Iterable
 
 
 class Instance:
-    def __init__(self, store, module, imports):
+    __ptr__: "pointer[ffi.wasm_instance_t]"
+    _module: Module
+    _exports: Optional["InstanceExports"]
+
+    def __init__(self, store: Store, module: Module, imports: Sequence[AsExtern]):
         """
         Creates a new instance by instantiating the `module` given with the
         `imports` into the `store` provided.
@@ -45,8 +51,8 @@ class Instance:
         self._exports = None
 
     @classmethod
-    def __from_ptr__(cls, ptr, module):
-        ty = cls.__new__(cls)
+    def __from_ptr__(cls, ptr: pointer, module: Module) -> "Instance":
+        ty: "Instance" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_instance_t)):
             raise TypeError("wrong pointer type")
         ty.__ptr__ = ptr
@@ -55,7 +61,7 @@ class Instance:
         return ty
 
     @property
-    def exports(self):
+    def exports(self) -> "InstanceExports":
         """
         Returns the exports of this module
 
@@ -71,20 +77,23 @@ class Instance:
             self._exports = InstanceExports(extern_list, self._module)
         return self._exports
 
-    def __del__(self):
+    def __del__(self) -> None:
         if hasattr(self, '__ptr__'):
             ffi.wasm_instance_delete(self.__ptr__)
 
 
 class InstanceExports:
-    def __init__(self, extern_list, module):
+    _extern_list: Sequence[AsExtern]
+    _extern_map: Mapping[str, AsExtern]
+
+    def __init__(self, extern_list: Sequence[AsExtern], module: Module):
         self._extern_list = extern_list
         self._extern_map = {}
         exports = module.exports
         for i, extern in enumerate(extern_list):
             self._extern_map[exports[i].name] = extern
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: Union[int, str]) -> AsExtern:
         ret = self.get(idx)
         if ret is None:
             msg = "failed to find export {}".format(idx)
@@ -93,13 +102,13 @@ class InstanceExports:
             raise IndexError(msg)
         return ret
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._extern_list)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterable[AsExtern]:
         return iter(self._extern_list)
 
-    def get(self, idx):
+    def get(self, idx: Union[int, str]) -> Optional[AsExtern]:
         if isinstance(idx, str):
             return self._extern_map.get(idx)
         if idx < len(self._extern_list):
@@ -108,8 +117,8 @@ class InstanceExports:
 
 
 class ExternTypeList:
-    def __init__(self):
+    def __init__(self) -> None:
         self.vec = ffi.wasm_extern_vec_t(0, None)
 
-    def __del__(self):
+    def __del__(self) -> None:
         ffi.wasm_extern_vec_delete(byref(self.vec))

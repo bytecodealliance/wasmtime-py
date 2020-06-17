@@ -10,7 +10,7 @@ class TestStore(unittest.TestCase):
 
     def test_errors(self):
         with self.assertRaises(TypeError):
-            Store(3)
+            Store(3)  # type: ignore
 
     def test_interrupt_handle_requires_interruptable(self):
         with self.assertRaises(WasmtimeError):
