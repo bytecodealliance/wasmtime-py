@@ -178,12 +178,12 @@ def extract_val(val):
     return val
 
 
-@ffi.wasm_func_callback_with_env_t
+@ffi.wasm_func_callback_with_env_t  # type: ignore
 def trampoline(idx, params_ptr, results_ptr):
     return invoke(idx, params_ptr, results_ptr, [])
 
 
-@ffi.wasmtime_func_callback_with_env_t
+@ffi.wasmtime_func_callback_with_env_t  # type: ignore
 def trampoline_with_caller(caller, idx, params_ptr, results_ptr):
     caller = Caller(caller)
     try:

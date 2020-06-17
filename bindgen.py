@@ -19,6 +19,7 @@ class Visitor(c_ast.NodeVisitor):
         self.ret += '\n'
         self.ret += 'from ctypes import *\n'
         self.ret += 'from ._ffi import dll, wasm_val_t\n'
+        self.generated_wasm_ref_t = False
 
     # Skip all function definitions, we don't bind those
     def visit_FuncDef(self, node):
@@ -27,8 +28,18 @@ class Visitor(c_ast.NodeVisitor):
     def visit_Struct(self, node):
         if not node.name or not node.name.startswith('was'):
             return
+
+        # This is hand-generated since it has an anonymous union in it
         if node.name == 'wasm_val_t':
             return
+
+        # This is defined twice in the header file, but we only want to insert
+        # one definition.
+        if node.name == 'wasm_ref_t':
+            if self.generated_wasm_ref_t:
+                return
+            self.generated_wasm_ref_t = True
+
         self.ret += "\n"
         self.ret += "class {}(Structure):\n".format(node.name)
         if node.decls:
@@ -134,6 +145,9 @@ def type_name(ty, ptr=False, typing=False):
             return "c_char"
         elif ty.names[0] == "int":
             return "c_int"
+        # ctypes values can't stand as typedefs, so just use the pointer type here
+        elif typing and 'func_callback' in ty.names[0]:
+            return "pointer"
         return ty.names[0]
     elif isinstance(ty, c_ast.Struct):
         return ty.name

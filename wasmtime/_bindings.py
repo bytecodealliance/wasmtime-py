@@ -790,9 +790,6 @@ _wasm_val_vec_delete.argtypes = [POINTER(wasm_val_vec_t)]
 def wasm_val_vec_delete(arg0: pointer) -> None:
     return _wasm_val_vec_delete(arg0)
 
-class wasm_ref_t(Structure):
-    pass
-
 _wasm_ref_delete = dll.wasm_ref_delete
 _wasm_ref_delete.restype = None
 _wasm_ref_delete.argtypes = [POINTER(wasm_ref_t)]
@@ -1126,13 +1123,13 @@ wasm_func_callback_with_env_t = CFUNCTYPE(c_size_t, c_void_p, POINTER(wasm_val_t
 _wasm_func_new = dll.wasm_func_new
 _wasm_func_new.restype = POINTER(wasm_func_t)
 _wasm_func_new.argtypes = [POINTER(wasm_store_t), POINTER(wasm_functype_t), wasm_func_callback_t]
-def wasm_func_new(arg0: pointer, arg1: pointer, arg2: wasm_func_callback_t) -> pointer:
+def wasm_func_new(arg0: pointer, arg1: pointer, arg2: pointer) -> pointer:
     return _wasm_func_new(arg0, arg1, arg2)
 
 _wasm_func_new_with_env = dll.wasm_func_new_with_env
 _wasm_func_new_with_env.restype = POINTER(wasm_func_t)
 _wasm_func_new_with_env.argtypes = [POINTER(wasm_store_t), POINTER(wasm_functype_t), wasm_func_callback_with_env_t, c_void_p, CFUNCTYPE(None, c_void_p)]
-def wasm_func_new_with_env(arg0: pointer, type: pointer, arg2: wasm_func_callback_with_env_t, env: pointer, finalizer: pointer) -> pointer:
+def wasm_func_new_with_env(arg0: pointer, type: pointer, arg2: pointer, env: pointer, finalizer: pointer) -> pointer:
     return _wasm_func_new_with_env(arg0, type, arg2, env, finalizer)
 
 _wasm_func_type = dll.wasm_func_type
@@ -1938,13 +1935,13 @@ wasmtime_func_callback_with_env_t = CFUNCTYPE(c_size_t, POINTER(wasmtime_caller_
 _wasmtime_func_new = dll.wasmtime_func_new
 _wasmtime_func_new.restype = POINTER(wasm_func_t)
 _wasmtime_func_new.argtypes = [POINTER(wasm_store_t), POINTER(wasm_functype_t), wasmtime_func_callback_t]
-def wasmtime_func_new(arg0: pointer, arg1: pointer, callback: wasmtime_func_callback_t) -> pointer:
+def wasmtime_func_new(arg0: pointer, arg1: pointer, callback: pointer) -> pointer:
     return _wasmtime_func_new(arg0, arg1, callback)
 
 _wasmtime_func_new_with_env = dll.wasmtime_func_new_with_env
 _wasmtime_func_new_with_env.restype = POINTER(wasm_func_t)
 _wasmtime_func_new_with_env.argtypes = [POINTER(wasm_store_t), POINTER(wasm_functype_t), wasmtime_func_callback_with_env_t, c_void_p, CFUNCTYPE(None, c_void_p)]
-def wasmtime_func_new_with_env(store: pointer, type: pointer, callback: wasmtime_func_callback_with_env_t, env: pointer, finalizer: pointer) -> pointer:
+def wasmtime_func_new_with_env(store: pointer, type: pointer, callback: pointer, env: pointer, finalizer: pointer) -> pointer:
     return _wasmtime_func_new_with_env(store, type, callback, env, finalizer)
 
 _wasmtime_caller_export_get = dll.wasmtime_caller_export_get
