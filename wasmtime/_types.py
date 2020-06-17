@@ -9,36 +9,36 @@ class ValType:
     __owner__: Optional[Any]
 
     @classmethod
-    def i32(cls):
+    def i32(cls) -> "ValType":
         ptr = ffi.wasm_valtype_new(ffi.WASM_I32)
         return ValType.__from_ptr__(ptr, None)
 
     @classmethod
-    def i64(cls):
+    def i64(cls) -> "ValType":
         ptr = ffi.wasm_valtype_new(ffi.WASM_I64)
         return ValType.__from_ptr__(ptr, None)
 
     @classmethod
-    def f32(cls):
+    def f32(cls) -> "ValType":
         ptr = ffi.wasm_valtype_new(ffi.WASM_F32)
         return ValType.__from_ptr__(ptr, None)
 
     @classmethod
-    def f64(cls):
+    def f64(cls) -> "ValType":
         ptr = ffi.wasm_valtype_new(ffi.WASM_F64)
         return ValType.__from_ptr__(ptr, None)
 
     @classmethod
-    def anyref(cls):
+    def anyref(cls) -> "ValType":
         ptr = ffi.wasm_valtype_new(ffi.WASM_ANYREF)
         return ValType.__from_ptr__(ptr, None)
 
     @classmethod
-    def funcref(cls):
+    def funcref(cls) -> "ValType":
         ptr = ffi.wasm_valtype_new(ffi.WASM_FUNCREF)
         return ValType.__from_ptr__(ptr, None)
 
-    def __init__(self):
+    def __init__(self) -> None:
         raise WasmtimeError("cannot construct directly")
 
     @classmethod

@@ -2,7 +2,7 @@ from ctypes import byref, POINTER, pointer
 
 
 class WasmtimeError(Exception):
-    def __init__(self, message):
+    def __init__(self, message: str):
         self.message = message
 
     @classmethod

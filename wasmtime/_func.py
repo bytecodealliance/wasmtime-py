@@ -239,7 +239,7 @@ class Slab(Generic[T]):
     list: List[Union[int, T]]
     next: int
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.list = []
         self.next = 0
 

@@ -117,7 +117,7 @@ class InstanceExports:
 
 
 class ExternTypeList:
-    def __init__(self):
+    def __init__(self) -> None:
         self.vec = ffi.wasm_extern_vec_t(0, None)
 
     def __del__(self):

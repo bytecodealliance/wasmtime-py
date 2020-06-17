@@ -21,10 +21,10 @@ class Trap(Exception):
         self.__ptr__ = ptr
 
     @classmethod
-    def __from_ptr__(cls, ptr):
+    def __from_ptr__(cls, ptr: "pointer[ffi.wasm_trap_t]") -> "Trap":
         if not isinstance(ptr, POINTER(ffi.wasm_trap_t)):
             raise TypeError("wrong pointer type")
-        trap = cls.__new__(cls)
+        trap: "Trap" = cls.__new__(cls)
         trap.__ptr__ = ptr
         return trap
 
@@ -133,7 +133,7 @@ class Frame:
 
 
 class FrameList:
-    def __init__(self):
+    def __init__(self) -> None:
         self.vec = ffi.wasm_frame_vec_t(0, None)
 
     def __del__(self):

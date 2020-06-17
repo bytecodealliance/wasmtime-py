@@ -8,7 +8,7 @@ from ._exportable import AsExtern
 
 
 class WasiConfig:
-    def __init__(self):
+    def __init__(self) -> None:
         self.__ptr__ = ffi.wasi_config_new()
 
     @setter_property

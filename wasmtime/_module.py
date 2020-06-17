@@ -97,7 +97,7 @@ class Module:
 
 
 class ImportTypeList:
-    def __init__(self):
+    def __init__(self) -> None:
         self.vec = ffi.wasm_importtype_vec_t(0, None)
 
     def __del__(self):
@@ -105,7 +105,7 @@ class ImportTypeList:
 
 
 class ExportTypeList:
-    def __init__(self):
+    def __init__(self) -> None:
         self.vec = ffi.wasm_exporttype_vec_t(0, None)
 
     def __del__(self):
