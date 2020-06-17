@@ -4,7 +4,7 @@ from ._exportable import AsExtern
 from typing import Optional, Any
 
 
-def wrap_extern(ptr: pointer, owner: Optional[Any]) -> AsExtern:
+def wrap_extern(ptr: 'pointer[ffi.wasm_extern_t]', owner: Optional[Any]) -> AsExtern:
     from wasmtime import Func, Table, Global, Memory
 
     if not isinstance(ptr, POINTER(ffi.wasm_extern_t)):
