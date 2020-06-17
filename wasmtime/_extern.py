@@ -29,7 +29,7 @@ def wrap_extern(ptr: pointer, owner: Optional[Any]) -> AsExtern:
     return Memory.__from_ptr__(val, owner)
 
 
-def get_extern_ptr(item: AsExtern) -> pointer:
+def get_extern_ptr(item: AsExtern) -> "pointer[ffi.wasm_extern_t]":
     from wasmtime import Func, Table, Global, Memory
 
     if isinstance(item, Func):

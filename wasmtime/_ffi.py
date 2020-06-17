@@ -47,9 +47,17 @@ class wasm_val_union(Union):
         ("f64", c_double),
     ]
 
+    i32: int
+    i64: int
+    f32: float
+    f64: float
+
 
 class wasm_val_t(Structure):
     _fields_ = [("kind", c_uint8), ("of", wasm_val_union)]
+
+    kind: int
+    of: wasm_val_union
 
 
 from ._bindings import * # noqa

@@ -39,7 +39,7 @@ class Table:
 
     @classmethod
     def __from_ptr__(cls, ptr: pointer, owner) -> "Table":
-        ty = cls.__new__(cls)
+        ty: "Table" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_table_t)):
             raise TypeError("wrong pointer type")
         ty.__ptr__ = ptr
@@ -113,7 +113,7 @@ class Table:
         if error:
             raise WasmtimeError.__from_ptr__(error)
 
-    def _as_extern(self):
+    def _as_extern(self) -> "pointer[ffi.wasm_extern_t]":
         return ffi.wasm_table_as_extern(self.__ptr__)
 
     def __del__(self):

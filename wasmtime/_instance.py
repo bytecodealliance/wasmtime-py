@@ -3,7 +3,7 @@ from ctypes import POINTER, pointer, byref
 from wasmtime import Module, Trap, WasmtimeError, Store
 from ._extern import wrap_extern, get_extern_ptr
 from ._exportable import AsExtern
-from typing import Sequence, Union, Optional
+from typing import Sequence, Union, Optional, Mapping
 
 
 class Instance:
@@ -52,7 +52,7 @@ class Instance:
 
     @classmethod
     def __from_ptr__(cls, ptr: pointer, module: Module) -> "Instance":
-        ty = cls.__new__(cls)
+        ty: "Instance" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_instance_t)):
             raise TypeError("wrong pointer type")
         ty.__ptr__ = ptr
@@ -83,6 +83,9 @@ class Instance:
 
 
 class InstanceExports:
+    _extern_list: Sequence[AsExtern]
+    _extern_map: Mapping[str, AsExtern]
+
     def __init__(self, extern_list, module: Module):
         self._extern_list = extern_list
         self._extern_map = {}

@@ -111,7 +111,7 @@ class Visitor(c_ast.NodeVisitor):
         self.ret += "_{}.restype = {}\n".format(name, type_name(ret, ptr))
         self.ret += "_{}.argtypes = [{}]\n".format(name, ', '.join(argtypes))
         self.ret += "def {}({}) -> {}:\n".format(name, ', '.join(argpairs), retty)
-        self.ret += "    return _{}({})\n".format(name, ', '.join(argnames))
+        self.ret += "    return _{}({})  # type: ignore\n".format(name, ', '.join(argnames))
 
 
 def type_name(ty, ptr=False, typing=False):

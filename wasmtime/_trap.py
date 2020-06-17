@@ -1,7 +1,7 @@
 from . import _ffi as ffi
 from ctypes import byref, POINTER, pointer
 from wasmtime import Store, WasmtimeError
-import typing
+from typing import Optional, Any, List
 
 
 class Trap(Exception):
@@ -44,7 +44,7 @@ class Trap(Exception):
         return ret
 
     @property
-    def frames(self) -> typing.List["Frame"]:
+    def frames(self) -> List["Frame"]:
         frames = FrameList()
         ffi.wasm_trap_trace(self.__ptr__, byref(frames.vec))
         ret = []
@@ -62,10 +62,11 @@ class Trap(Exception):
 
 class Frame:
     __ptr__: "pointer[ffi.wasm_frame_t]"
+    __owner__: Optional[Any]
 
     @classmethod
     def __from_ptr__(cls, ptr: "pointer[ffi.wasm_frame_t]", owner) -> "Frame":
-        ty = cls.__new__(cls)
+        ty: "Frame" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_frame_t)):
             raise TypeError("wrong pointer type")
         ty.__ptr__ = ptr
@@ -81,7 +82,7 @@ class Frame:
         return ffi.wasm_frame_func_index(self.__ptr__)
 
     @property
-    def func_name(self) -> typing.Optional[str]:
+    def func_name(self) -> Optional[str]:
         """
         Returns the name of the function this frame corresponds to
 
@@ -95,7 +96,7 @@ class Frame:
             return None
 
     @property
-    def module_name(self) -> typing.Optional[str]:
+    def module_name(self) -> Optional[str]:
         """
         Returns the name of the module this frame corresponds to
 

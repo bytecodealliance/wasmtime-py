@@ -1,10 +1,10 @@
-from ctypes import *
+from ctypes import POINTER, pointer, byref, CFUNCTYPE, c_void_p, cast
 from wasmtime import Store, FuncType, Val, Trap, WasmtimeError
 import sys
 import traceback
 from . import _ffi as ffi
 from ._extern import wrap_extern
-from typing import Callable, Optional, Tuple
+from typing import Callable, Optional, Generic, TypeVar, List, Union, Tuple, cast as cast_type
 from ._exportable import AsExtern
 
 
@@ -45,7 +45,7 @@ class Func:
 
     @classmethod
     def __from_ptr__(cls, ptr: pointer, owner) -> "Func":
-        ty = cls.__new__(cls)
+        ty: "Func" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_func_t)):
             raise TypeError("wrong pointer type")
         ty.__ptr__ = ptr
@@ -124,7 +124,7 @@ class Func:
         else:
             return results
 
-    def _as_extern(self) -> pointer:
+    def _as_extern(self) -> "pointer[ffi.wasm_extern_t]":
         return ffi.wasm_func_as_extern(self.__ptr__)
 
     def __del__(self):
@@ -232,29 +232,35 @@ def finalize(idx):
     FUNCTIONS.deallocate(idx or 0)
 
 
-class Slab:
+T = TypeVar('T')
+
+
+class Slab(Generic[T]):
+    list: List[Union[int, T]]
+    next: int
+
     def __init__(self):
         self.list = []
         self.next = 0
 
-    def allocate(self, val: Tuple) -> int:
+    def allocate(self, val: T) -> int:
         idx = self.next
 
         if len(self.list) == idx:
-            self.list.append(None)
+            self.list.append(0)
             self.next += 1
         else:
-            self.next = self.list[idx]
+            self.next = cast_type(int, self.list[idx])
 
         self.list[idx] = val
         return idx
 
-    def get(self, idx: int) -> Tuple:
-        return self.list[idx]
+    def get(self, idx: int) -> T:
+        return cast_type(T, self.list[idx])
 
     def deallocate(self, idx: int) -> None:
         self.list[idx] = self.next
         self.next = idx
 
 
-FUNCTIONS = Slab()
+FUNCTIONS: Slab[Tuple] = Slab()

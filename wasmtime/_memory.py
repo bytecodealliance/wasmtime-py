@@ -21,7 +21,7 @@ class Memory:
 
     @classmethod
     def __from_ptr__(cls, ptr: pointer, owner) -> "Memory":
-        ty = cls.__new__(cls)
+        ty: "Memory" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_memory_t)):
             raise TypeError("wrong pointer type")
         ty.__ptr__ = ptr
@@ -78,7 +78,7 @@ class Memory:
 
         return ffi.wasm_memory_data_size(self.__ptr__)
 
-    def _as_extern(self):
+    def _as_extern(self) -> "pointer[ffi.wasm_extern_t]":
         return ffi.wasm_memory_as_extern(self.__ptr__)
 
     def __del__(self):
