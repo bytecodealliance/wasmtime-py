@@ -146,7 +146,7 @@ class Config:
             raise WasmtimeError.__from_ptr__(error)
 
     @setter_property
-    def cache(self, enabled: bool) -> None:
+    def cache(self, enabled: typing.Union[bool, str]) -> None:
         """
         Configures whether code caching is enabled for this `Config`.
 
