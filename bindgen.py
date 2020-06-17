@@ -158,14 +158,19 @@ def type_name(ty, ptr=False, typing=False):
 ast = parse_file(
     './wasmtime/include/wasmtime.h',
     use_cpp=True,
+    cpp_path='cc',
     cpp_args=[
+        '-E',
         '-I./wasmtime/include',
         '-D__attribute__(x)=',
         '-D__asm__(x)=',
+        '-D__asm(x)=',
         '-D_Static_assert(x, y)=',
         '-Dstatic_assert(x, y)=',
         '-D__restrict=',
         '-D__extension__=',
+        '-D__signed=',
+        '-D__builtin_va_list=int',
     ]
 )
 
