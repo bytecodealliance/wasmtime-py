@@ -19,6 +19,13 @@ class TestWasi(unittest.TestCase):
             config.inherit_stdout()
             config.stderr_file = f.name
             config.inherit_stderr()
+
+        with self.assertRaises(WasmtimeError):
+            config.stdin_file = 'somewhere-over-the-rainboat'
+        with self.assertRaises(WasmtimeError):
+            config.stdout_file = 'some-directory/without-a-rainbow'
+        with self.assertRaises(WasmtimeError):
+            config.stderr_file = 'some-directory/without-a-rainbow'
         config.preopen_dir('wasmtime', 'other')
 
     def test_instance(self):
