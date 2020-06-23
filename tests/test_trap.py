@@ -78,3 +78,32 @@ wasm backtrace:
         self.assertEqual(frames[0].func_index, 0)
         self.assertEqual(frames[0].func_name, None)
         self.assertEqual(frames[0].module_name, None)
+
+    def test_wasi_exit(self):
+        store = Store()
+        module = Module(store, """
+            (module
+                (import "wasi_snapshot_preview1" "proc_exit" (func $exit (param i32)))
+                (func (export "exit") (param i32)
+                    local.get 0
+                    call $exit)
+            )
+        """)
+        linker = Linker(store)
+        wasi = WasiConfig()
+        linker.define_wasi(WasiInstance(store, "wasi_snapshot_preview1", wasi))
+        instance = linker.instantiate(module)
+        exit = instance.exports["exit"]
+        assert(isinstance(exit, Func))
+
+        try:
+            exit(0)
+            assert(False)
+        except ExitTrap as e:
+            assert(e.code == 0)
+
+        try:
+            exit(1)
+            assert(False)
+        except ExitTrap as e:
+            assert(e.code == 1)
