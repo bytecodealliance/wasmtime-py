@@ -1972,6 +1972,12 @@ _wasmtime_interrupt_handle_interrupt.argtypes = [POINTER(wasmtime_interrupt_hand
 def wasmtime_interrupt_handle_interrupt(handle: Any) -> None:
     return _wasmtime_interrupt_handle_interrupt(handle)  # type: ignore
 
+_wasmtime_trap_exit_status = dll.wasmtime_trap_exit_status
+_wasmtime_trap_exit_status.restype = c_bool
+_wasmtime_trap_exit_status.argtypes = [POINTER(wasm_trap_t), POINTER(c_int)]
+def wasmtime_trap_exit_status(arg0: Any, status: Any) -> c_bool:
+    return _wasmtime_trap_exit_status(arg0, status)  # type: ignore
+
 _wasmtime_frame_func_name = dll.wasmtime_frame_func_name
 _wasmtime_frame_func_name.restype = POINTER(wasm_name_t)
 _wasmtime_frame_func_name.argtypes = [POINTER(wasm_frame_t)]
