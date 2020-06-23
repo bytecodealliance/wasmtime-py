@@ -42,30 +42,88 @@ class WasiConfig:
             len(names)), name_ptrs, value_ptrs)
 
     def inherit_env(self) -> None:
+        """
+        Configures the environment variables available within WASI to be those
+        in this own process's environment. All environment variables are
+        inherited.
+        """
         ffi.wasi_config_inherit_env(self.__ptr__)
 
     @setter_property
     def stdin_file(self, path: str) -> None:
-        ffi.wasi_config_set_stdin_file(
+        """
+        Configures a file to be used as the stdin stream of this WASI
+        configuration.
+
+        Reads of the stdin stream will read the path specified.
+
+        The file must already exist on the filesystem. If it cannot be
+        opened then `WasmtimeError` is raised.
+        """
+        res = ffi.wasi_config_set_stdin_file(
             self.__ptr__, c_char_p(path.encode('utf-8')))
+        if not res:
+            raise WasmtimeError("failed to set stdin file")
 
     def inherit_stdin(self) -> None:
+        """
+        Configures this own process's stdin to be used as the WASI program's
+        stdin.
+
+        Reads of the stdin stream will read this process's stdin.
+        """
         ffi.wasi_config_inherit_stdin(self.__ptr__)
 
     @setter_property
     def stdout_file(self, path: str) -> None:
-        ffi.wasi_config_set_stdout_file(
+        """
+        Configures a file to be used as the stdout stream of this WASI
+        configuration.
+
+        Writes to stdout will be written to the file specified.
+
+        The file specified will be created if it doesn't exist, or truncated if
+        it already exists. It must be available to open for writing. If it
+        cannot be opened for writing then `WasmtimeError` is raised.
+        """
+        res = ffi.wasi_config_set_stdout_file(
             self.__ptr__, c_char_p(path.encode('utf-8')))
+        if not res:
+            raise WasmtimeError("failed to set stdout file")
 
     def inherit_stdout(self) -> None:
+        """
+        Configures this own process's stdout to be used as the WASI program's
+        stdout.
+
+        Writes to stdout stream will write to this process's stdout.
+        """
         ffi.wasi_config_inherit_stdout(self.__ptr__)
 
     @setter_property
     def stderr_file(self, path: str) -> None:
-        ffi.wasi_config_set_stderr_file(
+        """
+        Configures a file to be used as the stderr stream of this WASI
+        configuration.
+
+        Writes to stderr will be written to the file specified.
+
+        The file specified will be created if it doesn't exist, or truncated if
+        it already exists. It must be available to open for writing. If it
+        cannot be opened for writing then `WasmtimeError` is raised.
+        """
+        res = ffi.wasi_config_set_stderr_file(
             self.__ptr__, c_char_p(path.encode('utf-8')))
+        if not res:
+            raise WasmtimeError("failed to set stderr file")
 
     def inherit_stderr(self) -> None:
+        """
+        Configures this own process's stderr to be used as the WASI program's
+        stderr.
+
+        Writes to stderr stream will write to this process's stderr.
+        """
         ffi.wasi_config_inherit_stderr(self.__ptr__)
 
     def preopen_dir(self, path: str, guest_path: str) -> None:
