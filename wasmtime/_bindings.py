@@ -1926,6 +1926,12 @@ _wasmtime_linker_get_default.argtypes = [POINTER(wasmtime_linker_t), POINTER(was
 def wasmtime_linker_get_default(linker: Any, name: Any, func: Any) -> pointer:
     return _wasmtime_linker_get_default(linker, name, func)  # type: ignore
 
+_wasmtime_linker_get_one_by_name = dll.wasmtime_linker_get_one_by_name
+_wasmtime_linker_get_one_by_name.restype = POINTER(wasmtime_error_t)
+_wasmtime_linker_get_one_by_name.argtypes = [POINTER(wasmtime_linker_t), POINTER(wasm_name_t), POINTER(wasm_name_t), POINTER(POINTER(wasm_extern_t))]
+def wasmtime_linker_get_one_by_name(linker: Any, module: Any, name: Any, item: Any) -> pointer:
+    return _wasmtime_linker_get_one_by_name(linker, module, name, item)  # type: ignore
+
 class wasmtime_caller_t(Structure):
     pass
 
