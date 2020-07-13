@@ -37,10 +37,10 @@ class Module:
         c_ty = c_uint8 * len(wasm)
         binary = ffi.wasm_byte_vec_t(len(wasm), c_ty.from_buffer_copy(wasm))
         ptr = POINTER(ffi.wasm_module_t)()
-        error = ffi.wasmtime_module_new(store.__ptr__, byref(binary), byref(ptr))
+        error = ffi.wasmtime_module_new(store._ptr, byref(binary), byref(ptr))
         if error:
             raise WasmtimeError.__from_ptr__(error)
-        self.__ptr__ = ptr
+        self._ptr = ptr
         self.store = store
 
     @classmethod
@@ -61,7 +61,7 @@ class Module:
         # figure this out.
         c_ty = c_uint8 * len(wasm)
         binary = ffi.wasm_byte_vec_t(len(wasm), c_ty.from_buffer_copy(wasm))
-        error = ffi.wasmtime_module_validate(store.__ptr__, byref(binary))
+        error = ffi.wasmtime_module_validate(store._ptr, byref(binary))
         if error:
             raise WasmtimeError.__from_ptr__(error)
 
@@ -72,7 +72,7 @@ class Module:
         """
 
         imports = ImportTypeList()
-        ffi.wasm_module_imports(self.__ptr__, byref(imports.vec))
+        ffi.wasm_module_imports(self._ptr, byref(imports.vec))
         ret = []
         for i in range(0, imports.vec.size):
             ret.append(ImportType.__from_ptr__(imports.vec.data[i], imports))
@@ -85,15 +85,15 @@ class Module:
         """
 
         exports = ExportTypeList()
-        ffi.wasm_module_exports(self.__ptr__, byref(exports.vec))
+        ffi.wasm_module_exports(self._ptr, byref(exports.vec))
         ret = []
         for i in range(0, exports.vec.size):
             ret.append(ExportType.__from_ptr__(exports.vec.data[i], exports))
         return ret
 
     def __del__(self) -> None:
-        if hasattr(self, '__ptr__'):
-            ffi.wasm_module_delete(self.__ptr__)
+        if hasattr(self, '_ptr'):
+            ffi.wasm_module_delete(self._ptr)
 
 
 class ImportTypeList:
