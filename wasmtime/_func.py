@@ -96,7 +96,7 @@ class Func:
             if i >= len(param_tys):
                 raise WasmtimeError("too many parameters provided")
             val = Val.__convert__(param_tys[i], param)
-            params_ptr[i] = val.__raw__
+            params_ptr[i] = val._raw
 
         result_tys = ty.results
         results_ptr = (ffi.wasm_val_t * len(result_tys))()
@@ -209,13 +209,13 @@ def invoke(idx, params_ptr, results_ptr, params):  # type: ignore
                     "callback produced results when it shouldn't")
         elif len(result_tys) == 1:
             val = Val.__convert__(result_tys[0], results)
-            results_ptr[0] = val.__raw__
+            results_ptr[0] = val._raw
         else:
             if len(results) != len(result_tys):
                 raise WasmtimeError("callback produced wrong number of results")
             for i, result in enumerate(results):
                 val = Val.__convert__(result_tys[i], result)
-                results_ptr[i] = val.__raw__
+                results_ptr[i] = val._raw
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         fmt = traceback.format_exception(exc_type, exc_value, exc_traceback)
