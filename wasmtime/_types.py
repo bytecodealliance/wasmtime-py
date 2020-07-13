@@ -6,7 +6,7 @@ from typing import Union, List, Optional, Any
 
 class ValType:
     _ptr: "pointer[ffi.wasm_valtype_t]"
-    __owner__: Optional[Any]
+    _owner: Optional[Any]
 
     @classmethod
     def i32(cls) -> "ValType":
@@ -47,7 +47,7 @@ class ValType:
         if not isinstance(ptr, POINTER(ffi.wasm_valtype_t)):
             raise TypeError("wrong pointer type")
         ty._ptr = ptr
-        ty.__owner__ = owner
+        ty._owner = owner
         return ty
 
     def __eq__(self, other: object) -> bool:
@@ -83,11 +83,11 @@ class ValType:
         return 'ValType(%d)' % kind.value
 
     def __del__(self) -> None:
-        if not hasattr(self, '__owner__') or not hasattr(self, '_ptr'):
+        if not hasattr(self, '_owner') or not hasattr(self, '_ptr'):
             return
         # If this is owned by another object we don't free it since that object
         # is responsible for freeing the backing memory.
-        if self.__owner__ is None:
+        if self._owner is None:
             ffi.wasm_valtype_delete(self._ptr)
 
     @classmethod
@@ -133,7 +133,7 @@ class FuncType:
         if not ptr:
             raise WasmtimeError("failed to allocate FuncType")
         self._ptr = ptr
-        self.__owner__ = None
+        self._owner = None
 
     @classmethod
     def __from_ptr__(cls, ptr: "pointer[ffi.wasm_functype_t]", owner: Optional[Any]) -> "FuncType":
@@ -141,7 +141,7 @@ class FuncType:
         if not isinstance(ptr, POINTER(ffi.wasm_functype_t)):
             raise TypeError("wrong pointer type")
         ty._ptr = ptr
-        ty.__owner__ = owner
+        ty._owner = owner
         return ty
 
     @property
@@ -166,7 +166,7 @@ class FuncType:
         return ffi.wasm_functype_as_externtype_const(self._ptr)
 
     def __del__(self) -> None:
-        if hasattr(self, '__owner__') and self.__owner__ is None:
+        if hasattr(self, '_owner') and self._owner is None:
             ffi.wasm_functype_delete(self._ptr)
 
 
@@ -181,7 +181,7 @@ class GlobalType:
         if ptr == 0:
             raise WasmtimeError("failed to allocate GlobalType")
         self._ptr = ptr
-        self.__owner__ = None
+        self._owner = None
 
     @classmethod
     def __from_ptr__(cls, ptr: "pointer[ffi.wasm_globaltype_t]", owner: Optional[Any]) -> "GlobalType":
@@ -189,7 +189,7 @@ class GlobalType:
         if not isinstance(ptr, POINTER(ffi.wasm_globaltype_t)):
             raise TypeError("wrong pointer type")
         ty._ptr = ptr
-        ty.__owner__ = owner
+        ty._owner = owner
         return ty
 
     @property
@@ -213,7 +213,7 @@ class GlobalType:
         return ffi.wasm_globaltype_as_externtype_const(self._ptr)
 
     def __del__(self) -> None:
-        if hasattr(self, '__owner__') and self.__owner__ is None:
+        if hasattr(self, '_owner') and self._owner is None:
             ffi.wasm_globaltype_delete(self._ptr)
 
 
@@ -251,7 +251,7 @@ class TableType:
         if not ptr:
             raise WasmtimeError("failed to allocate TableType")
         self._ptr = ptr
-        self.__owner__ = None
+        self._owner = None
 
     @classmethod
     def __from_ptr__(cls, ptr: 'pointer[ffi.wasm_tabletype_t]', owner: Optional[Any]) -> "TableType":
@@ -259,7 +259,7 @@ class TableType:
         if not isinstance(ptr, POINTER(ffi.wasm_tabletype_t)):
             raise TypeError("wrong pointer type")
         ty._ptr = ptr
-        ty.__owner__ = owner
+        ty._owner = owner
         return ty
 
     @property
@@ -282,7 +282,7 @@ class TableType:
         return ffi.wasm_tabletype_as_externtype_const(self._ptr)
 
     def __del__(self) -> None:
-        if hasattr(self, '__owner__') and self.__owner__ is None:
+        if hasattr(self, '_owner') and self._owner is None:
             ffi.wasm_tabletype_delete(self._ptr)
 
 
@@ -294,7 +294,7 @@ class MemoryType:
         if not ptr:
             raise WasmtimeError("failed to allocate MemoryType")
         self._ptr = ptr
-        self.__owner__ = None
+        self._owner = None
 
     @classmethod
     def __from_ptr__(cls, ptr: "pointer[ffi.wasm_memorytype_t]", owner: Optional[Any]) -> "MemoryType":
@@ -302,7 +302,7 @@ class MemoryType:
         if not isinstance(ptr, POINTER(ffi.wasm_memorytype_t)):
             raise TypeError("wrong pointer type")
         ty._ptr = ptr
-        ty.__owner__ = owner
+        ty._owner = owner
         return ty
 
     @property
@@ -317,7 +317,7 @@ class MemoryType:
         return ffi.wasm_memorytype_as_externtype_const(self._ptr)
 
     def __del__(self) -> None:
-        if hasattr(self, '__owner__') and self.__owner__ is None:
+        if hasattr(self, '_owner') and self._owner is None:
             ffi.wasm_memorytype_delete(self._ptr)
 
 
@@ -340,7 +340,7 @@ def wrap_externtype(ptr: "pointer[ffi.wasm_externtype_t]", owner: Optional[Any])
 
 class ImportType:
     _ptr: "pointer[ffi.wasm_importtype_t]"
-    __owner__: Optional[Any]
+    _owner: Optional[Any]
 
     @classmethod
     def __from_ptr__(cls, ptr: "pointer[ffi.wasm_importtype_t]", owner: Optional[Any]) -> "ImportType":
@@ -348,7 +348,7 @@ class ImportType:
         if not isinstance(ptr, POINTER(ffi.wasm_importtype_t)):
             raise TypeError("wrong pointer type")
         ty._ptr = ptr
-        ty.__owner__ = owner
+        ty._owner = owner
         return ty
 
     @property
@@ -372,16 +372,16 @@ class ImportType:
         Returns the type that this import refers to
         """
         ptr = ffi.wasm_importtype_type(self._ptr)
-        return wrap_externtype(ptr, self.__owner__ or self)
+        return wrap_externtype(ptr, self._owner or self)
 
     def __del__(self) -> None:
-        if self.__owner__ is None:
+        if self._owner is None:
             ffi.wasm_importtype_delete(self._ptr)
 
 
 class ExportType:
     _ptr: "pointer[ffi.wasm_exporttype_t]"
-    __owner__: Optional[Any]
+    _owner: Optional[Any]
 
     @classmethod
     def __from_ptr__(cls, ptr: 'pointer[ffi.wasm_exporttype_t]', owner: Optional[Any]) -> "ExportType":
@@ -389,7 +389,7 @@ class ExportType:
         if not isinstance(ptr, POINTER(ffi.wasm_exporttype_t)):
             raise TypeError("wrong pointer type")
         ty._ptr = ptr
-        ty.__owner__ = owner
+        ty._owner = owner
         return ty
 
     @property
@@ -405,10 +405,10 @@ class ExportType:
         Returns the type that this export refers to
         """
         ptr = ffi.wasm_exporttype_type(self._ptr)
-        return wrap_externtype(ptr, self.__owner__ or self)
+        return wrap_externtype(ptr, self._owner or self)
 
     def __del__(self) -> None:
-        if self.__owner__ is None:
+        if self._owner is None:
             ffi.wasm_exporttype_delete(self._ptr)
 
 

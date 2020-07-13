@@ -86,7 +86,7 @@ class ExitTrap(Trap):
 
 class Frame:
     _ptr: "pointer[ffi.wasm_frame_t]"
-    __owner__: Optional[Any]
+    _owner: Optional[Any]
 
     @classmethod
     def __from_ptr__(cls, ptr: "pointer[ffi.wasm_frame_t]", owner: Optional[Any]) -> "Frame":
@@ -94,7 +94,7 @@ class Frame:
         if not isinstance(ptr, POINTER(ffi.wasm_frame_t)):
             raise TypeError("wrong pointer type")
         ty._ptr = ptr
-        ty.__owner__ = owner
+        ty._owner = owner
         return ty
 
     @property
@@ -152,7 +152,7 @@ class Frame:
         return ffi.wasm_frame_func_offset(self._ptr)
 
     def __del__(self) -> None:
-        if self.__owner__ is None:
+        if self._owner is None:
             ffi.wasm_frame_delete(self._ptr)
 
 

@@ -20,7 +20,7 @@ class Global:
         if error:
             raise WasmtimeError.__from_ptr__(error)
         self._ptr = ptr
-        self.__owner__ = None
+        self._owner = None
 
     @classmethod
     def __from_ptr__(cls, ptr: "pointer[ffi.wasm_global_t]", owner: Optional[Any]) -> "Global":
@@ -28,7 +28,7 @@ class Global:
         if not isinstance(ptr, POINTER(ffi.wasm_global_t)):
             raise TypeError("wrong pointer type")
         ty._ptr = ptr
-        ty.__owner__ = owner
+        ty._owner = owner
         return ty
 
     @property
@@ -69,5 +69,5 @@ class Global:
         return ffi.wasm_global_as_extern(self._ptr)
 
     def __del__(self) -> None:
-        if hasattr(self, '__owner__') and self.__owner__ is None:
+        if hasattr(self, '_owner') and self._owner is None:
             ffi.wasm_global_delete(self._ptr)

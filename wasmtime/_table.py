@@ -35,7 +35,7 @@ class Table:
         if error:
             raise WasmtimeError.__from_ptr__(error)
         self._ptr = ptr
-        self.__owner__ = None
+        self._owner = None
 
     @classmethod
     def __from_ptr__(cls, ptr: "pointer[ffi.wasm_table_t]", owner: Optional[Any]) -> "Table":
@@ -43,7 +43,7 @@ class Table:
         if not isinstance(ptr, POINTER(ffi.wasm_table_t)):
             raise TypeError("wrong pointer type")
         ty._ptr = ptr
-        ty.__owner__ = owner
+        ty._owner = owner
         return ty
 
     @property
@@ -117,5 +117,5 @@ class Table:
         return ffi.wasm_table_as_extern(self._ptr)
 
     def __del__(self) -> None:
-        if hasattr(self, '__owner__') and self.__owner__ is None:
+        if hasattr(self, '_owner') and self._owner is None:
             ffi.wasm_table_delete(self._ptr)
