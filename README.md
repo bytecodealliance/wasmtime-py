@@ -30,7 +30,7 @@
 
 ## Installation
 
-To install wasmtime-py, run this command in your terminal:
+To install `wasmtime-py`, run this command in your terminal:
 
 ```bash
 $ pip install wasmtime
@@ -85,54 +85,4 @@ print(your_wasm_file.run())
 
 ## Contributing
 
-So far this extension has been written by folks who are primarily Rust
-programmers, so it's highly likely that there's some faux pas in terms of Python
-idioms. Feel free to create a PR to help make things more idiomatic
-if you see something!
-
-To work on this extension locally you'll first want to clone the project:
-
-```sh
-$ git clone https://github.com/bytecodealliance/wasmtime-py
-$ cd wasmtime-py
-```
-
-Next up you'll acquire a [Wasmtime] installation. The wasmtime-py package expects
-your platform's shared library to exist at `wasmtime/wasmtime.pyd`. You can
-download the latest development version of Wasmtime by running a script in the
-top-level directory of the package's source (this is what CI does):
-
-[wasmtime]: https://wasmtime.dev/
-
-```sh
-$ python download-wasmtime.py
-```
-
-Otherwise if you have a local checkout of Wasmtime you can symlink
-its `libwasmtime.so` (or equivalent) to `wasmtime/wasmtime.pyd`.
-
-After you've got Wasmtime set up you can check it works by running all the
-unit tests:
-
-```sh
-$ pip install pytest
-$ pytest
-```
-
-After that you should be good to go!
-
-### CI and Releases
-
-The CI for this project does a few different things:
-
-* API docs are generated for pushes to the `main` branch and are [published
-    online][apidoc].
-* Test coverage information is generated for pushes to the `main` branch and are
-  [available online](https://bytecodealliance.github.io/wasmtime-py/coverage/).
-* Each push to `main` will publish a release to
-  [test.pypi.org](https://test.pypi.org/project/wasmtime/) for local inspection.
-* Tagged commits will automatically be published to
-  [pypi.org](https://pypi.org/project/wasmtime/).
-
-All commits/PRs run the full test suite, and check for code style
-and other errors using [flake8](https://flake8.pycqa.org/).
+See [`CONTRIBUTING.md`](./CONTRIBUTING.md).
