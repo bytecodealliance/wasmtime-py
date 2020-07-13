@@ -4,16 +4,15 @@
 Alliance's [Code of Conduct] and [Organizational Code of Conduct].
 
 So far this extension has been written by folks who are primarily Rust
-programmers, so it's highly likely that there's some faux pas in terms of Python
-idioms. Feel free to create a PR to help make things more idiomatic if you see
-something!
+programmers, so feel free to create a PR to help make things more idiomatic if
+you see something!
 
 ## Set Up
 
 You'll need to acquire a [Wasmtime] installation. The `wasmtime-py` package
-expects your platform's shared library to exist at `wasmtime/wasmtime.pyd`. You
-can download the latest development version of Wasmtime by running a script in
-the top-level directory of the package's source (this is what CI does):
+expects your platform's shared library to exist at `wasmtime/{host}/_{library}`.
+You can download the latest development version of Wasmtime by running a script
+in the top-level directory of the package's source (this is what CI does):
 
 [wasmtime]: https://wasmtime.dev/
 
@@ -21,8 +20,9 @@ the top-level directory of the package's source (this is what CI does):
 $ python download-wasmtime.py
 ```
 
-Otherwise if you have a local checkout of Wasmtime you can symlink
-its `libwasmtime.so` (or equivalent) to `wasmtime/wasmtime.pyd`.
+Otherwise if you have a local checkout of Wasmtime you can symlink its
+`libwasmtime.so` (or equivalent) to `wasmtime/linux-x86_64/_libwasmtime.so` (or
+equivalent).
 
 Finally, install the dev dependencies with `pip`:
 
