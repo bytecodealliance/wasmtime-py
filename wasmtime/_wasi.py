@@ -9,7 +9,7 @@ from ._exportable import AsExtern
 
 class WasiConfig:
     def __init__(self) -> None:
-        self.__ptr__ = ffi.wasi_config_new()
+        self._ptr = ffi.wasi_config_new()
 
     @setter_property
     def argv(self, argv: List[str]) -> None:
@@ -17,10 +17,10 @@ class WasiConfig:
         Explicitly configure the `argv` for this WASI configuration
         """
         ptrs = to_char_array(argv)
-        ffi.wasi_config_set_argv(self.__ptr__, c_int(len(argv)), ptrs)
+        ffi.wasi_config_set_argv(self._ptr, c_int(len(argv)), ptrs)
 
     def inherit_argv(self) -> None:
-        ffi.wasi_config_inherit_argv(self.__ptr__)
+        ffi.wasi_config_inherit_argv(self._ptr)
 
     @setter_property
     def env(self, pairs: Iterable[Iterable]) -> None:
@@ -38,7 +38,7 @@ class WasiConfig:
             values.append(value)
         name_ptrs = to_char_array(names)
         value_ptrs = to_char_array(values)
-        ffi.wasi_config_set_env(self.__ptr__, c_int(
+        ffi.wasi_config_set_env(self._ptr, c_int(
             len(names)), name_ptrs, value_ptrs)
 
     def inherit_env(self) -> None:
@@ -47,7 +47,7 @@ class WasiConfig:
         in this own process's environment. All environment variables are
         inherited.
         """
-        ffi.wasi_config_inherit_env(self.__ptr__)
+        ffi.wasi_config_inherit_env(self._ptr)
 
     @setter_property
     def stdin_file(self, path: str) -> None:
@@ -61,7 +61,7 @@ class WasiConfig:
         opened then `WasmtimeError` is raised.
         """
         res = ffi.wasi_config_set_stdin_file(
-            self.__ptr__, c_char_p(path.encode('utf-8')))
+            self._ptr, c_char_p(path.encode('utf-8')))
         if not res:
             raise WasmtimeError("failed to set stdin file")
 
@@ -72,7 +72,7 @@ class WasiConfig:
 
         Reads of the stdin stream will read this process's stdin.
         """
-        ffi.wasi_config_inherit_stdin(self.__ptr__)
+        ffi.wasi_config_inherit_stdin(self._ptr)
 
     @setter_property
     def stdout_file(self, path: str) -> None:
@@ -87,7 +87,7 @@ class WasiConfig:
         cannot be opened for writing then `WasmtimeError` is raised.
         """
         res = ffi.wasi_config_set_stdout_file(
-            self.__ptr__, c_char_p(path.encode('utf-8')))
+            self._ptr, c_char_p(path.encode('utf-8')))
         if not res:
             raise WasmtimeError("failed to set stdout file")
 
@@ -98,7 +98,7 @@ class WasiConfig:
 
         Writes to stdout stream will write to this process's stdout.
         """
-        ffi.wasi_config_inherit_stdout(self.__ptr__)
+        ffi.wasi_config_inherit_stdout(self._ptr)
 
     @setter_property
     def stderr_file(self, path: str) -> None:
@@ -113,7 +113,7 @@ class WasiConfig:
         cannot be opened for writing then `WasmtimeError` is raised.
         """
         res = ffi.wasi_config_set_stderr_file(
-            self.__ptr__, c_char_p(path.encode('utf-8')))
+            self._ptr, c_char_p(path.encode('utf-8')))
         if not res:
             raise WasmtimeError("failed to set stderr file")
 
@@ -124,16 +124,16 @@ class WasiConfig:
 
         Writes to stderr stream will write to this process's stderr.
         """
-        ffi.wasi_config_inherit_stderr(self.__ptr__)
+        ffi.wasi_config_inherit_stderr(self._ptr)
 
     def preopen_dir(self, path: str, guest_path: str) -> None:
         path_ptr = c_char_p(path.encode('utf-8'))
         guest_path_ptr = c_char_p(guest_path.encode('utf-8'))
-        ffi.wasi_config_preopen_dir(self.__ptr__, path_ptr, guest_path_ptr)
+        ffi.wasi_config_preopen_dir(self._ptr, path_ptr, guest_path_ptr)
 
     def __del__(self) -> None:
-        if hasattr(self, '__ptr__'):
-            ffi.wasi_config_delete(self.__ptr__)
+        if hasattr(self, '_ptr'):
+            ffi.wasi_config_delete(self._ptr)
 
 
 def to_char_array(strings: List[str]) -> "pointer[pointer[c_char]]":
@@ -144,7 +144,7 @@ def to_char_array(strings: List[str]) -> "pointer[pointer[c_char]]":
 
 
 class WasiInstance:
-    __ptr__: "pointer[ffi.wasi_instance_t]"
+    _ptr: "pointer[ffi.wasi_instance_t]"
 
     def __init__(self, store: Store, name: str, config: WasiConfig):
         if not isinstance(store, Store):
@@ -154,28 +154,28 @@ class WasiInstance:
         name_bytes = name.encode('utf-8')
         if not isinstance(config, WasiConfig):
             raise TypeError("expected a `WasiConfig`")
-        ptr = config.__ptr__
-        delattr(config, '__ptr__')
+        ptr = config._ptr
+        delattr(config, '_ptr')
 
         trap = POINTER(ffi.wasm_trap_t)()
         ptr = ffi.wasi_instance_new(
-            store.__ptr__, c_char_p(name_bytes), ptr, byref(trap))
+            store._ptr, c_char_p(name_bytes), ptr, byref(trap))
         if not ptr:
             if trap:
                 raise Trap.__from_ptr__(trap)
             raise WasmtimeError("failed to create wasi instance")
-        self.__ptr__ = ptr
+        self._ptr = ptr
         self.store = store
 
     def bind(self, import_: ImportType) -> Optional[AsExtern]:
         if not isinstance(import_, ImportType):
             raise TypeError("expected an `ImportType`")
-        ptr = ffi.wasi_instance_bind_import(self.__ptr__, import_.__ptr__)
+        ptr = ffi.wasi_instance_bind_import(self._ptr, import_._ptr)
         if ptr:
             return wrap_extern(ptr, self)
         else:
             return None
 
     def __del__(self) -> None:
-        if hasattr(self, '__ptr__'):
-            ffi.wasi_instance_delete(self.__ptr__)
+        if hasattr(self, '_ptr'):
+            ffi.wasi_instance_delete(self._ptr)

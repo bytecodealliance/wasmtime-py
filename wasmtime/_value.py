@@ -51,7 +51,7 @@ class Val:
     def __init__(self, raw: wasm_val_t):
         if not isinstance(raw, wasm_val_t):
             raise TypeError("expected a raw value")
-        self.__raw__ = raw
+        self._raw = raw
 
     @classmethod
     def __convert__(cls, ty: ValType, val: "IntoVal") -> "Val":
@@ -78,22 +78,22 @@ class Val:
 
         Returns `None` if the value can't be represented in Python
         """
-        if self.__raw__.kind == WASM_I32.value:
-            return self.__raw__.of.i32
-        if self.__raw__.kind == WASM_I64.value:
-            return self.__raw__.of.i64
-        if self.__raw__.kind == WASM_F32.value:
-            return self.__raw__.of.f32
-        if self.__raw__.kind == WASM_F64.value:
-            return self.__raw__.of.f64
+        if self._raw.kind == WASM_I32.value:
+            return self._raw.of.i32
+        if self._raw.kind == WASM_I64.value:
+            return self._raw.of.i64
+        if self._raw.kind == WASM_F32.value:
+            return self._raw.of.f32
+        if self._raw.kind == WASM_F64.value:
+            return self._raw.of.f64
         return None
 
     def as_i32(self) -> typing.Optional[int]:
         """
         Get the 32-bit integer value of this value, or `None` if it's not an i32
         """
-        if self.__raw__.kind == WASM_I32.value:
-            return self.__raw__.of.i32
+        if self._raw.kind == WASM_I32.value:
+            return self._raw.of.i32
         else:
             return None
 
@@ -101,8 +101,8 @@ class Val:
         """
         Get the 64-bit integer value of this value, or `None` if it's not an i64
         """
-        if self.__raw__.kind == WASM_I64.value:
-            return self.__raw__.of.i64
+        if self._raw.kind == WASM_I64.value:
+            return self._raw.of.i64
         else:
             return None
 
@@ -110,8 +110,8 @@ class Val:
         """
         Get the 32-bit float value of this value, or `None` if it's not an f32
         """
-        if self.__raw__.kind == WASM_F32.value:
-            return self.__raw__.of.f32
+        if self._raw.kind == WASM_F32.value:
+            return self._raw.of.f32
         else:
             return None
 
@@ -119,8 +119,8 @@ class Val:
         """
         Get the 64-bit float value of this value, or `None` if it's not an f64
         """
-        if self.__raw__.kind == WASM_F64.value:
-            return self.__raw__.of.f64
+        if self._raw.kind == WASM_F64.value:
+            return self._raw.of.f64
         else:
             return None
 
@@ -129,7 +129,7 @@ class Val:
         """
         Returns the `ValType` corresponding to this `Val`
         """
-        ptr = dll.wasm_valtype_new(self.__raw__.kind)
+        ptr = dll.wasm_valtype_new(self._raw.kind)
         return ValType.__from_ptr__(ptr, None)
 
 

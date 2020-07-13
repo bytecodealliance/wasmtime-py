@@ -9,7 +9,7 @@ from ._exportable import AsExtern
 
 
 class Func:
-    __ptr__: "pointer[ffi.wasm_func_t]"
+    _ptr: "pointer[ffi.wasm_func_t]"
 
     def __init__(self, store: Store, ty: FuncType, func: Callable, access_caller: bool = False):
         """
@@ -29,27 +29,27 @@ class Func:
         idx = FUNCTIONS.allocate((func, ty.params, ty.results, store))
         if access_caller:
             ptr = ffi.wasmtime_func_new_with_env(
-                store.__ptr__,
-                ty.__ptr__,
+                store._ptr,
+                ty._ptr,
                 trampoline_with_caller,
                 idx,
                 finalize)
         else:
             ptr = ffi.wasm_func_new_with_env(
-                store.__ptr__, ty.__ptr__, trampoline, idx, finalize)
+                store._ptr, ty._ptr, trampoline, idx, finalize)
         if not ptr:
             FUNCTIONS.deallocate(idx)
             raise WasmtimeError("failed to create func")
-        self.__ptr__ = ptr
-        self.__owner__ = None
+        self._ptr = ptr
+        self._owner = None
 
     @classmethod
     def __from_ptr__(cls, ptr: "pointer[ffi.wasm_func_t]", owner: Optional[Any]) -> "Func":
         ty: "Func" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_func_t)):
             raise TypeError("wrong pointer type")
-        ty.__ptr__ = ptr
-        ty.__owner__ = owner
+        ty._ptr = ptr
+        ty._owner = owner
         return ty
 
     @property
@@ -57,7 +57,7 @@ class Func:
         """
         Gets the type of this func as a `FuncType`
         """
-        ptr = ffi.wasm_func_type(self.__ptr__)
+        ptr = ffi.wasm_func_type(self._ptr)
         return FuncType.__from_ptr__(ptr, None)
 
     @property
@@ -65,14 +65,14 @@ class Func:
         """
         Returns the number of parameters this function expects
         """
-        return ffi.wasm_func_param_arity(self.__ptr__)
+        return ffi.wasm_func_param_arity(self._ptr)
 
     @property
     def result_arity(self) -> int:
         """
         Returns the number of results this function produces
         """
-        return ffi.wasm_func_result_arity(self.__ptr__)
+        return ffi.wasm_func_result_arity(self._ptr)
 
     def __call__(self, *params: IntoVal) -> Union[IntoVal, Sequence[IntoVal], None]:
         """
@@ -96,14 +96,14 @@ class Func:
             if i >= len(param_tys):
                 raise WasmtimeError("too many parameters provided")
             val = Val.__convert__(param_tys[i], param)
-            params_ptr[i] = val.__raw__
+            params_ptr[i] = val._raw
 
         result_tys = ty.results
         results_ptr = (ffi.wasm_val_t * len(result_tys))()
 
         trap = POINTER(ffi.wasm_trap_t)()
         error = ffi.wasmtime_func_call(
-            self.__ptr__,
+            self._ptr,
             params_ptr,
             len(params),
             results_ptr,
@@ -125,16 +125,16 @@ class Func:
             return results
 
     def _as_extern(self) -> "pointer[ffi.wasm_extern_t]":
-        return ffi.wasm_func_as_extern(self.__ptr__)
+        return ffi.wasm_func_as_extern(self._ptr)
 
     def __del__(self) -> None:
-        if hasattr(self, '__owner__') and self.__owner__ is None:
-            ffi.wasm_func_delete(self.__ptr__)
+        if hasattr(self, '_owner') and self._owner is None:
+            ffi.wasm_func_delete(self._ptr)
 
 
 class Caller:
     def __init__(self, ptr: pointer):
-        self.__ptr__ = ptr
+        self._ptr = ptr
 
     def __getitem__(self, name: str) -> AsExtern:
         """
@@ -164,11 +164,11 @@ class Caller:
         name_raw = ffi.str_to_name(name)
 
         # Next see if we've been invalidated
-        if not hasattr(self, '__ptr__'):
+        if not hasattr(self, '_ptr'):
             return None
 
         # And if we're not invalidated we can perform the actual lookup
-        ptr = ffi.wasmtime_caller_export_get(self.__ptr__, byref(name_raw))
+        ptr = ffi.wasmtime_caller_export_get(self._ptr, byref(name_raw))
         if ptr:
             return wrap_extern(ptr, None)
         else:
@@ -193,7 +193,7 @@ def trampoline_with_caller(caller, idx, params_ptr, results_ptr):  # type: ignor
     try:
         return invoke(idx, params_ptr, results_ptr, [caller])
     finally:
-        delattr(caller, '__ptr__')
+        delattr(caller, '_ptr')
 
 
 def invoke(idx, params_ptr, results_ptr, params):  # type: ignore
@@ -209,19 +209,19 @@ def invoke(idx, params_ptr, results_ptr, params):  # type: ignore
                     "callback produced results when it shouldn't")
         elif len(result_tys) == 1:
             val = Val.__convert__(result_tys[0], results)
-            results_ptr[0] = val.__raw__
+            results_ptr[0] = val._raw
         else:
             if len(results) != len(result_tys):
                 raise WasmtimeError("callback produced wrong number of results")
             for i, result in enumerate(results):
                 val = Val.__convert__(result_tys[i], result)
-                results_ptr[i] = val.__raw__
+                results_ptr[i] = val._raw
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         fmt = traceback.format_exception(exc_type, exc_value, exc_traceback)
         trap = Trap(store, "\n".join(fmt))
-        ptr = trap.__ptr__
-        delattr(trap, '__ptr__')
+        ptr = trap._ptr
+        delattr(trap, '_ptr')
         return cast(ptr, c_void_p).value
 
     return 0

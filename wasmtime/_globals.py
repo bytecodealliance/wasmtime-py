@@ -13,22 +13,22 @@ class Global:
         val = Val.__convert__(ty.content, val)
         ptr = POINTER(ffi.wasm_global_t)()
         error = ffi.wasmtime_global_new(
-            store.__ptr__,
-            ty.__ptr__,
-            byref(val.__raw__),
+            store._ptr,
+            ty._ptr,
+            byref(val._raw),
             byref(ptr))
         if error:
             raise WasmtimeError.__from_ptr__(error)
-        self.__ptr__ = ptr
-        self.__owner__ = None
+        self._ptr = ptr
+        self._owner = None
 
     @classmethod
     def __from_ptr__(cls, ptr: "pointer[ffi.wasm_global_t]", owner: Optional[Any]) -> "Global":
         ty: "Global" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_global_t)):
             raise TypeError("wrong pointer type")
-        ty.__ptr__ = ptr
-        ty.__owner__ = owner
+        ty._ptr = ptr
+        ty._owner = owner
         return ty
 
     @property
@@ -37,7 +37,7 @@ class Global:
         Gets the type of this global as a `GlobalType`
         """
 
-        ptr = ffi.wasm_global_type(self.__ptr__)
+        ptr = ffi.wasm_global_type(self._ptr)
         return GlobalType.__from_ptr__(ptr, None)
 
     @property
@@ -48,7 +48,7 @@ class Global:
         Returns a native python type
         """
         raw = ffi.wasm_val_t()
-        ffi.wasm_global_get(self.__ptr__, byref(raw))
+        ffi.wasm_global_get(self._ptr, byref(raw))
         val = Val(raw)
         if val.value:
             return val.value
@@ -61,13 +61,13 @@ class Global:
         Sets the value of this global to a new value
         """
         val = Val.__convert__(self.type.content, val)
-        error = ffi.wasmtime_global_set(self.__ptr__, byref(val.__raw__))
+        error = ffi.wasmtime_global_set(self._ptr, byref(val._raw))
         if error:
             raise WasmtimeError.__from_ptr__(error)
 
     def _as_extern(self) -> "pointer[ffi.wasm_extern_t]":
-        return ffi.wasm_global_as_extern(self.__ptr__)
+        return ffi.wasm_global_as_extern(self._ptr)
 
     def __del__(self) -> None:
-        if hasattr(self, '__owner__') and self.__owner__ is None:
-            ffi.wasm_global_delete(self.__ptr__)
+        if hasattr(self, '_owner') and self._owner is None:
+            ffi.wasm_global_delete(self._ptr)

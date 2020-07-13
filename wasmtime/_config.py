@@ -21,7 +21,7 @@ class Config:
     """
 
     def __init__(self) -> None:
-        self.__ptr__ = ffi.wasm_config_new()
+        self._ptr = ffi.wasm_config_new()
 
     @setter_property
     def debug_info(self, enable: bool) -> None:
@@ -32,7 +32,7 @@ class Config:
 
         if not isinstance(enable, bool):
             raise TypeError('expected a bool')
-        ffi.wasmtime_config_debug_info_set(self.__ptr__, enable)
+        ffi.wasmtime_config_debug_info_set(self._ptr, enable)
 
     @setter_property
     def wasm_threads(self, enable: bool) -> None:
@@ -44,7 +44,7 @@ class Config:
 
         if not isinstance(enable, bool):
             raise TypeError('expected a bool')
-        ffi.wasmtime_config_wasm_threads_set(self.__ptr__, enable)
+        ffi.wasmtime_config_wasm_threads_set(self._ptr, enable)
 
     @setter_property
     def wasm_reference_types(self, enable: bool) -> None:
@@ -56,7 +56,7 @@ class Config:
 
         if not isinstance(enable, bool):
             raise TypeError('expected a bool')
-        ffi.wasmtime_config_wasm_reference_types_set(self.__ptr__, enable)
+        ffi.wasmtime_config_wasm_reference_types_set(self._ptr, enable)
 
     @setter_property
     def wasm_simd(self, enable: bool) -> None:
@@ -68,7 +68,7 @@ class Config:
 
         if not isinstance(enable, bool):
             raise TypeError('expected a bool')
-        ffi.wasmtime_config_wasm_simd_set(self.__ptr__, enable)
+        ffi.wasmtime_config_wasm_simd_set(self._ptr, enable)
 
     @setter_property
     def wasm_bulk_memory(self, enable: bool) -> None:
@@ -80,7 +80,7 @@ class Config:
 
         if not isinstance(enable, bool):
             raise TypeError('expected a bool')
-        ffi.wasmtime_config_wasm_bulk_memory_set(self.__ptr__, enable)
+        ffi.wasmtime_config_wasm_bulk_memory_set(self._ptr, enable)
 
     @setter_property
     def wasm_multi_value(self, enable: bool) -> None:
@@ -92,7 +92,7 @@ class Config:
 
         if not isinstance(enable, bool):
             raise TypeError('expected a bool')
-        ffi.wasmtime_config_wasm_multi_value_set(self.__ptr__, enable)
+        ffi.wasmtime_config_wasm_multi_value_set(self._ptr, enable)
 
     @setter_property
     def strategy(self, strategy: str) -> None:
@@ -107,11 +107,11 @@ class Config:
         """
 
         if strategy == "auto":
-            error = ffi.wasmtime_config_strategy_set(self.__ptr__, 0)
+            error = ffi.wasmtime_config_strategy_set(self._ptr, 0)
         elif strategy == "cranelift":
-            error = ffi.wasmtime_config_strategy_set(self.__ptr__, 1)
+            error = ffi.wasmtime_config_strategy_set(self._ptr, 1)
         elif strategy == "lightbeam":
-            error = ffi.wasmtime_config_strategy_set(self.__ptr__, 2)
+            error = ffi.wasmtime_config_strategy_set(self._ptr, 2)
         else:
             raise WasmtimeError("unknown strategy: " + str(strategy))
         if error:
@@ -121,25 +121,25 @@ class Config:
     def cranelift_debug_verifier(self, enable: bool) -> None:
         if not isinstance(enable, bool):
             raise TypeError('expected a bool')
-        ffi.wasmtime_config_cranelift_debug_verifier_set(self.__ptr__, enable)
+        ffi.wasmtime_config_cranelift_debug_verifier_set(self._ptr, enable)
 
     @setter_property
     def cranelift_opt_level(self, opt_level: str) -> None:
         if opt_level == "none":
-            ffi.wasmtime_config_cranelift_opt_level_set(self.__ptr__, 0)
+            ffi.wasmtime_config_cranelift_opt_level_set(self._ptr, 0)
         elif opt_level == "speed":
-            ffi.wasmtime_config_cranelift_opt_level_set(self.__ptr__, 1)
+            ffi.wasmtime_config_cranelift_opt_level_set(self._ptr, 1)
         elif opt_level == "speed_and_size":
-            ffi.wasmtime_config_cranelift_opt_level_set(self.__ptr__, 2)
+            ffi.wasmtime_config_cranelift_opt_level_set(self._ptr, 2)
         else:
             raise WasmtimeError("unknown opt level: " + str(opt_level))
 
     @setter_property
     def profiler(self, profiler: str) -> None:
         if profiler == "none":
-            error = ffi.wasmtime_config_profiler_set(self.__ptr__, 0)
+            error = ffi.wasmtime_config_profiler_set(self._ptr, 0)
         elif profiler == "jitdump":
-            error = ffi.wasmtime_config_profiler_set(self.__ptr__, 1)
+            error = ffi.wasmtime_config_profiler_set(self._ptr, 1)
         else:
             raise WasmtimeError("unknown profiler: " + str(profiler))
         if error:
@@ -161,9 +161,9 @@ class Config:
         if isinstance(enabled, bool):
             if not enabled:
                 raise WasmtimeError("caching cannot be explicitly disabled")
-            error = ffi.wasmtime_config_cache_config_load(self.__ptr__, None)
+            error = ffi.wasmtime_config_cache_config_load(self._ptr, None)
         elif isinstance(enabled, str):
-            error = ffi.wasmtime_config_cache_config_load(self.__ptr__,
+            error = ffi.wasmtime_config_cache_config_load(self._ptr,
                                                           c_char_p(enabled.encode('utf-8')))
         else:
             raise TypeError("expected string or bool")
@@ -181,8 +181,8 @@ class Config:
             val = 1
         else:
             val = 0
-        ffi.wasmtime_config_interruptable_set(self.__ptr__, val)
+        ffi.wasmtime_config_interruptable_set(self._ptr, val)
 
     def __del__(self) -> None:
-        if hasattr(self, '__ptr__'):
-            ffi.wasm_config_delete(self.__ptr__)
+        if hasattr(self, '_ptr'):
+            ffi.wasm_config_delete(self._ptr)

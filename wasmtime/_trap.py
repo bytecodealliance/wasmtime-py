@@ -15,10 +15,10 @@ class Trap(Exception):
         if not isinstance(message, str):
             raise TypeError("expected a string")
         message_raw = ffi.str_to_name(message, trailing_nul=True)
-        ptr = ffi.wasm_trap_new(store.__ptr__, byref(message_raw))
+        ptr = ffi.wasm_trap_new(store._ptr, byref(message_raw))
         if not ptr:
             raise WasmtimeError("failed to create trap")
-        self.__ptr__ = ptr
+        self._ptr = ptr
 
     @classmethod
     def __from_ptr__(cls, ptr: "pointer[ffi.wasm_trap_t]") -> "Trap":
@@ -27,12 +27,12 @@ class Trap(Exception):
         exit_code = c_int(0)
         if ffi.wasmtime_trap_exit_status(ptr, byref(exit_code)):
             exit_trap: ExitTrap = ExitTrap.__new__(ExitTrap)
-            exit_trap.__ptr__ = ptr
+            exit_trap._ptr = ptr
             exit_trap.code = exit_code.value
             return exit_trap
         else:
             trap: Trap = cls.__new__(cls)
-            trap.__ptr__ = ptr
+            trap._ptr = ptr
             return trap
 
     @property
@@ -42,7 +42,7 @@ class Trap(Exception):
         """
 
         message = ffi.wasm_byte_vec_t()
-        ffi.wasm_trap_message(self.__ptr__, byref(message))
+        ffi.wasm_trap_message(self._ptr, byref(message))
         # subtract one to chop off the trailing nul byte
         message.size -= 1
         ret = ffi.to_str(message)
@@ -53,7 +53,7 @@ class Trap(Exception):
     @property
     def frames(self) -> List["Frame"]:
         frames = FrameList()
-        ffi.wasm_trap_trace(self.__ptr__, byref(frames.vec))
+        ffi.wasm_trap_trace(self._ptr, byref(frames.vec))
         ret = []
         for i in range(0, frames.vec.size):
             ret.append(Frame.__from_ptr__(frames.vec.data[i], frames))
@@ -63,8 +63,8 @@ class Trap(Exception):
         return self.message
 
     def __del__(self) -> None:
-        if hasattr(self, '__ptr__'):
-            ffi.wasm_trap_delete(self.__ptr__)
+        if hasattr(self, '_ptr'):
+            ffi.wasm_trap_delete(self._ptr)
 
 
 class ExitTrap(Trap):
@@ -85,16 +85,16 @@ class ExitTrap(Trap):
 
 
 class Frame:
-    __ptr__: "pointer[ffi.wasm_frame_t]"
-    __owner__: Optional[Any]
+    _ptr: "pointer[ffi.wasm_frame_t]"
+    _owner: Optional[Any]
 
     @classmethod
     def __from_ptr__(cls, ptr: "pointer[ffi.wasm_frame_t]", owner: Optional[Any]) -> "Frame":
         ty: "Frame" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_frame_t)):
             raise TypeError("wrong pointer type")
-        ty.__ptr__ = ptr
-        ty.__owner__ = owner
+        ty._ptr = ptr
+        ty._owner = owner
         return ty
 
     @property
@@ -103,7 +103,7 @@ class Frame:
         Returns the function index this frame corresponds to in its wasm module
         """
 
-        return ffi.wasm_frame_func_index(self.__ptr__)
+        return ffi.wasm_frame_func_index(self._ptr)
 
     @property
     def func_name(self) -> Optional[str]:
@@ -113,7 +113,7 @@ class Frame:
         May return `None` if no name can be inferred
         """
 
-        ptr = ffi.wasmtime_frame_func_name(self.__ptr__)
+        ptr = ffi.wasmtime_frame_func_name(self._ptr)
         if ptr:
             return ffi.to_str(ptr.contents)
         else:
@@ -127,7 +127,7 @@ class Frame:
         May return `None` if no name can be inferred
         """
 
-        ptr = ffi.wasmtime_frame_module_name(self.__ptr__)
+        ptr = ffi.wasmtime_frame_module_name(self._ptr)
         if ptr:
             return ffi.to_str(ptr.contents)
         else:
@@ -140,7 +140,7 @@ class Frame:
         wasm source module.
         """
 
-        return ffi.wasm_frame_module_offset(self.__ptr__)
+        return ffi.wasm_frame_module_offset(self._ptr)
 
     @property
     def func_offset(self) -> int:
@@ -149,11 +149,11 @@ class Frame:
         wasm function.
         """
 
-        return ffi.wasm_frame_func_offset(self.__ptr__)
+        return ffi.wasm_frame_func_offset(self._ptr)
 
     def __del__(self) -> None:
-        if self.__owner__ is None:
-            ffi.wasm_frame_delete(self.__ptr__)
+        if self._owner is None:
+            ffi.wasm_frame_delete(self._ptr)
 
 
 class FrameList:

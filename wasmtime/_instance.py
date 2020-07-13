@@ -7,7 +7,7 @@ from typing import Sequence, Union, Optional, Mapping, Iterable
 
 
 class Instance:
-    __ptr__: "pointer[ffi.wasm_instance_t]"
+    _ptr: "pointer[ffi.wasm_instance_t]"
     _module: Module
     _exports: Optional["InstanceExports"]
 
@@ -36,8 +36,8 @@ class Instance:
         instance = POINTER(ffi.wasm_instance_t)()
         trap = POINTER(ffi.wasm_trap_t)()
         error = ffi.wasmtime_instance_new(
-            store.__ptr__,
-            module.__ptr__,
+            store._ptr,
+            module._ptr,
             imports_ptr,
             len(imports),
             byref(instance),
@@ -46,7 +46,7 @@ class Instance:
             raise WasmtimeError.__from_ptr__(error)
         if trap:
             raise Trap.__from_ptr__(trap)
-        self.__ptr__ = instance
+        self._ptr = instance
         self._module = module
         self._exports = None
 
@@ -55,7 +55,7 @@ class Instance:
         ty: "Instance" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_instance_t)):
             raise TypeError("wrong pointer type")
-        ty.__ptr__ = ptr
+        ty._ptr = ptr
         ty._module = module
         ty._exports = None
         return ty
@@ -70,7 +70,7 @@ class Instance:
         """
         if self._exports is None:
             externs = ExternTypeList()
-            ffi.wasm_instance_exports(self.__ptr__, byref(externs.vec))
+            ffi.wasm_instance_exports(self._ptr, byref(externs.vec))
             extern_list = []
             for i in range(0, externs.vec.size):
                 extern_list.append(wrap_extern(externs.vec.data[i], externs))
@@ -78,8 +78,8 @@ class Instance:
         return self._exports
 
     def __del__(self) -> None:
-        if hasattr(self, '__ptr__'):
-            ffi.wasm_instance_delete(self.__ptr__)
+        if hasattr(self, '_ptr'):
+            ffi.wasm_instance_delete(self._ptr)
 
 
 class InstanceExports:

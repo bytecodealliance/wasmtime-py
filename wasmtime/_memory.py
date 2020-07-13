@@ -14,19 +14,19 @@ class Memory:
             raise TypeError("expected a Store")
         if not isinstance(ty, MemoryType):
             raise TypeError("expected a MemoryType")
-        ptr = ffi.wasm_memory_new(store.__ptr__, ty.__ptr__)
+        ptr = ffi.wasm_memory_new(store._ptr, ty._ptr)
         if not ptr:
             raise WasmtimeError("failed to create memory")
-        self.__ptr__ = ptr
-        self.__owner__ = None
+        self._ptr = ptr
+        self._owner = None
 
     @classmethod
     def __from_ptr__(cls, ptr: "pointer[ffi.wasm_memory_t]", owner: Optional[Any]) -> "Memory":
         ty: "Memory" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_memory_t)):
             raise TypeError("wrong pointer type")
-        ty.__ptr__ = ptr
-        ty.__owner__ = owner
+        ty._ptr = ptr
+        ty._owner = owner
         return ty
 
     @property
@@ -35,7 +35,7 @@ class Memory:
         Gets the type of this memory as a `MemoryType`
         """
 
-        ptr = ffi.wasm_memory_type(self.__ptr__)
+        ptr = ffi.wasm_memory_type(self._ptr)
         return MemoryType.__from_ptr__(ptr, None)
 
     def grow(self, delta: int) -> bool:
@@ -47,7 +47,7 @@ class Memory:
             raise TypeError("expected an integer")
         if delta < 0:
             raise WasmtimeError("cannot grow by negative amount")
-        ok = ffi.wasm_memory_grow(self.__ptr__, delta)
+        ok = ffi.wasm_memory_grow(self._ptr, delta)
         if ok:
             return True
         else:
@@ -59,7 +59,7 @@ class Memory:
         Returns the size, in WebAssembly pages, of this memory.
         """
 
-        return ffi.wasm_memory_size(self.__ptr__)
+        return ffi.wasm_memory_size(self._ptr)
 
     @property
     def data_ptr(self) -> "pointer[c_ubyte]":
@@ -69,7 +69,7 @@ class Memory:
         Remember that all accesses to wasm memory should be bounds-checked
         against the `data_len` method.
         """
-        return ffi.wasm_memory_data(self.__ptr__)
+        return ffi.wasm_memory_data(self._ptr)
 
     @property
     def data_len(self) -> int:
@@ -77,11 +77,11 @@ class Memory:
         Returns the raw byte length of this memory.
         """
 
-        return ffi.wasm_memory_data_size(self.__ptr__)
+        return ffi.wasm_memory_data_size(self._ptr)
 
     def _as_extern(self) -> "pointer[ffi.wasm_extern_t]":
-        return ffi.wasm_memory_as_extern(self.__ptr__)
+        return ffi.wasm_memory_as_extern(self._ptr)
 
     def __del__(self) -> None:
-        if hasattr(self, '__owner__') and self.__owner__ is None:
-            ffi.wasm_memory_delete(self.__ptr__)
+        if hasattr(self, '_owner') and self._owner is None:
+            ffi.wasm_memory_delete(self._ptr)
