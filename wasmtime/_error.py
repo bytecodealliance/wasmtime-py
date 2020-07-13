@@ -6,7 +6,7 @@ class WasmtimeError(Exception):
         self.message = message
 
     @classmethod
-    def __from_ptr__(cls, ptr: pointer) -> 'WasmtimeError':
+    def _from_ptr(cls, ptr: pointer) -> 'WasmtimeError':
         from . import _ffi as ffi
         if not isinstance(ptr, POINTER(ffi.wasmtime_error_t)):
             raise TypeError("wrong pointer type")

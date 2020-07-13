@@ -10,7 +10,7 @@ class Global:
             raise TypeError("expected a Store")
         if not isinstance(ty, GlobalType):
             raise TypeError("expected a GlobalType")
-        val = Val.__convert__(ty.content, val)
+        val = Val._convert(ty.content, val)
         ptr = POINTER(ffi.wasm_global_t)()
         error = ffi.wasmtime_global_new(
             store._ptr,
@@ -18,12 +18,12 @@ class Global:
             byref(val._raw),
             byref(ptr))
         if error:
-            raise WasmtimeError.__from_ptr__(error)
+            raise WasmtimeError._from_ptr(error)
         self._ptr = ptr
         self._owner = None
 
     @classmethod
-    def __from_ptr__(cls, ptr: "pointer[ffi.wasm_global_t]", owner: Optional[Any]) -> "Global":
+    def _from_ptr(cls, ptr: "pointer[ffi.wasm_global_t]", owner: Optional[Any]) -> "Global":
         ty: "Global" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_global_t)):
             raise TypeError("wrong pointer type")
@@ -38,7 +38,7 @@ class Global:
         """
 
         ptr = ffi.wasm_global_type(self._ptr)
-        return GlobalType.__from_ptr__(ptr, None)
+        return GlobalType._from_ptr(ptr, None)
 
     @property
     def value(self) -> IntoVal:
@@ -60,10 +60,10 @@ class Global:
         """
         Sets the value of this global to a new value
         """
-        val = Val.__convert__(self.type.content, val)
+        val = Val._convert(self.type.content, val)
         error = ffi.wasmtime_global_set(self._ptr, byref(val._raw))
         if error:
-            raise WasmtimeError.__from_ptr__(error)
+            raise WasmtimeError._from_ptr(error)
 
     def _as_extern(self) -> "pointer[ffi.wasm_extern_t]":
         return ffi.wasm_global_as_extern(self._ptr)

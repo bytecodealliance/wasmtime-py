@@ -17,16 +17,16 @@ def wrap_extern(ptr: 'pointer[ffi.wasm_extern_t]', owner: Optional[Any]) -> AsEx
 
     val = ffi.wasm_extern_as_func(ptr)
     if val:
-        return Func.__from_ptr__(val, owner)
+        return Func._from_ptr(val, owner)
     val = ffi.wasm_extern_as_table(ptr)
     if val:
-        return Table.__from_ptr__(val, owner)
+        return Table._from_ptr(val, owner)
     val = ffi.wasm_extern_as_global(ptr)
     if val:
-        return Global.__from_ptr__(val, owner)
+        return Global._from_ptr(val, owner)
     val = ffi.wasm_extern_as_memory(ptr)
     assert(val)
-    return Memory.__from_ptr__(val, owner)
+    return Memory._from_ptr(val, owner)
 
 
 def get_extern_ptr(item: AsExtern) -> "pointer[ffi.wasm_extern_t]":

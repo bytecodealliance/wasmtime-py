@@ -43,15 +43,15 @@ class Instance:
             byref(instance),
             byref(trap))
         if error:
-            raise WasmtimeError.__from_ptr__(error)
+            raise WasmtimeError._from_ptr(error)
         if trap:
-            raise Trap.__from_ptr__(trap)
+            raise Trap._from_ptr(trap)
         self._ptr = instance
         self._module = module
         self._exports = None
 
     @classmethod
-    def __from_ptr__(cls, ptr: pointer, module: Module) -> "Instance":
+    def _from_ptr(cls, ptr: pointer, module: Module) -> "Instance":
         ty: "Instance" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_instance_t)):
             raise TypeError("wrong pointer type")

@@ -44,7 +44,7 @@ class Func:
         self._owner = None
 
     @classmethod
-    def __from_ptr__(cls, ptr: "pointer[ffi.wasm_func_t]", owner: Optional[Any]) -> "Func":
+    def _from_ptr(cls, ptr: "pointer[ffi.wasm_func_t]", owner: Optional[Any]) -> "Func":
         ty: "Func" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_func_t)):
             raise TypeError("wrong pointer type")
@@ -58,7 +58,7 @@ class Func:
         Gets the type of this func as a `FuncType`
         """
         ptr = ffi.wasm_func_type(self._ptr)
-        return FuncType.__from_ptr__(ptr, None)
+        return FuncType._from_ptr(ptr, None)
 
     @property
     def param_arity(self) -> int:
@@ -95,7 +95,7 @@ class Func:
         for i, param in enumerate(params):
             if i >= len(param_tys):
                 raise WasmtimeError("too many parameters provided")
-            val = Val.__convert__(param_tys[i], param)
+            val = Val._convert(param_tys[i], param)
             params_ptr[i] = val._raw
 
         result_tys = ty.results
@@ -110,9 +110,9 @@ class Func:
             len(result_tys),
             byref(trap))
         if error:
-            raise WasmtimeError.__from_ptr__(error)
+            raise WasmtimeError._from_ptr(error)
         if trap:
-            raise Trap.__from_ptr__(trap)
+            raise Trap._from_ptr(trap)
 
         results = []
         for i in range(0, len(result_tys)):
@@ -208,13 +208,13 @@ def invoke(idx, params_ptr, results_ptr, params):  # type: ignore
                 raise WasmtimeError(
                     "callback produced results when it shouldn't")
         elif len(result_tys) == 1:
-            val = Val.__convert__(result_tys[0], results)
+            val = Val._convert(result_tys[0], results)
             results_ptr[0] = val._raw
         else:
             if len(results) != len(result_tys):
                 raise WasmtimeError("callback produced wrong number of results")
             for i, result in enumerate(results):
-                val = Val.__convert__(result_tys[i], result)
+                val = Val._convert(result_tys[i], result)
                 results_ptr[i] = val._raw
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()

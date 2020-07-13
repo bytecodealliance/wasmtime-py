@@ -34,7 +34,7 @@ class Linker:
             byref(name_raw),
             raw_item)
         if error:
-            raise WasmtimeError.__from_ptr__(error)
+            raise WasmtimeError._from_ptr(error)
 
     def define_instance(self, name: str, instance: Instance) -> None:
         if not isinstance(instance, Instance):
@@ -43,14 +43,14 @@ class Linker:
         error = ffi.wasmtime_linker_define_instance(self._ptr, byref(name_raw),
                                                     instance._ptr)
         if error:
-            raise WasmtimeError.__from_ptr__(error)
+            raise WasmtimeError._from_ptr(error)
 
     def define_wasi(self, instance: WasiInstance) -> None:
         if not isinstance(instance, WasiInstance):
             raise TypeError("expected an `WasiInstance`")
         error = ffi.wasmtime_linker_define_wasi(self._ptr, instance._ptr)
         if error:
-            raise WasmtimeError.__from_ptr__(error)
+            raise WasmtimeError._from_ptr(error)
 
     def instantiate(self, module: Module) -> Instance:
         if not isinstance(module, Module):
@@ -60,10 +60,10 @@ class Linker:
         error = ffi.wasmtime_linker_instantiate(
             self._ptr, module._ptr, byref(instance), byref(trap))
         if error:
-            raise WasmtimeError.__from_ptr__(error)
+            raise WasmtimeError._from_ptr(error)
         if trap:
-            raise Trap.__from_ptr__(trap)
-        return Instance.__from_ptr__(instance, module)
+            raise Trap._from_ptr(trap)
+        return Instance._from_ptr(instance, module)
 
     def __del__(self) -> None:
         if hasattr(self, '_ptr'):

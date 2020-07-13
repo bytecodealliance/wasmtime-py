@@ -21,7 +21,7 @@ class Trap(Exception):
         self._ptr = ptr
 
     @classmethod
-    def __from_ptr__(cls, ptr: "pointer[ffi.wasm_trap_t]") -> "Trap":
+    def _from_ptr(cls, ptr: "pointer[ffi.wasm_trap_t]") -> "Trap":
         if not isinstance(ptr, POINTER(ffi.wasm_trap_t)):
             raise TypeError("wrong pointer type")
         exit_code = c_int(0)
@@ -56,7 +56,7 @@ class Trap(Exception):
         ffi.wasm_trap_trace(self._ptr, byref(frames.vec))
         ret = []
         for i in range(0, frames.vec.size):
-            ret.append(Frame.__from_ptr__(frames.vec.data[i], frames))
+            ret.append(Frame._from_ptr(frames.vec.data[i], frames))
         return ret
 
     def __str__(self) -> str:
@@ -89,7 +89,7 @@ class Frame:
     _owner: Optional[Any]
 
     @classmethod
-    def __from_ptr__(cls, ptr: "pointer[ffi.wasm_frame_t]", owner: Optional[Any]) -> "Frame":
+    def _from_ptr(cls, ptr: "pointer[ffi.wasm_frame_t]", owner: Optional[Any]) -> "Frame":
         ty: "Frame" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_frame_t)):
             raise TypeError("wrong pointer type")

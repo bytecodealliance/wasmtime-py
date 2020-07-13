@@ -39,7 +39,7 @@ class Module:
         ptr = POINTER(ffi.wasm_module_t)()
         error = ffi.wasmtime_module_new(store._ptr, byref(binary), byref(ptr))
         if error:
-            raise WasmtimeError.__from_ptr__(error)
+            raise WasmtimeError._from_ptr(error)
         self._ptr = ptr
         self.store = store
 
@@ -63,7 +63,7 @@ class Module:
         binary = ffi.wasm_byte_vec_t(len(wasm), c_ty.from_buffer_copy(wasm))
         error = ffi.wasmtime_module_validate(store._ptr, byref(binary))
         if error:
-            raise WasmtimeError.__from_ptr__(error)
+            raise WasmtimeError._from_ptr(error)
 
     @property
     def imports(self) -> typing.List[ImportType]:
@@ -75,7 +75,7 @@ class Module:
         ffi.wasm_module_imports(self._ptr, byref(imports.vec))
         ret = []
         for i in range(0, imports.vec.size):
-            ret.append(ImportType.__from_ptr__(imports.vec.data[i], imports))
+            ret.append(ImportType._from_ptr(imports.vec.data[i], imports))
         return ret
 
     @property
@@ -88,7 +88,7 @@ class Module:
         ffi.wasm_module_exports(self._ptr, byref(exports.vec))
         ret = []
         for i in range(0, exports.vec.size):
-            ret.append(ExportType.__from_ptr__(exports.vec.data[i], exports))
+            ret.append(ExportType._from_ptr(exports.vec.data[i], exports))
         return ret
 
     def __del__(self) -> None:

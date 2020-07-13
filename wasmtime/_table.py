@@ -33,12 +33,12 @@ class Table:
         ptr = POINTER(ffi.wasm_table_t)()
         error = ffi.wasmtime_funcref_table_new(store._ptr, ty._ptr, init_ptr, byref(ptr))
         if error:
-            raise WasmtimeError.__from_ptr__(error)
+            raise WasmtimeError._from_ptr(error)
         self._ptr = ptr
         self._owner = None
 
     @classmethod
-    def __from_ptr__(cls, ptr: "pointer[ffi.wasm_table_t]", owner: Optional[Any]) -> "Table":
+    def _from_ptr(cls, ptr: "pointer[ffi.wasm_table_t]", owner: Optional[Any]) -> "Table":
         ty: "Table" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_table_t)):
             raise TypeError("wrong pointer type")
@@ -53,7 +53,7 @@ class Table:
         """
 
         ptr = ffi.wasm_table_type(self._ptr)
-        return TableType.__from_ptr__(ptr, None)
+        return TableType._from_ptr(ptr, None)
 
     @property
     def size(self) -> int:
@@ -93,7 +93,7 @@ class Table:
         ok = ffi.wasmtime_funcref_table_get(self._ptr, idx, byref(ptr))
         if ok:
             if ptr:
-                return Func.__from_ptr__(ptr, None)
+                return Func._from_ptr(ptr, None)
             return None
         raise WasmtimeError("table index out of bounds")
 
@@ -111,7 +111,7 @@ class Table:
         val_ptr = get_func_ptr(val)
         error = ffi.wasmtime_funcref_table_set(self._ptr, idx, val_ptr)
         if error:
-            raise WasmtimeError.__from_ptr__(error)
+            raise WasmtimeError._from_ptr(error)
 
     def _as_extern(self) -> "pointer[ffi.wasm_extern_t]":
         return ffi.wasm_table_as_extern(self._ptr)

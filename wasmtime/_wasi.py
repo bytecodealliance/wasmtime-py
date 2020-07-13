@@ -162,7 +162,7 @@ class WasiInstance:
             store._ptr, c_char_p(name_bytes), ptr, byref(trap))
         if not ptr:
             if trap:
-                raise Trap.__from_ptr__(trap)
+                raise Trap._from_ptr(trap)
             raise WasmtimeError("failed to create wasi instance")
         self._ptr = ptr
         self.store = store
