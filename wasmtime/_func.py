@@ -91,12 +91,17 @@ class Func:
 
         ty = self.type
         param_tys = ty.params
+        if len(params) > len(param_tys):
+            raise WasmtimeError("too many parameters provided: given %s, expected %s" %
+                                (len(params), len(param_tys)))
+        if len(params) < len(param_tys):
+            raise WasmtimeError("too few parameters provided: given %s, expected %s" %
+                                (len(params), len(param_tys)))
+
+        param_vals = [Val._convert(ty, params[i]) for i, ty in enumerate(param_tys)]
         params_ptr = (ffi.wasm_val_t * len(params))()
-        for i, param in enumerate(params):
-            if i >= len(param_tys):
-                raise WasmtimeError("too many parameters provided")
-            val = Val._convert(param_tys[i], param)
-            params_ptr[i] = val._raw
+        for i, val in enumerate(param_vals):
+            params_ptr[i] = val._unwrap_raw()
 
         result_tys = ty.results
         results_ptr = (ffi.wasm_val_t * len(result_tys))()
@@ -116,7 +121,7 @@ class Func:
 
         results = []
         for i in range(0, len(result_tys)):
-            results.append(extract_val(Val(results_ptr[i])))
+            results.append(Val(results_ptr[i]).value)
         if len(results) == 0:
             return None
         elif len(results) == 1:
@@ -201,21 +206,31 @@ def invoke(idx, params_ptr, results_ptr, params):  # type: ignore
 
     try:
         for i in range(0, len(param_tys)):
-            params.append(extract_val(Val(params_ptr[i])))
+            params.append(Val._value(params_ptr[i]))
         results = func(*params)
         if len(result_tys) == 0:
             if results is not None:
                 raise WasmtimeError(
                     "callback produced results when it shouldn't")
         elif len(result_tys) == 1:
-            val = Val._convert(result_tys[0], results)
-            results_ptr[0] = val._raw
+            if isinstance(results, Val):
+                # Because we are taking the inner value with `_into_raw`, we
+                # need to ensure that we have a unique `Val`.
+                val = results._clone()
+            else:
+                val = Val._convert(result_tys[0], results)
+            results_ptr[0] = val._into_raw()
         else:
             if len(results) != len(result_tys):
                 raise WasmtimeError("callback produced wrong number of results")
             for i, result in enumerate(results):
-                val = Val._convert(result_tys[i], result)
-                results_ptr[i] = val._raw
+                # Because we are taking the inner value with `_into_raw`, we
+                # need to ensure that we have a unique `Val`.
+                if isinstance(result, Val):
+                    val = result._clone()
+                else:
+                    val = Val._convert(result_tys[i], result)
+                results_ptr[i] = val._into_raw()
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         fmt = traceback.format_exception(exc_type, exc_value, exc_traceback)

@@ -15,7 +15,7 @@ class Global:
         error = ffi.wasmtime_global_new(
             store._ptr,
             ty._ptr,
-            byref(val._raw),
+            byref(val._unwrap_raw()),
             byref(ptr))
         if error:
             raise WasmtimeError._from_ptr(error)
@@ -61,7 +61,7 @@ class Global:
         Sets the value of this global to a new value
         """
         val = Val._convert(self.type.content, val)
-        error = ffi.wasmtime_global_set(self._ptr, byref(val._raw))
+        error = ffi.wasmtime_global_set(self._ptr, byref(val._unwrap_raw()))
         if error:
             raise WasmtimeError._from_ptr(error)
 

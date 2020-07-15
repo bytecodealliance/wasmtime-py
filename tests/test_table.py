@@ -17,7 +17,7 @@ class TestTable(unittest.TestCase):
 
         ty = TableType(ValType.i32(), Limits(1, 2))
         store = Store()
-        with self.assertRaises(WasmtimeError):
+        with self.assertRaises(TypeError):
             Table(store, ty, None)
 
         ty = TableType(ValType.funcref(), Limits(1, 2))
@@ -35,7 +35,7 @@ class TestTable(unittest.TestCase):
         with self.assertRaises(TypeError):
             table.grow('x', None)  # type: ignore
         with self.assertRaises(TypeError):
-            table.grow(2, 'x')  # type: ignore
+            table.grow(2, 'x')
 
         # growth works
         table.grow(1, None)

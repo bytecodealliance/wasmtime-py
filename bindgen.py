@@ -19,8 +19,7 @@ class Visitor(c_ast.NodeVisitor):
         self.ret += '\n'
         self.ret += 'from ctypes import *\n'
         self.ret += 'from typing import Any\n'
-        self.ret += 'from ._ffi import dll, wasm_val_t\n'
-        self.generated_wasm_ref_t = False
+        self.ret += 'from ._ffi import dll, wasm_val_t, wasm_ref_t\n'
 
     # Skip all function definitions, we don't bind those
     def visit_FuncDef(self, node):
@@ -31,15 +30,8 @@ class Visitor(c_ast.NodeVisitor):
             return
 
         # This is hand-generated since it has an anonymous union in it
-        if node.name == 'wasm_val_t':
+        if node.name == 'wasm_val_t' or node.name == 'wasm_ref_t':
             return
-
-        # This is defined twice in the header file, but we only want to insert
-        # one definition.
-        if node.name == 'wasm_ref_t':
-            if self.generated_wasm_ref_t:
-                return
-            self.generated_wasm_ref_t = True
 
         self.ret += "\n"
         self.ret += "class {}(Structure):\n".format(node.name)
@@ -84,7 +76,7 @@ class Visitor(c_ast.NodeVisitor):
             return
         if name == 'wasm_module_deserialize':
             return
-        if 'ref_as_' in name:
+        if '_ref_as_' in name:
             return
         if 'extern_const' in name:
             return
