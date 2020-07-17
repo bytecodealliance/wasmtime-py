@@ -119,7 +119,7 @@ class TestFunc(unittest.TestCase):
             self.assertEqual(mem.data_ptr[2], ord('o'))
             self.assertEqual(mem.data_ptr[3], 0)
 
-        module = Module(store, """
+        module = Module(store.engine, """
             (module
                 (import "" "" (func))
                 (memory (export "foo") 1)

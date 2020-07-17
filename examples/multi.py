@@ -11,7 +11,7 @@ config.wasm_multi_value = True
 store = Store(Engine(config))
 
 print("Compiling module...")
-module = Module.from_file(store, "examples/multi.wat")
+module = Module.from_file(store.engine, "examples/multi.wat")
 
 print("Creating callback...")
 callback_type = FuncType([ValType.i32(), ValType.i64()], [ValType.i64(), ValType.i32()])

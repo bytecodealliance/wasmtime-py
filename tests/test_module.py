@@ -5,9 +5,9 @@ from wasmtime import *
 
 class TestModule(unittest.TestCase):
     def test_smoke(self):
-        Module(Store(), '(module)')
-        Module(Store(), bytes(b'\0asm\x01\0\0\0'))
-        Module(Store(), bytearray(b'\0asm\x01\0\0\0'))
+        Module(Engine(), '(module)')
+        Module(Engine(), bytes(b'\0asm\x01\0\0\0'))
+        Module(Engine(), bytearray(b'\0asm\x01\0\0\0'))
 
     def test_invalid(self):
         with self.assertRaises(TypeError):
@@ -17,11 +17,11 @@ class TestModule(unittest.TestCase):
         with self.assertRaises(TypeError):
             Module(1, b'')  # type: ignore
         with self.assertRaises(TypeError):
-            Module(Store(), 2)  # type: ignore
+            Module(Engine(), 2)  # type: ignore
         with self.assertRaises(WasmtimeError):
-            Module(Store(), b'')
+            Module(Engine(), b'')
         with self.assertRaises(WasmtimeError):
-            Module(Store(), b'\x00')
+            Module(Engine(), b'\x00')
 
     def test_validate(self):
         store = Store()
@@ -31,10 +31,10 @@ class TestModule(unittest.TestCase):
 
     def test_imports(self):
         store = Store()
-        module = Module(store, '(module)')
+        module = Module(store.engine, '(module)')
         self.assertEqual(module.imports, [])
 
-        module = Module(store, """
+        module = Module(store.engine, """
             (module
                 (import "" "" (func))
                 (import "a" "bcd" (global i32))
@@ -73,10 +73,10 @@ class TestModule(unittest.TestCase):
 
     def test_exports(self):
         store = Store()
-        module = Module(store, '(module)')
+        module = Module(store.engine, '(module)')
         self.assertEqual(module.exports, [])
 
-        module = Module(store, """
+        module = Module(store.engine, """
             (module
                 (func (export "a") (param i32 f32) (result f64)
                     f64.const 0)

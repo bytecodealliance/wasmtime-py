@@ -58,7 +58,7 @@ class _WasmtimeLoader(Loader):
         return None  # use default module creation semantics
 
     def exec_module(self, module):  # type: ignore
-        wasm_module = Module.from_file(store, self.filename)
+        wasm_module = Module.from_file(store.engine, self.filename)
 
         for wasm_import in wasm_module.imports:
             module_name = wasm_import.module

@@ -6,7 +6,7 @@ store = Store()
 
 # Here we can compile a `Module` which is then ready for instantiation
 # afterwards
-module = Module.from_file(store, './examples/hello.wat')
+module = Module.from_file(store.engine, './examples/hello.wat')
 
 # Our module needs one import, so we'll create that here.
 

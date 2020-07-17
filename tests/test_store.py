@@ -28,7 +28,7 @@ class TestStore(unittest.TestCase):
         store = Store(Engine(config))
         interrupt_handle = store.interrupt_handle()
 
-        module = Module(store, """
+        module = Module(store.engine, """
             (import "" "" (func))
             (func
                 call 0

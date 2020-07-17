@@ -2022,9 +2022,9 @@ def wasmtime_instance_new(store: Any, module: Any, imports: Any, num_imports: An
 
 _wasmtime_module_new = dll.wasmtime_module_new
 _wasmtime_module_new.restype = POINTER(wasmtime_error_t)
-_wasmtime_module_new.argtypes = [POINTER(wasm_store_t), POINTER(wasm_byte_vec_t), POINTER(POINTER(wasm_module_t))]
-def wasmtime_module_new(store: Any, binary: Any, ret: Any) -> pointer:
-    return _wasmtime_module_new(store, binary, ret)  # type: ignore
+_wasmtime_module_new.argtypes = [POINTER(wasm_engine_t), POINTER(wasm_byte_vec_t), POINTER(POINTER(wasm_module_t))]
+def wasmtime_module_new(engine: Any, binary: Any, ret: Any) -> pointer:
+    return _wasmtime_module_new(engine, binary, ret)  # type: ignore
 
 _wasmtime_module_validate = dll.wasmtime_module_validate
 _wasmtime_module_validate.restype = POINTER(wasmtime_error_t)

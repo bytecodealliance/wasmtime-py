@@ -49,7 +49,7 @@ class TestWasi(unittest.TestCase):
         with self.assertRaises(TypeError):
             instance.bind(3)  # type: ignore
 
-        module = Module(instance.store, """
+        module = Module(instance.store.engine, """
             (module
                 (import "wasi_unstable" "random_get"
                     (func (param i32 i32) (result i32)))
@@ -65,7 +65,7 @@ class TestWasi(unittest.TestCase):
         config = WasiConfig()
         instance = WasiInstance(Store(), "wasi_snapshot_preview1", config)
 
-        module = Module(instance.store, """
+        module = Module(instance.store.engine, """
             (module
                 (import "wasi_snapshot_preview1" "random_get"
                     (func (param i32 i32) (result i32)))

@@ -18,7 +18,7 @@ class TestLinker(unittest.TestCase):
         mem = Memory(store, MemoryType(Limits(1, None)))
         linker.define("", "e", mem)
 
-        module = Module(store, """
+        module = Module(store.engine, """
             (module (table (export "") 1 funcref))
         """)
         table = Instance(store, module, []).exports[0]
@@ -42,10 +42,10 @@ class TestLinker(unittest.TestCase):
         with self.assertRaises(TypeError):
             linker.define_instance("x", 2)  # type: ignore
 
-        module = Module(store, "(module)")
+        module = Module(store.engine, "(module)")
         linker.define_instance("a", Instance(store, module, []))
 
-        module = Module(store, "(module (func (export \"foo\")))")
+        module = Module(store.engine, "(module (func (export \"foo\")))")
         instance = Instance(store, module, [])
         linker.define_instance("b", instance)
         with self.assertRaises(WasmtimeError):
@@ -63,14 +63,14 @@ class TestLinker(unittest.TestCase):
         store = Store()
         linker = Linker(store)
 
-        module = Module(store, "(module (func (export \"foo\")))")
+        module = Module(store.engine, "(module (func (export \"foo\")))")
         instance = Instance(store, module, [])
         linker.define_instance("x", instance)
 
         func = Func(store, FuncType([], []), lambda: None)
         linker.define("y", "z", func)
 
-        module = Module(store, """
+        module = Module(store.engine, """
             (module
                 (import "x" "foo" (func))
                 (import "y" "z" (func))
@@ -78,7 +78,7 @@ class TestLinker(unittest.TestCase):
         """)
         linker.instantiate(module)
 
-        module = Module(store, """
+        module = Module(store.engine, """
             (module
                 (import "x" "foo" (func))
                 (import "y" "z" (global i32))
@@ -87,7 +87,7 @@ class TestLinker(unittest.TestCase):
         with self.assertRaises(WasmtimeError):
             linker.instantiate(module)
 
-        module = Module(store, """
+        module = Module(store.engine, """
             (module
                 (func unreachable)
                 (start 0)
@@ -96,7 +96,7 @@ class TestLinker(unittest.TestCase):
         with self.assertRaises(Trap):
             linker.instantiate(module)
 
-        module = Module(store, "(module)")
+        module = Module(store.engine, "(module)")
         linker.instantiate(module)
 
     def test_errors(self):

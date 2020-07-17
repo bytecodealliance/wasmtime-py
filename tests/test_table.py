@@ -6,7 +6,7 @@ from wasmtime import *
 class TestTable(unittest.TestCase):
     def test_new(self):
         store = Store()
-        module = Module(store, """
+        module = Module(store.engine, """
             (module (table (export "") 1 funcref))
         """)
         table = Instance(store, module, []).exports[0]
