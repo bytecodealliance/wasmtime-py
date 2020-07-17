@@ -11,8 +11,8 @@ wasi = WasiInstance(store, "wasi_snapshot_preview1", WasiConfig())
 linker.define_wasi(wasi)
 
 # Load and compile our two modules
-linking1 = Module.from_file(store, "examples/linking1.wat")
-linking2 = Module.from_file(store, "examples/linking2.wat")
+linking1 = Module.from_file(store.engine, "examples/linking1.wat")
+linking2 = Module.from_file(store.engine, "examples/linking2.wat")
 
 # Instantiate our first module which only uses WASI, then register that
 # instance with the linker since the next linking will use it.

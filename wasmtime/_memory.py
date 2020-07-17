@@ -21,7 +21,7 @@ class Memory:
         self._owner = None
 
     @classmethod
-    def __from_ptr__(cls, ptr: "pointer[ffi.wasm_memory_t]", owner: Optional[Any]) -> "Memory":
+    def _from_ptr(cls, ptr: "pointer[ffi.wasm_memory_t]", owner: Optional[Any]) -> "Memory":
         ty: "Memory" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_memory_t)):
             raise TypeError("wrong pointer type")
@@ -36,7 +36,7 @@ class Memory:
         """
 
         ptr = ffi.wasm_memory_type(self._ptr)
-        return MemoryType.__from_ptr__(ptr, None)
+        return MemoryType._from_ptr(ptr, None)
 
     def grow(self, delta: int) -> bool:
         """

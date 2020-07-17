@@ -1,12 +1,12 @@
 from . import _ffi as ffi
 from ctypes import *
-from wasmtime import Store, wat2wasm, ImportType, ExportType, WasmtimeError
+from wasmtime import Store, Engine, wat2wasm, ImportType, ExportType, WasmtimeError
 import typing
 
 
 class Module:
     @classmethod
-    def from_file(cls, store: Store, path: str) -> "Module":
+    def from_file(cls, engine: Engine, path: str) -> "Module":
         """
         Compiles and creates a new `Module` by reading the file at `path` and
         then delegating to the `Module` constructor.
@@ -14,11 +14,11 @@ class Module:
 
         with open(path, "rb") as f:
             contents = f.read()
-        return cls(store, contents)
+        return cls(engine, contents)
 
-    def __init__(self, store: Store, wasm: typing.Union[str, bytes]):
-        if not isinstance(store, Store):
-            raise TypeError("expected a Store")
+    def __init__(self, engine: Engine, wasm: typing.Union[str, bytes]):
+        if not isinstance(engine, Engine):
+            raise TypeError("expected an Engine")
 
         # If this looks like a string, parse it as the text format. Note that
         # in python 2 strings and bytes are basically the same, so we skip this
@@ -37,11 +37,11 @@ class Module:
         c_ty = c_uint8 * len(wasm)
         binary = ffi.wasm_byte_vec_t(len(wasm), c_ty.from_buffer_copy(wasm))
         ptr = POINTER(ffi.wasm_module_t)()
-        error = ffi.wasmtime_module_new(store._ptr, byref(binary), byref(ptr))
+        error = ffi.wasmtime_module_new(engine._ptr, byref(binary), byref(ptr))
         if error:
-            raise WasmtimeError.__from_ptr__(error)
+            raise WasmtimeError._from_ptr(error)
         self._ptr = ptr
-        self.store = store
+        self.engine = engine
 
     @classmethod
     def validate(cls, store: Store, wasm: typing.Union[bytes, bytearray]) -> None:
@@ -63,7 +63,7 @@ class Module:
         binary = ffi.wasm_byte_vec_t(len(wasm), c_ty.from_buffer_copy(wasm))
         error = ffi.wasmtime_module_validate(store._ptr, byref(binary))
         if error:
-            raise WasmtimeError.__from_ptr__(error)
+            raise WasmtimeError._from_ptr(error)
 
     @property
     def imports(self) -> typing.List[ImportType]:
@@ -75,7 +75,7 @@ class Module:
         ffi.wasm_module_imports(self._ptr, byref(imports.vec))
         ret = []
         for i in range(0, imports.vec.size):
-            ret.append(ImportType.__from_ptr__(imports.vec.data[i], imports))
+            ret.append(ImportType._from_ptr(imports.vec.data[i], imports))
         return ret
 
     @property
@@ -88,7 +88,7 @@ class Module:
         ffi.wasm_module_exports(self._ptr, byref(exports.vec))
         ret = []
         for i in range(0, exports.vec.size):
-            ret.append(ExportType.__from_ptr__(exports.vec.data[i], exports))
+            ret.append(ExportType._from_ptr(exports.vec.data[i], exports))
         return ret
 
     def __del__(self) -> None:

@@ -29,7 +29,7 @@ def wat2wasm(wat: typing.Union[str, bytes]) -> bytearray:
     wasm = ffi.wasm_byte_vec_t()
     error = ffi.wasmtime_wat2wasm(byref(wat_bytes), byref(wasm))
     if error:
-        raise WasmtimeError.__from_ptr__(error)
+        raise WasmtimeError._from_ptr(error)
     else:
         ret = ffi.to_bytes(wasm)
         ffi.wasm_byte_vec_delete(byref(wasm))

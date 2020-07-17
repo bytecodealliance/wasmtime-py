@@ -5,7 +5,7 @@
 
 from ctypes import *
 from typing import Any
-from ._ffi import dll, wasm_val_t
+from ._ffi import dll, wasm_val_t, wasm_ref_t
 
 wasm_byte_t = c_ubyte
 
@@ -739,9 +739,6 @@ _wasm_exporttype_type.restype = POINTER(wasm_externtype_t)
 _wasm_exporttype_type.argtypes = [POINTER(wasm_exporttype_t)]
 def wasm_exporttype_type(arg0: Any) -> pointer:
     return _wasm_exporttype_type(arg0)  # type: ignore
-
-class wasm_ref_t(Structure):
-    pass
 
 _wasm_val_delete = dll.wasm_val_delete
 _wasm_val_delete.restype = None
@@ -1951,6 +1948,18 @@ _wasmtime_func_new_with_env.argtypes = [POINTER(wasm_store_t), POINTER(wasm_func
 def wasmtime_func_new_with_env(store: Any, type: Any, callback: Any, env: Any, finalizer: Any) -> pointer:
     return _wasmtime_func_new_with_env(store, type, callback, env, finalizer)  # type: ignore
 
+_wasmtime_func_as_funcref = dll.wasmtime_func_as_funcref
+_wasmtime_func_as_funcref.restype = None
+_wasmtime_func_as_funcref.argtypes = [POINTER(wasm_func_t), POINTER(wasm_val_t)]
+def wasmtime_func_as_funcref(func: Any, funcrefp: Any) -> None:
+    return _wasmtime_func_as_funcref(func, funcrefp)  # type: ignore
+
+_wasmtime_funcref_as_func = dll.wasmtime_funcref_as_func
+_wasmtime_funcref_as_func.restype = POINTER(wasm_func_t)
+_wasmtime_funcref_as_func.argtypes = [POINTER(wasm_val_t)]
+def wasmtime_funcref_as_func(val: Any) -> pointer:
+    return _wasmtime_funcref_as_func(val)  # type: ignore
+
 _wasmtime_caller_export_get = dll.wasmtime_caller_export_get
 _wasmtime_caller_export_get.restype = POINTER(wasm_extern_t)
 _wasmtime_caller_export_get.argtypes = [POINTER(wasmtime_caller_t), POINTER(wasm_name_t)]
@@ -2022,9 +2031,9 @@ def wasmtime_instance_new(store: Any, module: Any, imports: Any, num_imports: An
 
 _wasmtime_module_new = dll.wasmtime_module_new
 _wasmtime_module_new.restype = POINTER(wasmtime_error_t)
-_wasmtime_module_new.argtypes = [POINTER(wasm_store_t), POINTER(wasm_byte_vec_t), POINTER(POINTER(wasm_module_t))]
-def wasmtime_module_new(store: Any, binary: Any, ret: Any) -> pointer:
-    return _wasmtime_module_new(store, binary, ret)  # type: ignore
+_wasmtime_module_new.argtypes = [POINTER(wasm_engine_t), POINTER(wasm_byte_vec_t), POINTER(POINTER(wasm_module_t))]
+def wasmtime_module_new(engine: Any, binary: Any, ret: Any) -> pointer:
+    return _wasmtime_module_new(engine, binary, ret)  # type: ignore
 
 _wasmtime_module_validate = dll.wasmtime_module_validate
 _wasmtime_module_validate.restype = POINTER(wasmtime_error_t)
@@ -2055,3 +2064,23 @@ _wasmtime_funcref_table_grow.restype = POINTER(wasmtime_error_t)
 _wasmtime_funcref_table_grow.argtypes = [POINTER(wasm_table_t), wasm_table_size_t, POINTER(wasm_func_t), POINTER(wasm_table_size_t)]
 def wasmtime_funcref_table_grow(table: Any, delta: Any, init: Any, prev_size: Any) -> pointer:
     return _wasmtime_funcref_table_grow(table, delta, init, prev_size)  # type: ignore
+
+_wasmtime_externref_new = dll.wasmtime_externref_new
+_wasmtime_externref_new.restype = None
+_wasmtime_externref_new.argtypes = [c_void_p, POINTER(wasm_val_t)]
+def wasmtime_externref_new(data: Any, valp: Any) -> None:
+    return _wasmtime_externref_new(data, valp)  # type: ignore
+
+wasmtime_externref_finalizer_t = CFUNCTYPE(None, c_void_p)
+
+_wasmtime_externref_new_with_finalizer = dll.wasmtime_externref_new_with_finalizer
+_wasmtime_externref_new_with_finalizer.restype = None
+_wasmtime_externref_new_with_finalizer.argtypes = [c_void_p, wasmtime_externref_finalizer_t, POINTER(wasm_val_t)]
+def wasmtime_externref_new_with_finalizer(data: Any, finalizer: Any, valp: Any) -> None:
+    return _wasmtime_externref_new_with_finalizer(data, finalizer, valp)  # type: ignore
+
+_wasmtime_externref_data = dll.wasmtime_externref_data
+_wasmtime_externref_data.restype = c_bool
+_wasmtime_externref_data.argtypes = [POINTER(wasm_val_t), POINTER(c_void_p)]
+def wasmtime_externref_data(val: Any, datap: Any) -> c_bool:
+    return _wasmtime_externref_data(val, datap)  # type: ignore

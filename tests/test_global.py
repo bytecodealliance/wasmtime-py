@@ -21,7 +21,7 @@ class TestGlobal(unittest.TestCase):
         store = Store()
         ty = GlobalType(ValType.i32(), True)
         with self.assertRaises(TypeError):
-            Global(store, ty, store)  # type: ignore
+            Global(store, ty, store)
         with self.assertRaises(TypeError):
             Global(store, 1, Val.i32(1))  # type: ignore
         with self.assertRaises(TypeError):
@@ -29,7 +29,7 @@ class TestGlobal(unittest.TestCase):
 
         g = Global(store, ty, Val.i32(1))
         with self.assertRaises(TypeError):
-            g.value = g  # type: ignore
+            g.value = g
 
         ty = GlobalType(ValType.i32(), False)
         g = Global(store, ty, Val.i32(1))

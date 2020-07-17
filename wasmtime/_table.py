@@ -1,27 +1,15 @@
 from . import _ffi as ffi
 from ctypes import *
-from wasmtime import TableType, Store, Func, WasmtimeError
+from wasmtime import TableType, Store, WasmtimeError, IntoVal, Val, ValType
 from typing import Optional, Any
-
-
-def get_func_ptr(init: Optional[Func]) -> Optional["pointer[ffi.wasm_func_t]"]:
-    if init is None:
-        return None
-    elif isinstance(init, Func):
-        return init._ptr
-    else:
-        raise TypeError("expected a `Func` or `None`")
 
 
 class Table:
     _ptr: "pointer[ffi.wasm_table_t]"
 
-    def __init__(self, store: Store, ty: TableType, init: Optional[Func]):
+    def __init__(self, store: Store, ty: TableType, init: IntoVal):
         """
         Creates a new table within `store` with the specified `ty`.
-
-        Note that for now only funcref tables are supported and `init` must
-        either be `None` or a `Func`.
         """
 
         if not isinstance(store, Store):
@@ -29,16 +17,16 @@ class Table:
         if not isinstance(ty, TableType):
             raise TypeError("expected a `TableType`")
 
-        init_ptr = get_func_ptr(init)
-        ptr = POINTER(ffi.wasm_table_t)()
-        error = ffi.wasmtime_funcref_table_new(store._ptr, ty._ptr, init_ptr, byref(ptr))
-        if error:
-            raise WasmtimeError.__from_ptr__(error)
+        init_val = Val._convert(ty.element, init)
+
+        ptr = ffi.wasm_table_new(store._ptr, ty._ptr, init_val._unwrap_raw().of.ref)
+        if not ptr:
+            raise WasmtimeError("Failed to create table")
         self._ptr = ptr
         self._owner = None
 
     @classmethod
-    def __from_ptr__(cls, ptr: "pointer[ffi.wasm_table_t]", owner: Optional[Any]) -> "Table":
+    def _from_ptr(cls, ptr: "pointer[ffi.wasm_table_t]", owner: Optional[Any]) -> "Table":
         ty: "Table" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_table_t)):
             raise TypeError("wrong pointer type")
@@ -53,17 +41,16 @@ class Table:
         """
 
         ptr = ffi.wasm_table_type(self._ptr)
-        return TableType.__from_ptr__(ptr, None)
+        return TableType._from_ptr(ptr, None)
 
     @property
     def size(self) -> int:
         """
         Gets the size, in elements, of this table
         """
-
         return ffi.wasm_table_size(self._ptr)
 
-    def grow(self, amt: int, init: Optional[Func]) -> int:
+    def grow(self, amt: int, init: IntoVal) -> int:
         """
         Grows this table by the specified number of slots, using the specified
         initializer for all new table slots.
@@ -71,47 +58,58 @@ class Table:
         Raises a `WasmtimeError` if the table could not be grown.
         Returns the previous size of the table otherwise.
         """
-        init_ptr = get_func_ptr(init)
-
-        prev = c_uint32(0)
-        error = ffi.wasmtime_funcref_table_grow(self._ptr, c_uint32(amt), init_ptr, byref(prev))
-        if error:
+        init_val = Val._convert(self.type.element, init)
+        ok = ffi.wasm_table_grow(self._ptr, c_uint32(amt), init_val._unwrap_raw().of.ref)
+        if not ok:
             raise WasmtimeError("failed to grow table")
-        return prev.value
+        return self.size - amt
 
-    def __getitem__(self, idx: int) -> Optional[Func]:
+    def __getitem__(self, idx: int) -> Optional[Any]:
         """
-        Gets an individual element within this table. Currently only works on
-        `funcref` tables.
+        Gets an individual element within this table.
 
-        Returns `None` for a slot where no function has been placed into.
-        Returns `Func` for a slot with a function.
+        Returns `None` for null references in the table (i.e. a null `funcref`
+        or a null `externref).
+
+        Returns a `Func` for non-null `funcref` table elements.
+
+        Returns the wrapped extern data for non-null `externref` table elements.
+
         Raises an `WasmtimeError` if `idx` is out of bounds.
         """
+        if idx >= self.size:
+            raise WasmtimeError("table index out of bounds")
 
-        ptr = POINTER(ffi.wasm_func_t)()
-        ok = ffi.wasmtime_funcref_table_get(self._ptr, idx, byref(ptr))
-        if ok:
-            if ptr:
-                return Func.__from_ptr__(ptr, None)
-            return None
-        raise WasmtimeError("table index out of bounds")
+        if self.type.element == ValType.externref():
+            val = Val.externref(None)
+        elif self.type.element == ValType.funcref():
+            val = Val.funcref(None)
+        else:
+            raise WasmtimeError("unsupported table element type")
 
-    def __setitem__(self, idx: int, val: Optional[Func]) -> None:
+        val._unwrap_raw().of.ref = ffi.wasm_table_get(self._ptr, idx)
+        return val.value
+
+    def __setitem__(self, idx: int, val: IntoVal) -> None:
         """
-        Sets an individual element within this table. Currently only works on
-        `funcref` tables.
+        Sets an individual element within this table.
 
-        The `val` specified must either be a `Func` or `None`, and `idx` must
-        be an integer index.
+        `idx` must be an integer index.
+
+        The `val` specified must be convertible into this table's element
+        type. I.e. for a `funcref` table, `val` must either be a `Func` or
+        `None`, and for an `externref` table, `val` may be any arbitrary
+        external data.
 
         Raises a `WasmtimeError` if `idx` is out of bounds.
         """
+        if idx >= self.size:
+            raise WasmtimeError("Index out of bounds when setting table element")
 
-        val_ptr = get_func_ptr(val)
-        error = ffi.wasmtime_funcref_table_set(self._ptr, idx, val_ptr)
-        if error:
-            raise WasmtimeError.__from_ptr__(error)
+        value = Val._convert(self.type.element, val)
+        ok = ffi.wasm_table_set(self._ptr, idx, value._unwrap_raw().of.ref)
+        if not ok:
+            raise WasmtimeError("Failed to set table element")
 
     def _as_extern(self) -> "pointer[ffi.wasm_extern_t]":
         return ffi.wasm_table_as_extern(self._ptr)

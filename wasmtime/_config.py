@@ -115,7 +115,7 @@ class Config:
         else:
             raise WasmtimeError("unknown strategy: " + str(strategy))
         if error:
-            raise WasmtimeError.__from_ptr__(error)
+            raise WasmtimeError._from_ptr(error)
 
     @setter_property
     def cranelift_debug_verifier(self, enable: bool) -> None:
@@ -143,7 +143,7 @@ class Config:
         else:
             raise WasmtimeError("unknown profiler: " + str(profiler))
         if error:
-            raise WasmtimeError.__from_ptr__(error)
+            raise WasmtimeError._from_ptr(error)
 
     @setter_property
     def cache(self, enabled: typing.Union[bool, str]) -> None:
@@ -168,7 +168,7 @@ class Config:
         else:
             raise TypeError("expected string or bool")
         if error:
-            raise WasmtimeError.__from_ptr__(error)
+            raise WasmtimeError._from_ptr(error)
 
     @setter_property
     def interruptable(self, enabled: bool) -> None:

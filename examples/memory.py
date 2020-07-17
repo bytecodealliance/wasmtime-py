@@ -9,7 +9,7 @@ from wasmtime import Store, Module, Instance, Trap, MemoryType, Memory, Limits
 # Create our `Store` context and then compile a module and create an
 # instance from the compiled module all in one go.
 wasmtime_store = Store()
-module = Module.from_file(wasmtime_store, "examples/memory.wat")
+module = Module.from_file(wasmtime_store.engine, "examples/memory.wat")
 instance = Instance(wasmtime_store, module, [])
 
 # Load up our exports from the instance

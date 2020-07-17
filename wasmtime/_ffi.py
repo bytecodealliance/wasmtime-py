@@ -2,6 +2,7 @@ from ctypes import *
 import os
 import sys
 import platform
+import typing
 
 from wasmtime import WasmtimeError
 
@@ -39,18 +40,24 @@ WASM_CONST = c_uint8(0)
 WASM_VAR = c_uint8(1)
 
 
+class wasm_ref_t(Structure):
+    pass
+
+
 class wasm_val_union(Union):
     _fields_ = [
         ("i32", c_int32),
         ("i64", c_int64),
         ("f32", c_float),
         ("f64", c_double),
+        ("ref", POINTER(wasm_ref_t)),
     ]
 
     i32: int
     i64: int
     f32: float
     f64: float
+    ref: "typing.Union[pointer[wasm_ref_t], None]"
 
 
 class wasm_val_t(Structure):

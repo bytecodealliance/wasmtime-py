@@ -3,7 +3,7 @@
 from wasmtime import Store, Module, Instance
 
 store = Store()
-module = Module.from_file(store, './examples/gcd.wat')
+module = Module.from_file(store.engine, './examples/gcd.wat')
 instance = Instance(store, module, [])
 gcd = instance.exports["gcd"]
 

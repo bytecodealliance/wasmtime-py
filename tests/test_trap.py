@@ -18,7 +18,7 @@ class TestTrap(unittest.TestCase):
 
     def test_frames(self):
         store = Store()
-        module = Module(store, """
+        module = Module(store.engine, """
             (module $module
                 (func (export "init")
                     call $foo)
@@ -60,7 +60,7 @@ wasm backtrace:
 
     def test_frames_no_module(self):
         store = Store()
-        module = Module(store, """
+        module = Module(store.engine, """
             (module
                 (func (export "init") unreachable)
             )
@@ -81,7 +81,7 @@ wasm backtrace:
 
     def test_wasi_exit(self):
         store = Store()
-        module = Module(store, """
+        module = Module(store.engine, """
             (module
                 (import "wasi_snapshot_preview1" "proc_exit" (func $exit (param i32)))
                 (func (export "exit") (param i32)

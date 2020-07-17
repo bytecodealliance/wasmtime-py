@@ -6,12 +6,12 @@ from wasmtime import *
 class TestInstance(unittest.TestCase):
     def test_smoke(self):
         store = Store()
-        module = Module(store, '(module)')
+        module = Module(store.engine, '(module)')
         Instance(store, module, [])
 
     def test_export_func(self):
         store = Store()
-        module = Module(store, '(module (func (export "")))')
+        module = Module(store.engine, '(module (func (export "")))')
         instance = Instance(store, module, [])
         self.assertEqual(len(instance.exports), 1)
         extern = instance.exports[0]
@@ -31,7 +31,7 @@ class TestInstance(unittest.TestCase):
     def test_export_global(self):
         store = Store()
         module = Module(
-            store, '(module (global (export "") i32 (i32.const 3)))')
+            store.engine, '(module (global (export "") i32 (i32.const 3)))')
         instance = Instance(store, module, [])
         self.assertEqual(len(instance.exports), 1)
         extern = instance.exports[0]
@@ -41,7 +41,7 @@ class TestInstance(unittest.TestCase):
 
     def test_export_memory(self):
         store = Store()
-        module = Module(store, '(module (memory (export "") 1))')
+        module = Module(store.engine, '(module (memory (export "") 1))')
         instance = Instance(store, module, [])
         self.assertEqual(len(instance.exports), 1)
         extern = instance.exports[0]
@@ -50,7 +50,7 @@ class TestInstance(unittest.TestCase):
 
     def test_export_table(self):
         store = Store()
-        module = Module(store, '(module (table (export "") 1 funcref))')
+        module = Module(store.engine, '(module (table (export "") 1 funcref))')
         instance = Instance(store, module, [])
         self.assertEqual(len(instance.exports), 1)
         extern = instance.exports[0]
@@ -58,7 +58,7 @@ class TestInstance(unittest.TestCase):
 
     def test_multiple_exports(self):
         store = Store()
-        module = Module(store, """
+        module = Module(store.engine, """
             (module
                 (func (export "a"))
                 (func (export "b"))
@@ -73,14 +73,14 @@ class TestInstance(unittest.TestCase):
 
     def test_import_func(self):
         store = Store()
-        module = Module(store, """
+        module = Module(store.engine, """
             (module
                 (import "" "" (func))
                 (start 0)
             )
         """)
         hit = []
-        func = Func(module.store, FuncType([], []), lambda: hit.append(True))
+        func = Func(store, FuncType([], []), lambda: hit.append(True))
         Instance(store, module, [func])
         assert(len(hit) == 1)
         Instance(store, module, [func])
@@ -88,7 +88,7 @@ class TestInstance(unittest.TestCase):
 
     def test_import_global(self):
         store = Store()
-        module = Module(store, """
+        module = Module(store.engine, """
             (module
                 (import "" "" (global (mut i32)))
                 (func (export "") (result i32)
@@ -98,7 +98,7 @@ class TestInstance(unittest.TestCase):
                     global.set 0)
             )
         """)
-        g = Global(module.store, GlobalType(ValType.i32(), True), 2)
+        g = Global(store, GlobalType(ValType.i32(), True), 2)
         instance = Instance(store, module, [g])
         f = instance.exports[0]
         assert(isinstance(f, Func))
@@ -121,24 +121,24 @@ class TestInstance(unittest.TestCase):
 
     def test_import_memory(self):
         store = Store()
-        module = Module(store, """
+        module = Module(store.engine, """
             (module
                 (import "" "" (memory 1))
             )
         """)
-        m = Memory(module.store, MemoryType(Limits(1, None)))
+        m = Memory(store, MemoryType(Limits(1, None)))
         Instance(store, module, [m])
 
     def test_import_table(self):
         store = Store()
-        module = Module(store, """
+        module = Module(store.engine, """
             (module
                 (table (export "") 1 funcref)
             )
         """)
         table = Instance(store, module, []).exports[0]
 
-        module = Module(store, """
+        module = Module(store.engine, """
             (module
                 (import "" "" (table 1 funcref))
             )
@@ -150,22 +150,22 @@ class TestInstance(unittest.TestCase):
         with self.assertRaises(TypeError):
             Instance(store, 1, [])  # type: ignore
         with self.assertRaises(TypeError):
-            Instance(store, Module(store, '(module (import "" "" (func)))'), [1])  # type: ignore
+            Instance(store, Module(store.engine, '(module (import "" "" (func)))'), [1])  # type: ignore
 
         val = Func(store, FuncType([], []), lambda: None)
-        module = Module(store, '(module (import "" "" (func)))')
+        module = Module(store.engine, '(module (import "" "" (func)))')
         Instance(store, module, [val])
         with self.assertRaises(WasmtimeError):
             Instance(store, module, [])
         with self.assertRaises(WasmtimeError):
             Instance(store, module, [val, val])
 
-        module = Module(store, '(module (import "" "" (global i32)))')
+        module = Module(store.engine, '(module (import "" "" (global i32)))')
         with self.assertRaises(WasmtimeError):
             Instance(store, module, [val])
 
     def test_start_trap(self):
         store = Store()
-        module = Module(store, '(module (func unreachable) (start 0))')
+        module = Module(store.engine, '(module (func unreachable) (start 0))')
         with self.assertRaises(Trap):
             Instance(store, module, [])
