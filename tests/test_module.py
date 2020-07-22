@@ -109,3 +109,11 @@ class TestModule(unittest.TestCase):
         assert(isinstance(ty, TableType))
         self.assertEqual(ty.limits, Limits(1, None))
         self.assertEqual(ty.element, ValType.funcref())
+
+    def test_serialize(self):
+        store = Store()
+        module = Module(store.engine, '(module)')
+        encoded = module.serialize()
+        module = Module.deserialize(store.engine, encoded)
+        assert(len(module.imports) == 0)
+        assert(len(module.exports) == 0)
