@@ -44,6 +44,44 @@ class Module:
         self.engine = engine
 
     @classmethod
+    def _from_ptr(cls, ptr: "pointer[ffi.wasm_module_t]", engine: Engine) -> "Module":
+        ty: "Module" = cls.__new__(cls)
+        if not isinstance(ptr, POINTER(ffi.wasm_module_t)):
+            raise TypeError("wrong pointer type")
+        ty._ptr = ptr
+        ty.engine = engine
+        return ty
+
+    @classmethod
+    def deserialize(cls, engine: Engine, encoded: typing.Union[bytes, bytearray]) -> 'Module':
+        """
+        Deserializes bytes previously created by `Module.serialize`.
+
+        This constructor for `Module` will deserialize bytes previously created
+        by a serialized module. This will only succeed if the bytes were
+        previously created by the same version of `wasmtime` as well as the
+        same configuration within `Engine`.
+        """
+
+        if not isinstance(engine, Engine):
+            raise TypeError("expected an Engine")
+        if not isinstance(encoded, (bytes, bytearray)):
+            raise TypeError("expected bytes")
+
+        # TODO: can the copy be avoided here? I can't for the life of me
+        # figure this out.
+        c_ty = c_uint8 * len(encoded)
+        binary = ffi.wasm_byte_vec_t(len(encoded), c_ty.from_buffer_copy(encoded))
+        ptr = POINTER(ffi.wasm_module_t)()
+        error = ffi.wasmtime_module_deserialize(engine._ptr, byref(binary), byref(ptr))
+        if error:
+            raise WasmtimeError._from_ptr(error)
+        ret: "Module" = cls.__new__(cls)
+        ret._ptr = ptr
+        ret.engine = engine
+        return ret
+
+    @classmethod
     def validate(cls, store: Store, wasm: typing.Union[bytes, bytearray]) -> None:
         """
         Validates whether the list of bytes `wasm` provided is a valid
@@ -91,9 +129,21 @@ class Module:
             ret.append(ExportType._from_ptr(exports.vec.data[i], exports))
         return ret
 
-    def __del__(self) -> None:
-        if hasattr(self, '_ptr'):
-            ffi.wasm_module_delete(self._ptr)
+    def serialize(self) -> bytearray:
+        """
+        Serializes this module to a binary representation.
+
+        This method will serialize this module to an in-memory byte array which
+        can be cached and later passed to `Module.deserialize` to recreate this
+        module.
+        """
+        raw = ffi.wasm_byte_vec_t()
+        err = ffi.wasmtime_module_serialize(self._ptr, byref(raw))
+        if err:
+            raise WasmtimeError._from_ptr(err)
+        ret = ffi.to_bytes(raw)
+        ffi.wasm_byte_vec_delete(byref(raw))
+        return ret
 
 
 class ImportTypeList:
