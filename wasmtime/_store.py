@@ -28,6 +28,17 @@ class Store:
 
         return InterruptHandle(self)
 
+    def gc(self) -> None:
+        """
+        Runs a GC over `externref` values that have been passed into this Store,
+        cleaning out anything that is no longer referenced.
+
+        This is not required to be run manually, but can be done so if you'd
+        like more precise control over when unreferenced `externref` values are
+        deallocated.
+        """
+        ffi.wasmtime_store_gc(self._ptr)
+
     def __del__(self) -> None:
         if hasattr(self, '_ptr'):
             ffi.wasm_store_delete(self._ptr)
