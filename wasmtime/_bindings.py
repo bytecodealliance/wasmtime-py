@@ -1866,6 +1866,12 @@ _wasmtime_wat2wasm.argtypes = [POINTER(wasm_byte_vec_t), POINTER(wasm_byte_vec_t
 def wasmtime_wat2wasm(wat: Any, ret: Any) -> pointer:
     return _wasmtime_wat2wasm(wat, ret)  # type: ignore
 
+_wasmtime_store_gc = dll.wasmtime_store_gc
+_wasmtime_store_gc.restype = None
+_wasmtime_store_gc.argtypes = [POINTER(wasm_store_t)]
+def wasmtime_store_gc(store: Any) -> None:
+    return _wasmtime_store_gc(store)  # type: ignore
+
 class wasmtime_linker_t(Structure):
     pass
 
@@ -2084,3 +2090,15 @@ _wasmtime_externref_data.restype = c_bool
 _wasmtime_externref_data.argtypes = [POINTER(wasm_val_t), POINTER(c_void_p)]
 def wasmtime_externref_data(val: Any, datap: Any) -> c_bool:
     return _wasmtime_externref_data(val, datap)  # type: ignore
+
+_wasmtime_module_serialize = dll.wasmtime_module_serialize
+_wasmtime_module_serialize.restype = POINTER(wasmtime_error_t)
+_wasmtime_module_serialize.argtypes = [POINTER(wasm_module_t), POINTER(wasm_byte_vec_t)]
+def wasmtime_module_serialize(module: Any, ret: Any) -> pointer:
+    return _wasmtime_module_serialize(module, ret)  # type: ignore
+
+_wasmtime_module_deserialize = dll.wasmtime_module_deserialize
+_wasmtime_module_deserialize.restype = POINTER(wasmtime_error_t)
+_wasmtime_module_deserialize.argtypes = [POINTER(wasm_engine_t), POINTER(wasm_byte_vec_t), POINTER(POINTER(wasm_module_t))]
+def wasmtime_module_deserialize(engine: Any, serialized: Any, ret: Any) -> pointer:
+    return _wasmtime_module_deserialize(engine, serialized, ret)  # type: ignore

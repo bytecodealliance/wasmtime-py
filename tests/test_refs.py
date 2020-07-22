@@ -16,6 +16,15 @@ def compile_and_instantiate(wat):
     return (Instance(store, module, []), store)
 
 
+class SetHitOnDrop:
+    def __init__(self, obj):
+        obj['hit'] = False
+        self.obj = obj
+
+    def __del__(self):
+        self.obj['hit'] = True
+
+
 class TestExternRef(unittest.TestCase):
     def test_smoke(self):
         (instance, store) = compile_and_instantiate(
@@ -81,6 +90,30 @@ class TestExternRef(unittest.TestCase):
         self.assertEqual(g.value, "hello")
         g.value = "goodbye"
         self.assertEqual(g.value, "goodbye")
+
+    def test_dtor_global(self):
+        obj = {}  # type: ignore
+        store = ref_types_store()
+        ty = GlobalType(ValType.externref(), True)
+        g = Global(store, ty, Val.externref(SetHitOnDrop(obj)))
+        assert(not obj['hit'])
+        g.value = None
+        assert(obj['hit'])
+
+    def test_dtor_func(self):
+        (instance, store) = compile_and_instantiate(
+            """
+            (module
+                 (func (export "f") (param externref))
+            )
+            """
+        )
+
+        f = instance.exports.get("f")
+        obj = {}  # type: ignore
+        f(SetHitOnDrop(obj))
+        store.gc()
+        assert(obj['hit'])
 
 
 class TestFuncRef(unittest.TestCase):
