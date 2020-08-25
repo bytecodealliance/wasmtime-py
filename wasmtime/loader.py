@@ -16,10 +16,12 @@ import importlib
 from importlib.abc import Loader, MetaPathFinder
 from importlib.util import spec_from_file_location
 
+predefined_modules = []
 store = Store()
 linker = Linker(store)
 # TODO: how to configure wasi?
 wasi = WasiInstance(store, "wasi_snapshot_preview1", WasiConfig())
+predefined_modules.append("wasi_snapshot_preview1")
 linker.define_wasi(wasi)
 linker.allow_shadowing = True
 
@@ -62,6 +64,9 @@ class _WasmtimeLoader(Loader):
 
         for wasm_import in wasm_module.imports:
             module_name = wasm_import.module
+            # skip modules predefined in library
+            if module_name in predefined_modules:
+                break
             field_name = wasm_import.name
             imported_module = importlib.import_module(module_name)
             item = imported_module.__dict__[field_name]

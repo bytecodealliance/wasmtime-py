@@ -5,6 +5,7 @@ import wasmtime.loader  # noqa: F401
 
 import loader_load_python  # type: ignore
 import loader_load_wasm  # type: ignore
+import loader_load_wasi  # type: ignore # noqa: F401
 
 # This imports our `loader_add.wat` file next to this module
 import loader_add  # type: ignore
