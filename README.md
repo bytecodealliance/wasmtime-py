@@ -44,11 +44,10 @@ macOS, and Linux
 In this example, we compile and instantiate a WebAssembly module and use it from Python:
 
 ```python
-from wasmtime import Store, Module, Engine, Instance, Func, FuncType
+from wasmtime import Store, Module, Instance, Func, FuncType
 
-engine = Engine()
-store = Store(engine)
-module = Module(engine, """
+store = Store()
+module = Module(store.engine, """
   (module
     (func $hello (import "" "hello"))
     (func (export "run") (call $hello))
