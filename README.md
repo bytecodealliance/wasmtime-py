@@ -47,7 +47,7 @@ In this example, we compile and instantiate a WebAssembly module and use it from
 from wasmtime import Store, Module, Instance, Func, FuncType
 
 store = Store()
-module = Module(store, """
+module = Module(store.engine, """
   (module
     (func $hello (import "" "hello"))
     (func (export "run") (call $hello))
