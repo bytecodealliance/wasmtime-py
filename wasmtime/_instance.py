@@ -1,15 +1,16 @@
 from . import _ffi as ffi
 from ctypes import POINTER, pointer, byref
-from wasmtime import Module, Trap, WasmtimeError, Store
+from wasmtime import Module, Trap, WasmtimeError, Store, InstanceType
 from ._extern import wrap_extern, get_extern_ptr
 from ._exportable import AsExtern
-from typing import Sequence, Union, Optional, Mapping, Iterable
+from typing import Sequence, Union, Optional, Mapping, Iterable, Any
 
 
 class Instance:
     _ptr: "pointer[ffi.wasm_instance_t]"
     _module: Module
     _exports: Optional["InstanceExports"]
+    _owner: Optional[Any]
 
     def __init__(self, store: Store, module: Module, imports: Sequence[AsExtern]):
         """
@@ -47,18 +48,27 @@ class Instance:
         if trap:
             raise Trap._from_ptr(trap)
         self._ptr = instance
-        self._module = module
         self._exports = None
+        self._owner = None
 
     @classmethod
-    def _from_ptr(cls, ptr: pointer, module: Module) -> "Instance":
+    def _from_ptr(cls, ptr: 'pointer[ffi.wasm_instance_t]', owner: Optional[Any]) -> "Instance":
         ty: "Instance" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_instance_t)):
             raise TypeError("wrong pointer type")
         ty._ptr = ptr
-        ty._module = module
         ty._exports = None
+        ty._owner = owner
         return ty
+
+    @property
+    def type(self) -> InstanceType:
+        """
+        Gets the type of this instance as an `InstanceType`
+        """
+
+        ptr = ffi.wasm_instance_type(self._ptr)
+        return InstanceType._from_ptr(ptr, None)
 
     @property
     def exports(self) -> "InstanceExports":
@@ -74,11 +84,14 @@ class Instance:
             extern_list = []
             for i in range(0, externs.vec.size):
                 extern_list.append(wrap_extern(externs.vec.data[i], externs))
-            self._exports = InstanceExports(extern_list, self._module)
+            self._exports = InstanceExports(extern_list, self.type)
         return self._exports
 
+    def _as_extern(self) -> "pointer[ffi.wasm_extern_t]":
+        return ffi.wasm_instance_as_extern(self._ptr)
+
     def __del__(self) -> None:
-        if hasattr(self, '_ptr'):
+        if hasattr(self, '_owner') and self._owner is None:
             ffi.wasm_instance_delete(self._ptr)
 
 
@@ -86,10 +99,10 @@ class InstanceExports:
     _extern_list: Sequence[AsExtern]
     _extern_map: Mapping[str, AsExtern]
 
-    def __init__(self, extern_list: Sequence[AsExtern], module: Module):
+    def __init__(self, extern_list: Sequence[AsExtern], ty: InstanceType):
         self._extern_list = extern_list
         self._extern_map = {}
-        exports = module.exports
+        exports = ty.exports
         for i, extern in enumerate(extern_list):
             self._extern_map[exports[i].name] = extern
 

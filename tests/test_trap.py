@@ -53,9 +53,9 @@ class TestTrap(unittest.TestCase):
         self.assertEqual(str(trap), """\
 wasm trap: unreachable
 wasm backtrace:
-  0:   0x2d - module!bar
-  1:   0x28 - module!foo
-  2:   0x23 - module!<wasm function 0>
+    0:   0x2d - module!bar
+    1:   0x28 - module!foo
+    2:   0x23 - module!<wasm function 0>
 """)
 
     def test_frames_no_module(self):

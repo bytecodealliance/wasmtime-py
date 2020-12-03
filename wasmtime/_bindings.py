@@ -1812,6 +1812,12 @@ _wasmtime_config_wasm_multi_value_set.argtypes = [POINTER(wasm_config_t), c_bool
 def wasmtime_config_wasm_multi_value_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_wasm_multi_value_set(arg0, arg1)  # type: ignore
 
+_wasmtime_config_wasm_module_linking_set = dll.wasmtime_config_wasm_module_linking_set
+_wasmtime_config_wasm_module_linking_set.restype = None
+_wasmtime_config_wasm_module_linking_set.argtypes = [POINTER(wasm_config_t), c_bool]
+def wasmtime_config_wasm_module_linking_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_wasm_module_linking_set(arg0, arg1)  # type: ignore
+
 _wasmtime_config_strategy_set = dll.wasmtime_config_strategy_set
 _wasmtime_config_strategy_set.restype = POINTER(wasmtime_error_t)
 _wasmtime_config_strategy_set.argtypes = [POINTER(wasm_config_t), wasmtime_strategy_t]
@@ -2102,3 +2108,219 @@ _wasmtime_module_deserialize.restype = POINTER(wasmtime_error_t)
 _wasmtime_module_deserialize.argtypes = [POINTER(wasm_engine_t), POINTER(wasm_byte_vec_t), POINTER(POINTER(wasm_module_t))]
 def wasmtime_module_deserialize(engine: Any, serialized: Any, ret: Any) -> pointer:
     return _wasmtime_module_deserialize(engine, serialized, ret)  # type: ignore
+
+class wasm_instancetype_t(Structure):
+    pass
+
+_wasm_instancetype_delete = dll.wasm_instancetype_delete
+_wasm_instancetype_delete.restype = None
+_wasm_instancetype_delete.argtypes = [POINTER(wasm_instancetype_t)]
+def wasm_instancetype_delete(arg0: Any) -> None:
+    return _wasm_instancetype_delete(arg0)  # type: ignore
+
+class wasm_instancetype_vec_t(Structure):
+    _fields_ = [
+        ("size", c_size_t),
+        ("data", POINTER(POINTER(wasm_instancetype_t))),
+    ]
+
+_wasm_instancetype_vec_new_empty = dll.wasm_instancetype_vec_new_empty
+_wasm_instancetype_vec_new_empty.restype = None
+_wasm_instancetype_vec_new_empty.argtypes = [POINTER(wasm_instancetype_vec_t)]
+def wasm_instancetype_vec_new_empty(out: Any) -> None:
+    return _wasm_instancetype_vec_new_empty(out)  # type: ignore
+
+_wasm_instancetype_vec_new_uninitialized = dll.wasm_instancetype_vec_new_uninitialized
+_wasm_instancetype_vec_new_uninitialized.restype = None
+_wasm_instancetype_vec_new_uninitialized.argtypes = [POINTER(wasm_instancetype_vec_t), c_size_t]
+def wasm_instancetype_vec_new_uninitialized(out: Any, arg1: Any) -> None:
+    return _wasm_instancetype_vec_new_uninitialized(out, arg1)  # type: ignore
+
+_wasm_instancetype_vec_new = dll.wasm_instancetype_vec_new
+_wasm_instancetype_vec_new.restype = None
+_wasm_instancetype_vec_new.argtypes = [POINTER(wasm_instancetype_vec_t), c_size_t, POINTER(POINTER(wasm_instancetype_t))]
+def wasm_instancetype_vec_new(out: Any, arg1: Any, arg2: Any) -> None:
+    return _wasm_instancetype_vec_new(out, arg1, arg2)  # type: ignore
+
+_wasm_instancetype_vec_copy = dll.wasm_instancetype_vec_copy
+_wasm_instancetype_vec_copy.restype = None
+_wasm_instancetype_vec_copy.argtypes = [POINTER(wasm_instancetype_vec_t), POINTER(wasm_instancetype_vec_t)]
+def wasm_instancetype_vec_copy(out: Any, arg1: Any) -> None:
+    return _wasm_instancetype_vec_copy(out, arg1)  # type: ignore
+
+_wasm_instancetype_vec_delete = dll.wasm_instancetype_vec_delete
+_wasm_instancetype_vec_delete.restype = None
+_wasm_instancetype_vec_delete.argtypes = [POINTER(wasm_instancetype_vec_t)]
+def wasm_instancetype_vec_delete(arg0: Any) -> None:
+    return _wasm_instancetype_vec_delete(arg0)  # type: ignore
+
+_wasm_instancetype_copy = dll.wasm_instancetype_copy
+_wasm_instancetype_copy.restype = POINTER(wasm_instancetype_t)
+_wasm_instancetype_copy.argtypes = [POINTER(wasm_instancetype_t)]
+def wasm_instancetype_copy(arg0: Any) -> pointer:
+    return _wasm_instancetype_copy(arg0)  # type: ignore
+
+_wasm_instancetype_exports = dll.wasm_instancetype_exports
+_wasm_instancetype_exports.restype = None
+_wasm_instancetype_exports.argtypes = [POINTER(wasm_instancetype_t), POINTER(wasm_exporttype_vec_t)]
+def wasm_instancetype_exports(arg0: Any, out: Any) -> None:
+    return _wasm_instancetype_exports(arg0, out)  # type: ignore
+
+_wasm_instancetype_as_externtype = dll.wasm_instancetype_as_externtype
+_wasm_instancetype_as_externtype.restype = POINTER(wasm_externtype_t)
+_wasm_instancetype_as_externtype.argtypes = [POINTER(wasm_instancetype_t)]
+def wasm_instancetype_as_externtype(arg0: Any) -> pointer:
+    return _wasm_instancetype_as_externtype(arg0)  # type: ignore
+
+_wasm_externtype_as_instancetype = dll.wasm_externtype_as_instancetype
+_wasm_externtype_as_instancetype.restype = POINTER(wasm_instancetype_t)
+_wasm_externtype_as_instancetype.argtypes = [POINTER(wasm_externtype_t)]
+def wasm_externtype_as_instancetype(arg0: Any) -> pointer:
+    return _wasm_externtype_as_instancetype(arg0)  # type: ignore
+
+_wasm_instancetype_as_externtype_const = dll.wasm_instancetype_as_externtype_const
+_wasm_instancetype_as_externtype_const.restype = POINTER(wasm_externtype_t)
+_wasm_instancetype_as_externtype_const.argtypes = [POINTER(wasm_instancetype_t)]
+def wasm_instancetype_as_externtype_const(arg0: Any) -> pointer:
+    return _wasm_instancetype_as_externtype_const(arg0)  # type: ignore
+
+_wasm_externtype_as_instancetype_const = dll.wasm_externtype_as_instancetype_const
+_wasm_externtype_as_instancetype_const.restype = POINTER(wasm_instancetype_t)
+_wasm_externtype_as_instancetype_const.argtypes = [POINTER(wasm_externtype_t)]
+def wasm_externtype_as_instancetype_const(arg0: Any) -> pointer:
+    return _wasm_externtype_as_instancetype_const(arg0)  # type: ignore
+
+class wasm_moduletype_t(Structure):
+    pass
+
+_wasm_moduletype_delete = dll.wasm_moduletype_delete
+_wasm_moduletype_delete.restype = None
+_wasm_moduletype_delete.argtypes = [POINTER(wasm_moduletype_t)]
+def wasm_moduletype_delete(arg0: Any) -> None:
+    return _wasm_moduletype_delete(arg0)  # type: ignore
+
+class wasm_moduletype_vec_t(Structure):
+    _fields_ = [
+        ("size", c_size_t),
+        ("data", POINTER(POINTER(wasm_moduletype_t))),
+    ]
+
+_wasm_moduletype_vec_new_empty = dll.wasm_moduletype_vec_new_empty
+_wasm_moduletype_vec_new_empty.restype = None
+_wasm_moduletype_vec_new_empty.argtypes = [POINTER(wasm_moduletype_vec_t)]
+def wasm_moduletype_vec_new_empty(out: Any) -> None:
+    return _wasm_moduletype_vec_new_empty(out)  # type: ignore
+
+_wasm_moduletype_vec_new_uninitialized = dll.wasm_moduletype_vec_new_uninitialized
+_wasm_moduletype_vec_new_uninitialized.restype = None
+_wasm_moduletype_vec_new_uninitialized.argtypes = [POINTER(wasm_moduletype_vec_t), c_size_t]
+def wasm_moduletype_vec_new_uninitialized(out: Any, arg1: Any) -> None:
+    return _wasm_moduletype_vec_new_uninitialized(out, arg1)  # type: ignore
+
+_wasm_moduletype_vec_new = dll.wasm_moduletype_vec_new
+_wasm_moduletype_vec_new.restype = None
+_wasm_moduletype_vec_new.argtypes = [POINTER(wasm_moduletype_vec_t), c_size_t, POINTER(POINTER(wasm_moduletype_t))]
+def wasm_moduletype_vec_new(out: Any, arg1: Any, arg2: Any) -> None:
+    return _wasm_moduletype_vec_new(out, arg1, arg2)  # type: ignore
+
+_wasm_moduletype_vec_copy = dll.wasm_moduletype_vec_copy
+_wasm_moduletype_vec_copy.restype = None
+_wasm_moduletype_vec_copy.argtypes = [POINTER(wasm_moduletype_vec_t), POINTER(wasm_moduletype_vec_t)]
+def wasm_moduletype_vec_copy(out: Any, arg1: Any) -> None:
+    return _wasm_moduletype_vec_copy(out, arg1)  # type: ignore
+
+_wasm_moduletype_vec_delete = dll.wasm_moduletype_vec_delete
+_wasm_moduletype_vec_delete.restype = None
+_wasm_moduletype_vec_delete.argtypes = [POINTER(wasm_moduletype_vec_t)]
+def wasm_moduletype_vec_delete(arg0: Any) -> None:
+    return _wasm_moduletype_vec_delete(arg0)  # type: ignore
+
+_wasm_moduletype_copy = dll.wasm_moduletype_copy
+_wasm_moduletype_copy.restype = POINTER(wasm_moduletype_t)
+_wasm_moduletype_copy.argtypes = [POINTER(wasm_moduletype_t)]
+def wasm_moduletype_copy(arg0: Any) -> pointer:
+    return _wasm_moduletype_copy(arg0)  # type: ignore
+
+_wasm_moduletype_imports = dll.wasm_moduletype_imports
+_wasm_moduletype_imports.restype = None
+_wasm_moduletype_imports.argtypes = [POINTER(wasm_moduletype_t), POINTER(wasm_importtype_vec_t)]
+def wasm_moduletype_imports(arg0: Any, out: Any) -> None:
+    return _wasm_moduletype_imports(arg0, out)  # type: ignore
+
+_wasm_moduletype_exports = dll.wasm_moduletype_exports
+_wasm_moduletype_exports.restype = None
+_wasm_moduletype_exports.argtypes = [POINTER(wasm_moduletype_t), POINTER(wasm_exporttype_vec_t)]
+def wasm_moduletype_exports(arg0: Any, out: Any) -> None:
+    return _wasm_moduletype_exports(arg0, out)  # type: ignore
+
+_wasm_moduletype_as_externtype = dll.wasm_moduletype_as_externtype
+_wasm_moduletype_as_externtype.restype = POINTER(wasm_externtype_t)
+_wasm_moduletype_as_externtype.argtypes = [POINTER(wasm_moduletype_t)]
+def wasm_moduletype_as_externtype(arg0: Any) -> pointer:
+    return _wasm_moduletype_as_externtype(arg0)  # type: ignore
+
+_wasm_externtype_as_moduletype = dll.wasm_externtype_as_moduletype
+_wasm_externtype_as_moduletype.restype = POINTER(wasm_moduletype_t)
+_wasm_externtype_as_moduletype.argtypes = [POINTER(wasm_externtype_t)]
+def wasm_externtype_as_moduletype(arg0: Any) -> pointer:
+    return _wasm_externtype_as_moduletype(arg0)  # type: ignore
+
+_wasm_moduletype_as_externtype_const = dll.wasm_moduletype_as_externtype_const
+_wasm_moduletype_as_externtype_const.restype = POINTER(wasm_externtype_t)
+_wasm_moduletype_as_externtype_const.argtypes = [POINTER(wasm_moduletype_t)]
+def wasm_moduletype_as_externtype_const(arg0: Any) -> pointer:
+    return _wasm_moduletype_as_externtype_const(arg0)  # type: ignore
+
+_wasm_externtype_as_moduletype_const = dll.wasm_externtype_as_moduletype_const
+_wasm_externtype_as_moduletype_const.restype = POINTER(wasm_moduletype_t)
+_wasm_externtype_as_moduletype_const.argtypes = [POINTER(wasm_externtype_t)]
+def wasm_externtype_as_moduletype_const(arg0: Any) -> pointer:
+    return _wasm_externtype_as_moduletype_const(arg0)  # type: ignore
+
+_wasm_module_as_extern = dll.wasm_module_as_extern
+_wasm_module_as_extern.restype = POINTER(wasm_extern_t)
+_wasm_module_as_extern.argtypes = [POINTER(wasm_module_t)]
+def wasm_module_as_extern(arg0: Any) -> pointer:
+    return _wasm_module_as_extern(arg0)  # type: ignore
+
+_wasm_extern_as_module = dll.wasm_extern_as_module
+_wasm_extern_as_module.restype = POINTER(wasm_module_t)
+_wasm_extern_as_module.argtypes = [POINTER(wasm_extern_t)]
+def wasm_extern_as_module(arg0: Any) -> pointer:
+    return _wasm_extern_as_module(arg0)  # type: ignore
+
+_wasm_extern_as_module_const = dll.wasm_extern_as_module_const
+_wasm_extern_as_module_const.restype = POINTER(wasm_module_t)
+_wasm_extern_as_module_const.argtypes = [POINTER(wasm_extern_t)]
+def wasm_extern_as_module_const(arg0: Any) -> pointer:
+    return _wasm_extern_as_module_const(arg0)  # type: ignore
+
+_wasm_instance_as_extern = dll.wasm_instance_as_extern
+_wasm_instance_as_extern.restype = POINTER(wasm_extern_t)
+_wasm_instance_as_extern.argtypes = [POINTER(wasm_instance_t)]
+def wasm_instance_as_extern(arg0: Any) -> pointer:
+    return _wasm_instance_as_extern(arg0)  # type: ignore
+
+_wasm_extern_as_instance = dll.wasm_extern_as_instance
+_wasm_extern_as_instance.restype = POINTER(wasm_instance_t)
+_wasm_extern_as_instance.argtypes = [POINTER(wasm_extern_t)]
+def wasm_extern_as_instance(arg0: Any) -> pointer:
+    return _wasm_extern_as_instance(arg0)  # type: ignore
+
+_wasm_extern_as_instance_const = dll.wasm_extern_as_instance_const
+_wasm_extern_as_instance_const.restype = POINTER(wasm_instance_t)
+_wasm_extern_as_instance_const.argtypes = [POINTER(wasm_extern_t)]
+def wasm_extern_as_instance_const(arg0: Any) -> pointer:
+    return _wasm_extern_as_instance_const(arg0)  # type: ignore
+
+_wasm_instance_type = dll.wasm_instance_type
+_wasm_instance_type.restype = POINTER(wasm_instancetype_t)
+_wasm_instance_type.argtypes = [POINTER(wasm_instance_t)]
+def wasm_instance_type(arg0: Any) -> pointer:
+    return _wasm_instance_type(arg0)  # type: ignore
+
+_wasm_module_type = dll.wasm_module_type
+_wasm_module_type.restype = POINTER(wasm_moduletype_t)
+_wasm_module_type.argtypes = [POINTER(wasm_module_t)]
+def wasm_module_type(arg0: Any) -> pointer:
+    return _wasm_module_type(arg0)  # type: ignore

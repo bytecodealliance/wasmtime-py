@@ -18,7 +18,7 @@ from ._config import Config
 from ._engine import Engine
 from ._store import Store
 from ._types import FuncType, GlobalType, MemoryType, TableType
-from ._types import ValType, Limits, ImportType, ExportType
+from ._types import ValType, Limits, ImportType, ExportType, ModuleType, InstanceType
 from ._wat2wasm import wat2wasm
 from ._module import Module
 from ._value import Val, IntoVal

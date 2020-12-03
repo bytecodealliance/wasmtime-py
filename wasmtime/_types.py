@@ -321,6 +321,93 @@ class MemoryType:
             ffi.wasm_memorytype_delete(self._ptr)
 
 
+class ModuleType:
+    _ptr: "pointer[ffi.wasm_moduletype_t]"
+    _owner: Optional[Any]
+
+    def __init__(self) -> None:
+        raise WasmtimeError("cannot create a `ModuleType` currently")
+
+    @classmethod
+    def _from_ptr(cls, ptr: "pointer[ffi.wasm_moduletype_t]", owner: Optional[Any]) -> "ModuleType":
+        ty: "ModuleType" = cls.__new__(cls)
+        if not isinstance(ptr, POINTER(ffi.wasm_moduletype_t)):
+            raise TypeError("wrong pointer type")
+        ty._ptr = ptr
+        ty._owner = owner
+        return ty
+
+    @property
+    def exports(self) -> List['ExportType']:
+        """
+        Returns the types of the exports that this module has
+        """
+
+        exports = ExportTypeList()
+        ffi.wasm_moduletype_exports(self._ptr, byref(exports.vec))
+        ret = []
+        for i in range(0, exports.vec.size):
+            ret.append(ExportType._from_ptr(exports.vec.data[i], exports))
+        return ret
+
+    @property
+    def imports(self) -> List['ImportType']:
+        """
+        Returns the types of the imports that this module has
+        """
+
+        imports = ImportTypeList()
+        ffi.wasm_moduletype_imports(self._ptr, byref(imports.vec))
+        ret = []
+        for i in range(0, imports.vec.size):
+            ret.append(ImportType._from_ptr(imports.vec.data[i], imports))
+        return ret
+
+    def _as_extern(self) -> "pointer[ffi.wasm_externtype_t]":
+        return ffi.wasm_moduletype_as_externtype_const(self._ptr)
+
+    def __del__(self) -> None:
+        if hasattr(self, '_owner') and self._owner is None:
+            ffi.wasm_moduletype_delete(self._ptr)
+
+
+class InstanceType:
+    _ptr: "pointer[ffi.wasm_instancetype_t]"
+    _owner: Optional[Any]
+
+    def __init__(self) -> None:
+        raise WasmtimeError("cannot create an `InstanceType` currently")
+
+    @classmethod
+    def _from_ptr(cls, ptr: "pointer[ffi.wasm_instancetype_t]", owner: Optional[Any]) -> "InstanceType":
+        ty: "InstanceType" = cls.__new__(cls)
+        if not isinstance(ptr, POINTER(ffi.wasm_instancetype_t)):
+            raise TypeError("wrong pointer type")
+        ty._ptr = ptr
+        ty._owner = owner
+        return ty
+
+    @property
+    def exports(self) -> List['ExportType']:
+        """
+        Returns the types of the exports that this instance has
+        """
+
+        exports = ExportTypeList()
+        ffi.wasm_instancetype_exports(self._ptr, byref(exports.vec))
+        ret = []
+        for i in range(0, exports.vec.size):
+            ret.append(ExportType._from_ptr(exports.vec.data[i], exports))
+        return ret
+
+    def _as_extern(self) -> "pointer[ffi.wasm_externtype_t]":
+        return ffi.wasm_instancetype_as_externtype_const(self._ptr)
+
+    def __del__(self) -> None:
+        if hasattr(self, '_owner') and self._owner is None:
+            ffi.wasm_instancetype_delete(self._ptr)
+
+
 def wrap_externtype(ptr: "pointer[ffi.wasm_externtype_t]", owner: Optional[Any]) -> "AsExternType":
     if not isinstance(ptr, POINTER(ffi.wasm_externtype_t)):
         raise TypeError("wrong pointer type")
@@ -334,8 +421,15 @@ def wrap_externtype(ptr: "pointer[ffi.wasm_externtype_t]", owner: Optional[Any])
     if val:
         return GlobalType._from_ptr(val, owner)
     val = ffi.wasm_externtype_as_memorytype_const(ptr)
-    assert(val)
-    return MemoryType._from_ptr(val, owner)
+    if val:
+        return MemoryType._from_ptr(val, owner)
+    val = ffi.wasm_externtype_as_moduletype_const(ptr)
+    if val:
+        return ModuleType._from_ptr(val, owner)
+    val = ffi.wasm_externtype_as_instancetype_const(ptr)
+    if val:
+        return InstanceType._from_ptr(val, owner)
+    raise WasmtimeError("unknown extern type")
 
 
 class ImportType:
@@ -360,11 +454,17 @@ class ImportType:
         return ffi.to_str(ffi.wasm_importtype_module(self._ptr).contents)
 
     @property
-    def name(self) -> str:
+    def name(self) -> Optional[str]:
         """
-        Returns the name in the modulethis import type refers to
+        Returns the name in the modulethis import type refers toa.
+
+        Note that `None` may be returned for the module linking proposal where
+        the field name is optional.
         """
-        return ffi.to_str(ffi.wasm_importtype_name(self._ptr).contents)
+        ptr = ffi.wasm_importtype_name(self._ptr)
+        if ptr:
+            return ffi.to_str(ptr.contents)
+        return None
 
     @property
     def type(self) -> "AsExternType":
@@ -412,4 +512,20 @@ class ExportType:
             ffi.wasm_exporttype_delete(self._ptr)
 
 
-AsExternType = Union[FuncType, TableType, MemoryType, GlobalType]
+class ImportTypeList:
+    def __init__(self) -> None:
+        self.vec = ffi.wasm_importtype_vec_t(0, None)
+
+    def __del__(self) -> None:
+        ffi.wasm_importtype_vec_delete(byref(self.vec))
+
+
+class ExportTypeList:
+    def __init__(self) -> None:
+        self.vec = ffi.wasm_exporttype_vec_t(0, None)
+
+    def __del__(self) -> None:
+        ffi.wasm_exporttype_vec_delete(byref(self.vec))
+
+
+AsExternType = Union[FuncType, TableType, MemoryType, GlobalType, InstanceType, ModuleType]
