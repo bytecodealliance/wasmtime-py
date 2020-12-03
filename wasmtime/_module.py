@@ -1,6 +1,7 @@
 from . import _ffi as ffi
+from ._types import ExportTypeList, ImportTypeList
 from ctypes import *
-from wasmtime import Store, Engine, wat2wasm, ImportType, ExportType, WasmtimeError
+from wasmtime import Store, Engine, wat2wasm, ImportType, ExportType, WasmtimeError, ModuleType
 import typing
 
 
@@ -41,15 +42,15 @@ class Module:
         if error:
             raise WasmtimeError._from_ptr(error)
         self._ptr = ptr
-        self.engine = engine
+        self._owner = None
 
     @classmethod
-    def _from_ptr(cls, ptr: "pointer[ffi.wasm_module_t]", engine: Engine) -> "Module":
+    def _from_ptr(cls, ptr: "pointer[ffi.wasm_module_t]", owner: typing.Optional[typing.Any]) -> "Module":
         ty: "Module" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_module_t)):
             raise TypeError("wrong pointer type")
         ty._ptr = ptr
-        ty.engine = engine
+        ty._owner = owner
         return ty
 
     @classmethod
@@ -78,7 +79,7 @@ class Module:
             raise WasmtimeError._from_ptr(error)
         ret: "Module" = cls.__new__(cls)
         ret._ptr = ptr
-        ret.engine = engine
+        ret._owner = None
         return ret
 
     @classmethod
@@ -102,6 +103,15 @@ class Module:
         error = ffi.wasmtime_module_validate(store._ptr, byref(binary))
         if error:
             raise WasmtimeError._from_ptr(error)
+
+    @property
+    def type(self) -> ModuleType:
+        """
+        Gets the type of this module as a `ModuleType`
+        """
+
+        ptr = ffi.wasm_module_type(self._ptr)
+        return ModuleType._from_ptr(ptr, None)
 
     @property
     def imports(self) -> typing.List[ImportType]:
@@ -145,18 +155,9 @@ class Module:
         ffi.wasm_byte_vec_delete(byref(raw))
         return ret
 
-
-class ImportTypeList:
-    def __init__(self) -> None:
-        self.vec = ffi.wasm_importtype_vec_t(0, None)
+    def _as_extern(self) -> "pointer[ffi.wasm_extern_t]":
+        return ffi.wasm_module_as_extern(self._ptr)
 
     def __del__(self) -> None:
-        ffi.wasm_importtype_vec_delete(byref(self.vec))
-
-
-class ExportTypeList:
-    def __init__(self) -> None:
-        self.vec = ffi.wasm_exporttype_vec_t(0, None)
-
-    def __del__(self) -> None:
-        ffi.wasm_exporttype_vec_delete(byref(self.vec))
+        if hasattr(self, '_owner') and self._owner is None:
+            ffi.wasm_module_delete(self._ptr)

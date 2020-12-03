@@ -63,7 +63,7 @@ class Linker:
             raise WasmtimeError._from_ptr(error)
         if trap:
             raise Trap._from_ptr(trap)
-        return Instance._from_ptr(instance, module)
+        return Instance._from_ptr(instance, None)
 
     def __del__(self) -> None:
         if hasattr(self, '_ptr'):

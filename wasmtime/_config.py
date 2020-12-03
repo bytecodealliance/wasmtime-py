@@ -95,6 +95,18 @@ class Config:
         ffi.wasmtime_config_wasm_multi_value_set(self._ptr, enable)
 
     @setter_property
+    def wasm_module_linking(self, enable: bool) -> None:
+        """
+        Configures whether the wasm [module linking proposal] is enabled.
+
+        [module linking proposal]: https://github.com/webassembly/module-linking
+        """
+
+        if not isinstance(enable, bool):
+            raise TypeError('expected a bool')
+        ffi.wasmtime_config_wasm_module_linking_set(self._ptr, enable)
+
+    @setter_property
     def strategy(self, strategy: str) -> None:
         """
         Configures the compilation strategy used for wasm code.
