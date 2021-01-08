@@ -57,9 +57,9 @@ class TestWasi(unittest.TestCase):
         """)
         imp = module.imports[0]
         binding = instance.bind(imp)
-        self.assertTrue(isinstance(binding, Func))
         assert(isinstance(binding, Func))
-        binding(1, 2)  # should return EFAULT basically
+        with self.assertRaises(Trap):
+            binding(1, 2)
 
     def test_preview1(self):
         config = WasiConfig()
@@ -73,6 +73,6 @@ class TestWasi(unittest.TestCase):
         """)
         imp = module.imports[0]
         binding = instance.bind(imp)
-        self.assertTrue(isinstance(binding, Func))
         assert(isinstance(binding, Func))
-        binding(1, 2)  # should return EFAULT basically
+        with self.assertRaises(Trap):
+            binding(1, 2)
