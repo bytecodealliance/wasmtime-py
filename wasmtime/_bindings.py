@@ -1114,9 +1114,9 @@ _wasm_func_as_ref_const.argtypes = [POINTER(wasm_func_t)]
 def wasm_func_as_ref_const(arg0: Any) -> pointer:
     return _wasm_func_as_ref_const(arg0)  # type: ignore
 
-wasm_func_callback_t = CFUNCTYPE(c_size_t, POINTER(wasm_val_t), POINTER(wasm_val_t))
+wasm_func_callback_t = CFUNCTYPE(c_size_t, POINTER(wasm_val_vec_t), POINTER(wasm_val_vec_t))
 
-wasm_func_callback_with_env_t = CFUNCTYPE(c_size_t, c_void_p, POINTER(wasm_val_t), POINTER(wasm_val_t))
+wasm_func_callback_with_env_t = CFUNCTYPE(c_size_t, c_void_p, POINTER(wasm_val_vec_t), POINTER(wasm_val_vec_t))
 
 _wasm_func_new = dll.wasm_func_new
 _wasm_func_new.restype = POINTER(wasm_func_t)
@@ -1150,7 +1150,7 @@ def wasm_func_result_arity(arg0: Any) -> int:
 
 _wasm_func_call = dll.wasm_func_call
 _wasm_func_call.restype = POINTER(wasm_trap_t)
-_wasm_func_call.argtypes = [POINTER(wasm_func_t), POINTER(wasm_val_t), POINTER(wasm_val_t)]
+_wasm_func_call.argtypes = [POINTER(wasm_func_t), POINTER(wasm_val_vec_t), POINTER(wasm_val_vec_t)]
 def wasm_func_call(arg0: Any, args: Any, results: Any) -> pointer:
     return _wasm_func_call(arg0, args, results)  # type: ignore
 
@@ -1631,7 +1631,7 @@ def wasm_instance_as_ref_const(arg0: Any) -> pointer:
 
 _wasm_instance_new = dll.wasm_instance_new
 _wasm_instance_new.restype = POINTER(wasm_instance_t)
-_wasm_instance_new.argtypes = [POINTER(wasm_store_t), POINTER(wasm_module_t), POINTER(POINTER(wasm_extern_t)), POINTER(POINTER(wasm_trap_t))]
+_wasm_instance_new.argtypes = [POINTER(wasm_store_t), POINTER(wasm_module_t), POINTER(wasm_extern_vec_t), POINTER(POINTER(wasm_trap_t))]
 def wasm_instance_new(arg0: Any, arg1: Any, imports: Any, arg3: Any) -> pointer:
     return _wasm_instance_new(arg0, arg1, imports, arg3)  # type: ignore
 
@@ -1944,9 +1944,9 @@ def wasmtime_linker_get_one_by_name(linker: Any, module: Any, name: Any, item: A
 class wasmtime_caller_t(Structure):
     pass
 
-wasmtime_func_callback_t = CFUNCTYPE(c_size_t, POINTER(wasmtime_caller_t), POINTER(wasm_val_t), POINTER(wasm_val_t))
+wasmtime_func_callback_t = CFUNCTYPE(c_size_t, POINTER(wasmtime_caller_t), POINTER(wasm_val_vec_t), POINTER(wasm_val_vec_t))
 
-wasmtime_func_callback_with_env_t = CFUNCTYPE(c_size_t, POINTER(wasmtime_caller_t), c_void_p, POINTER(wasm_val_t), POINTER(wasm_val_t))
+wasmtime_func_callback_with_env_t = CFUNCTYPE(c_size_t, POINTER(wasmtime_caller_t), c_void_p, POINTER(wasm_val_vec_t), POINTER(wasm_val_vec_t))
 
 _wasmtime_func_new = dll.wasmtime_func_new
 _wasmtime_func_new.restype = POINTER(wasm_func_t)
@@ -2019,9 +2019,9 @@ def wasmtime_frame_module_name(arg0: Any) -> pointer:
 
 _wasmtime_func_call = dll.wasmtime_func_call
 _wasmtime_func_call.restype = POINTER(wasmtime_error_t)
-_wasmtime_func_call.argtypes = [POINTER(wasm_func_t), POINTER(wasm_val_t), c_size_t, POINTER(wasm_val_t), c_size_t, POINTER(POINTER(wasm_trap_t))]
-def wasmtime_func_call(func: Any, args: Any, num_args: Any, results: Any, num_results: Any, trap: Any) -> pointer:
-    return _wasmtime_func_call(func, args, num_args, results, num_results, trap)  # type: ignore
+_wasmtime_func_call.argtypes = [POINTER(wasm_func_t), POINTER(wasm_val_vec_t), POINTER(wasm_val_vec_t), POINTER(POINTER(wasm_trap_t))]
+def wasmtime_func_call(func: Any, args: Any, results: Any, trap: Any) -> pointer:
+    return _wasmtime_func_call(func, args, results, trap)  # type: ignore
 
 _wasmtime_global_new = dll.wasmtime_global_new
 _wasmtime_global_new.restype = POINTER(wasmtime_error_t)
@@ -2037,9 +2037,9 @@ def wasmtime_global_set(arg0: Any, val: Any) -> pointer:
 
 _wasmtime_instance_new = dll.wasmtime_instance_new
 _wasmtime_instance_new.restype = POINTER(wasmtime_error_t)
-_wasmtime_instance_new.argtypes = [POINTER(wasm_store_t), POINTER(wasm_module_t), POINTER(POINTER(wasm_extern_t)), c_size_t, POINTER(POINTER(wasm_instance_t)), POINTER(POINTER(wasm_trap_t))]
-def wasmtime_instance_new(store: Any, module: Any, imports: Any, num_imports: Any, instance: Any, trap: Any) -> pointer:
-    return _wasmtime_instance_new(store, module, imports, num_imports, instance, trap)  # type: ignore
+_wasmtime_instance_new.argtypes = [POINTER(wasm_store_t), POINTER(wasm_module_t), POINTER(wasm_extern_vec_t), POINTER(POINTER(wasm_instance_t)), POINTER(POINTER(wasm_trap_t))]
+def wasmtime_instance_new(store: Any, module: Any, imports: Any, instance: Any, trap: Any) -> pointer:
+    return _wasmtime_instance_new(store, module, imports, instance, trap)  # type: ignore
 
 _wasmtime_module_new = dll.wasmtime_module_new
 _wasmtime_module_new.restype = POINTER(wasmtime_error_t)
