@@ -40,7 +40,7 @@ jobs:
         python-version: '3.x'
     - run: pip install setuptools wheel
     # If this is a tagged build use real version numbers
-    - run: echo "::set-env name=PROD::true"
+    - run: echo "PROD=true" >> $GITHUB_ENV
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
     - run: |
         git clean -fdx wasmtime build
