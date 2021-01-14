@@ -93,9 +93,12 @@ class Visitor(c_ast.NodeVisitor):
                 argname = param.name
                 if not argname or argname == "import" or argname == "global":
                     argname = "arg{}".format(i)
+                tyname = type_name(param.type)
+                if i == 0 and tyname == "None":
+                    continue
                 argpairs.append("{}: Any".format(argname))
                 argnames.append(argname)
-                argtypes.append(type_name(param.type))
+                argtypes.append(tyname)
         retty = type_name(node.type, ptr, typing=True)
 
         self.ret += "\n"

@@ -26,7 +26,7 @@ class Func:
             raise TypeError("expected a Store")
         if not isinstance(ty, FuncType):
             raise TypeError("expected a FuncType")
-        idx = FUNCTIONS.allocate((func, ty.params, ty.results, store))
+        idx = FUNCTIONS.allocate((func, ty.results, store))
         if access_caller:
             ptr = ffi.wasmtime_func_new_with_env(
                 store._ptr,
@@ -102,17 +102,17 @@ class Func:
         params_ptr = (ffi.wasm_val_t * len(params))()
         for i, val in enumerate(param_vals):
             params_ptr[i] = val._unwrap_raw()
+        params_arg = ffi.wasm_val_vec_t(len(params), params_ptr)
 
         result_tys = ty.results
         results_ptr = (ffi.wasm_val_t * len(result_tys))()
+        results_arg = ffi.wasm_val_vec_t(len(result_tys), results_ptr)
 
         trap = POINTER(ffi.wasm_trap_t)()
         error = ffi.wasmtime_func_call(
             self._ptr,
-            params_ptr,
-            len(params),
-            results_ptr,
-            len(result_tys),
+            byref(params_arg),
+            byref(results_arg),
             byref(trap))
         if error:
             raise WasmtimeError._from_ptr(error)
@@ -188,49 +188,49 @@ def extract_val(val: Val) -> IntoVal:
 
 
 @ffi.wasm_func_callback_with_env_t  # type: ignore
-def trampoline(idx, params_ptr, results_ptr):  # type: ignore
-    return invoke(idx, params_ptr, results_ptr, [])
+def trampoline(idx, params, results):  # type: ignore
+    return invoke(idx, params.contents, results.contents, [])
 
 
 @ffi.wasmtime_func_callback_with_env_t  # type: ignore
-def trampoline_with_caller(caller, idx, params_ptr, results_ptr):  # type: ignore
+def trampoline_with_caller(caller, idx, params, results):  # type: ignore
     caller = Caller(caller)
     try:
-        return invoke(idx, params_ptr, results_ptr, [caller])
+        return invoke(idx, params.contents, results.contents, [caller])
     finally:
         delattr(caller, '_ptr')
 
 
-def invoke(idx, params_ptr, results_ptr, params):  # type: ignore
-    func, param_tys, result_tys, store = FUNCTIONS.get(idx or 0)
+def invoke(idx, params, results, pyparams):  # type: ignore
+    func, result_tys, store = FUNCTIONS.get(idx or 0)
 
     try:
-        for i in range(0, len(param_tys)):
-            params.append(Val._value(params_ptr[i]))
-        results = func(*params)
-        if len(result_tys) == 0:
-            if results is not None:
+        for i in range(0, params.size):
+            pyparams.append(Val._value(params.data[i]))
+        pyresults = func(*pyparams)
+        if results.size == 0:
+            if pyresults is not None:
                 raise WasmtimeError(
                     "callback produced results when it shouldn't")
-        elif len(result_tys) == 1:
-            if isinstance(results, Val):
+        elif results.size == 1:
+            if isinstance(pyresults, Val):
                 # Because we are taking the inner value with `_into_raw`, we
                 # need to ensure that we have a unique `Val`.
-                val = results._clone()
+                val = pyresults._clone()
             else:
-                val = Val._convert(result_tys[0], results)
-            results_ptr[0] = val._into_raw()
+                val = Val._convert(result_tys[0], pyresults)
+            results.data[0] = val._into_raw()
         else:
-            if len(results) != len(result_tys):
+            if len(pyresults) != results.size:
                 raise WasmtimeError("callback produced wrong number of results")
-            for i, result in enumerate(results):
+            for i, result in enumerate(pyresults):
                 # Because we are taking the inner value with `_into_raw`, we
                 # need to ensure that we have a unique `Val`.
                 if isinstance(result, Val):
                     val = result._clone()
                 else:
                     val = Val._convert(result_tys[i], result)
-                results_ptr[i] = val._into_raw()
+                results.data[i] = val._into_raw()
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         fmt = traceback.format_exception(exc_type, exc_value, exc_traceback)

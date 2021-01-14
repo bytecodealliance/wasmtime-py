@@ -33,14 +33,14 @@ class Instance:
         imports_ptr = (POINTER(ffi.wasm_extern_t) * len(imports))()
         for i, val in enumerate(imports):
             imports_ptr[i] = get_extern_ptr(val)
+        imports_arg = ffi.wasm_extern_vec_t(len(imports), imports_ptr)
 
         instance = POINTER(ffi.wasm_instance_t)()
         trap = POINTER(ffi.wasm_trap_t)()
         error = ffi.wasmtime_instance_new(
             store._ptr,
             module._ptr,
-            imports_ptr,
-            len(imports),
+            byref(imports_arg),
             byref(instance),
             byref(trap))
         if error:
