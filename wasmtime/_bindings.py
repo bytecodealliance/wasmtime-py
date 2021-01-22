@@ -1860,6 +1860,12 @@ _wasmtime_config_dynamic_memory_guard_size_set.argtypes = [POINTER(wasm_config_t
 def wasmtime_config_dynamic_memory_guard_size_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_dynamic_memory_guard_size_set(arg0, arg1)  # type: ignore
 
+_wasmtime_config_max_instances_set = dll.wasmtime_config_max_instances_set
+_wasmtime_config_max_instances_set.restype = None
+_wasmtime_config_max_instances_set.argtypes = [POINTER(wasm_config_t), c_size_t]
+def wasmtime_config_max_instances_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_max_instances_set(arg0, arg1)  # type: ignore
+
 _wasmtime_config_cache_config_load = dll.wasmtime_config_cache_config_load
 _wasmtime_config_cache_config_load.restype = POINTER(wasmtime_error_t)
 _wasmtime_config_cache_config_load.argtypes = [POINTER(wasm_config_t), POINTER(c_char)]

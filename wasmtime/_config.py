@@ -195,6 +195,12 @@ class Config:
             val = 0
         ffi.wasmtime_config_interruptable_set(self._ptr, val)
 
+    @setter_property
+    def max_instances(self, instances: int) -> None:
+        if not isinstance(instances, int):
+            raise TypeError('expected an int')
+        ffi.wasmtime_config_max_instances_set(self._ptr, instances)
+
     def __del__(self) -> None:
         if hasattr(self, '_ptr'):
             ffi.wasm_config_delete(self._ptr)
