@@ -44,8 +44,12 @@ class Store:
         Adds the specified amount of fuel into this store.
 
         This is only relevant when `Config.consume_fuel` is configured.
-        Otherwise this is a required call to ensure that the store has fuel to
+
+        This is a required call to ensure that the store has fuel to
         execute WebAssembly since otherwise stores start with zero fuel.
+
+        Raises a `WasmtimeError` if this store's configuration is not configured
+        to consume fuel.
         """
         err = ffi.wasmtime_store_add_fuel(self._ptr, fuel)
         if err:
@@ -53,11 +57,10 @@ class Store:
 
     def fuel_consumed(self) -> int:
         """
-        Adds the specified amount of fuel into this store.
+        Returns the amount of fuel consumed by this `Store` so far.
 
-        This is only relevant when `Config.consume_fuel` is configured.
-        Otherwise this is a required call to ensure that the store has fuel to
-        execute WebAssembly since otherwise stores start with zero fuel.
+        Raises a `WasmtimeError` if this store's configuration is not configured
+        to consume fuel.
         """
         fuel = c_ulonglong(0)
         ok = ffi.wasmtime_store_fuel_consumed(self._ptr, byref(fuel))
