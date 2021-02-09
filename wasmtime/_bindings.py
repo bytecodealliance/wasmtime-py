@@ -1776,6 +1776,12 @@ _wasmtime_config_interruptable_set.argtypes = [POINTER(wasm_config_t), c_bool]
 def wasmtime_config_interruptable_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_interruptable_set(arg0, arg1)  # type: ignore
 
+_wasmtime_config_consume_fuel_set = dll.wasmtime_config_consume_fuel_set
+_wasmtime_config_consume_fuel_set.restype = None
+_wasmtime_config_consume_fuel_set.argtypes = [POINTER(wasm_config_t), c_bool]
+def wasmtime_config_consume_fuel_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_consume_fuel_set(arg0, arg1)  # type: ignore
+
 _wasmtime_config_max_wasm_stack_set = dll.wasmtime_config_max_wasm_stack_set
 _wasmtime_config_max_wasm_stack_set.restype = None
 _wasmtime_config_max_wasm_stack_set.argtypes = [POINTER(wasm_config_t), c_size_t]
@@ -1998,6 +2004,18 @@ _wasmtime_interrupt_handle_new.restype = POINTER(wasmtime_interrupt_handle_t)
 _wasmtime_interrupt_handle_new.argtypes = [POINTER(wasm_store_t)]
 def wasmtime_interrupt_handle_new(store: Any) -> pointer:
     return _wasmtime_interrupt_handle_new(store)  # type: ignore
+
+_wasmtime_store_add_fuel = dll.wasmtime_store_add_fuel
+_wasmtime_store_add_fuel.restype = POINTER(wasmtime_error_t)
+_wasmtime_store_add_fuel.argtypes = [POINTER(wasm_store_t), c_uint64]
+def wasmtime_store_add_fuel(store: Any, fuel: Any) -> pointer:
+    return _wasmtime_store_add_fuel(store, fuel)  # type: ignore
+
+_wasmtime_store_fuel_consumed = dll.wasmtime_store_fuel_consumed
+_wasmtime_store_fuel_consumed.restype = c_bool
+_wasmtime_store_fuel_consumed.argtypes = [POINTER(wasm_store_t), POINTER(c_uint64)]
+def wasmtime_store_fuel_consumed(store: Any, fuel: Any) -> c_bool:
+    return _wasmtime_store_fuel_consumed(store, fuel)  # type: ignore
 
 _wasmtime_interrupt_handle_interrupt = dll.wasmtime_interrupt_handle_interrupt
 _wasmtime_interrupt_handle_interrupt.restype = None

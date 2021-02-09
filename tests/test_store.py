@@ -38,3 +38,17 @@ class TestStore(unittest.TestCase):
         interrupt = Func(store, FuncType([], []), lambda: interrupt_handle.interrupt())
         with self.assertRaises(Trap):
             Instance(store, module, [interrupt])
+
+    def test_fuel(self):
+        store = Store()
+
+        with self.assertRaises(WasmtimeError):
+            store.add_fuel(1)
+        with self.assertRaises(WasmtimeError):
+            store.fuel_consumed()
+
+        config = Config()
+        config.consume_fuel = True
+        store = Store(Engine(config))
+        store.add_fuel(1)
+        assert(store.fuel_consumed() == 0)
