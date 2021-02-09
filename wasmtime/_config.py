@@ -197,9 +197,27 @@ class Config:
 
     @setter_property
     def max_instances(self, instances: int) -> None:
+        """
+        Configures the maximum number of instances that can be created within
+        stores created from this configuration.
+        """
+
         if not isinstance(instances, int):
             raise TypeError('expected an int')
         ffi.wasmtime_config_max_instances_set(self._ptr, instances)
+
+    @setter_property
+    def consume_fuel(self, instances: bool) -> None:
+        """
+        Configures whether wasm code will consume *fuel* as part of its
+        execution.
+
+        Fuel consumption allows WebAssembly to trap when fuel runs out.
+        Currently stores start with 0 fuel if this is enabled.
+        """
+        if not isinstance(instances, bool):
+            raise TypeError('expected an bool')
+        ffi.wasmtime_config_consume_fuel_set(self._ptr, instances)
 
     def __del__(self) -> None:
         if hasattr(self, '_ptr'):

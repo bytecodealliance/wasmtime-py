@@ -1,5 +1,5 @@
 from . import _ffi as ffi
-from ctypes import pointer
+from ctypes import pointer, byref, c_ulonglong
 from wasmtime import Engine, WasmtimeError
 
 
@@ -38,6 +38,32 @@ class Store:
         deallocated.
         """
         ffi.wasmtime_store_gc(self._ptr)
+
+    def add_fuel(self, fuel: int) -> None:
+        """
+        Adds the specified amount of fuel into this store.
+
+        This is only relevant when `Config.consume_fuel` is configured.
+        Otherwise this is a required call to ensure that the store has fuel to
+        execute WebAssembly since otherwise stores start with zero fuel.
+        """
+        err = ffi.wasmtime_store_add_fuel(self._ptr, fuel)
+        if err:
+            raise WasmtimeError._from_ptr(err)
+
+    def fuel_consumed(self) -> int:
+        """
+        Adds the specified amount of fuel into this store.
+
+        This is only relevant when `Config.consume_fuel` is configured.
+        Otherwise this is a required call to ensure that the store has fuel to
+        execute WebAssembly since otherwise stores start with zero fuel.
+        """
+        fuel = c_ulonglong(0)
+        ok = ffi.wasmtime_store_fuel_consumed(self._ptr, byref(fuel))
+        if ok:
+            return fuel.value
+        raise WasmtimeError("fuel is not enabled in this store's configuration")
 
     def __del__(self) -> None:
         if hasattr(self, '_ptr'):
