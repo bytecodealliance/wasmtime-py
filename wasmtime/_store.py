@@ -1,5 +1,5 @@
 from . import _ffi as ffi
-from ctypes import pointer, byref, c_ulonglong
+from ctypes import pointer, byref, c_uint64
 from wasmtime import Engine, WasmtimeError
 
 
@@ -62,7 +62,7 @@ class Store:
         Raises a `WasmtimeError` if this store's configuration is not configured
         to consume fuel.
         """
-        fuel = c_ulonglong(0)
+        fuel = c_uint64(0)
         ok = ffi.wasmtime_store_fuel_consumed(self._ptr, byref(fuel))
         if ok:
             return fuel.value
