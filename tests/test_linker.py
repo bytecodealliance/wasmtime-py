@@ -107,3 +107,37 @@ class TestLinker(unittest.TestCase):
             Linker(2)  # type: ignore
         with self.assertRaises(TypeError):
             linker.instantiate(3)  # type: ignore
+
+    def test_module(self):
+        store = Store()
+        linker = Linker(store)
+        module = Module(store.engine, """
+            (module
+                (func (export "f"))
+            )
+        """)
+        linker.define_module("foo", module)
+        module = Module(store.engine, """
+            (module
+                (import "foo" "f" (func))
+            )
+        """)
+        linker.instantiate(module)
+
+    def test_get_default(self):
+        store = Store()
+        linker = Linker(store)
+        linker.get_default("foo")()
+
+    def test_get_one_by_name(self):
+        store = Store()
+        linker = Linker(store)
+        with self.assertRaises(WasmtimeError):
+            linker.get_one_by_name("foo", "bar")
+        module = Module(store.engine, """
+            (module
+                (func (export "f"))
+            )
+        """)
+        linker.define_module("foo", module)
+        assert(isinstance(linker.get_one_by_name("foo", "f"), Func))
