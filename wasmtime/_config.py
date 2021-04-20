@@ -196,17 +196,6 @@ class Config:
         ffi.wasmtime_config_interruptable_set(self._ptr, val)
 
     @setter_property
-    def max_instances(self, instances: int) -> None:
-        """
-        Configures the maximum number of instances that can be created within
-        stores created from this configuration.
-        """
-
-        if not isinstance(instances, int):
-            raise TypeError('expected an int')
-        ffi.wasmtime_config_max_instances_set(self._ptr, instances)
-
-    @setter_property
     def consume_fuel(self, instances: bool) -> None:
         """
         Configures whether wasm code will consume *fuel* as part of its

@@ -33,4 +33,3 @@ class TestConfig(unittest.TestCase):
         with self.assertRaises(WasmtimeError):
             config.profiler = "nonexistent-profiler"
         config.consume_fuel = True
-        config.max_instances = 10
