@@ -8,32 +8,33 @@ class TestMemory(unittest.TestCase):
         store = Store()
         ty = MemoryType(Limits(1, None))
         memory = Memory(store, ty)
-        self.assertEqual(memory.type.limits, Limits(1, None))
-        self.assertEqual(memory.size, 1)
-        self.assertTrue(memory.grow(1))
-        self.assertEqual(memory.size, 2)
-        self.assertTrue(memory.grow(0))
-        self.assertEqual(memory.size, 2)
+        self.assertEqual(memory.type(store).limits, Limits(1, None))
+        self.assertEqual(memory.size(store), 1)
+        self.assertTrue(memory.grow(store, 1))
+        self.assertEqual(memory.size(store), 2)
+        self.assertTrue(memory.grow(store, 0))
+        self.assertEqual(memory.size(store), 2)
         with self.assertRaises(TypeError):
-            memory.grow('')  # type: ignore
+            memory.grow(store, '')  # type: ignore
         with self.assertRaises(WasmtimeError):
-            memory.grow(-1)
-        self.assertEqual(memory.data_ptr[0], 0)
-        self.assertEqual(memory.data_len, 65536 * 2)
-        self.assertTrue(isinstance(memory.type, MemoryType))
+            memory.grow(store, -1)
+        self.assertEqual(memory.data_ptr(store)[0], 0)
+        self.assertEqual(memory.data_len(store), 65536 * 2)
+        self.assertTrue(isinstance(memory.type(store), MemoryType))
 
     def test_grow(self):
         store = Store()
         ty = MemoryType(Limits(1, 2))
         memory = Memory(store, ty)
-        self.assertTrue(memory.grow(1))
-        self.assertTrue(memory.grow(0))
-        self.assertFalse(memory.grow(1))
+        assert(memory.grow(store, 1) == 1)
+        assert(memory.grow(store, 0) == 2)
+        with self.assertRaises(WasmtimeError):
+            memory.grow(store, 1)
 
     def test_errors(self):
         store = Store()
         ty = MemoryType(Limits(1, 2))
-        with self.assertRaises(TypeError):
+        with self.assertRaises(AttributeError):
             Memory(1, ty)  # type: ignore
-        with self.assertRaises(TypeError):
+        with self.assertRaises(AttributeError):
             Memory(store, 1)  # type: ignore

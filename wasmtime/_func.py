@@ -1,17 +1,17 @@
+from contextlib import contextmanager
 from ctypes import POINTER, pointer, byref, CFUNCTYPE, c_void_p, cast
 from wasmtime import Store, FuncType, Val, IntoVal, Trap, WasmtimeError
-import sys
-import traceback
 from . import _ffi as ffi
 from ._extern import wrap_extern
-from typing import Callable, Optional, Generic, TypeVar, List, Union, Tuple, cast as cast_type, Any, Sequence
+from typing import Callable, Optional, Generic, TypeVar, List, Union, Tuple, cast as cast_type, Sequence
 from ._exportable import AsExtern
+from ._store import Storelike
 
 
 class Func:
-    _ptr: "pointer[ffi.wasm_func_t]"
+    _func: ffi.wasmtime_func_t
 
-    def __init__(self, store: Store, ty: FuncType, func: Callable, access_caller: bool = False):
+    def __init__(self, store: Storelike, ty: FuncType, func: Callable, access_caller: bool = False):
         """
         Creates a new func in `store` with the given `ty` which calls the closure
         given
@@ -26,55 +26,31 @@ class Func:
             raise TypeError("expected a Store")
         if not isinstance(ty, FuncType):
             raise TypeError("expected a FuncType")
-        idx = FUNCTIONS.allocate((func, ty.results, store))
-        if access_caller:
-            ptr = ffi.wasmtime_func_new_with_env(
-                store._ptr,
-                ty._ptr,
-                trampoline_with_caller,
-                idx,
-                finalize)
-        else:
-            ptr = ffi.wasm_func_new_with_env(
-                store._ptr, ty._ptr, trampoline, idx, finalize)
-        if not ptr:
-            FUNCTIONS.deallocate(idx)
-            raise WasmtimeError("failed to create func")
-        self._ptr = ptr
-        self._owner = None
+        idx = FUNCTIONS.allocate((func, ty.results, access_caller))
+        _func = ffi.wasmtime_func_t()
+        ffi.wasmtime_func_new(
+            store._context,
+            ty._ptr,
+            trampoline,
+            idx,
+            finalize,
+            byref(_func))
+        self._func = _func
 
     @classmethod
-    def _from_ptr(cls, ptr: "pointer[ffi.wasm_func_t]", owner: Optional[Any]) -> "Func":
+    def _from_raw(cls, func: ffi.wasmtime_func_t) -> "Func":
         ty: "Func" = cls.__new__(cls)
-        if not isinstance(ptr, POINTER(ffi.wasm_func_t)):
-            raise TypeError("wrong pointer type")
-        ty._ptr = ptr
-        ty._owner = owner
+        ty._func = func
         return ty
 
-    @property
-    def type(self) -> FuncType:
+    def type(self, store: Storelike) -> FuncType:
         """
         Gets the type of this func as a `FuncType`
         """
-        ptr = ffi.wasm_func_type(self._ptr)
+        ptr = ffi.wasmtime_func_type(store._context, byref(self._func))
         return FuncType._from_ptr(ptr, None)
 
-    @property
-    def param_arity(self) -> int:
-        """
-        Returns the number of parameters this function expects
-        """
-        return ffi.wasm_func_param_arity(self._ptr)
-
-    @property
-    def result_arity(self) -> int:
-        """
-        Returns the number of results this function produces
-        """
-        return ffi.wasm_func_result_arity(self._ptr)
-
-    def __call__(self, *params: IntoVal) -> Union[IntoVal, Sequence[IntoVal], None]:
+    def __call__(self, store: Storelike, *params: IntoVal) -> Union[IntoVal, Sequence[IntoVal], None]:
         """
         Calls this function with the given parameters
 
@@ -89,7 +65,7 @@ class Func:
         if it were a function directly.
         """
 
-        ty = self.type
+        ty = self.type(store)
         param_tys = ty.params
         if len(params) > len(param_tys):
             raise WasmtimeError("too many parameters provided: given %s, expected %s" %
@@ -99,25 +75,24 @@ class Func:
                                 (len(params), len(param_tys)))
 
         param_vals = [Val._convert(ty, params[i]) for i, ty in enumerate(param_tys)]
-        params_ptr = (ffi.wasm_val_t * len(params))()
+        params_ptr = (ffi.wasmtime_val_t * len(params))()
         for i, val in enumerate(param_vals):
             params_ptr[i] = val._unwrap_raw()
-        params_arg = ffi.wasm_val_vec_t(len(params), params_ptr)
 
         result_tys = ty.results
-        results_ptr = (ffi.wasm_val_t * len(result_tys))()
-        results_arg = ffi.wasm_val_vec_t(len(result_tys), results_ptr)
+        results_ptr = (ffi.wasmtime_val_t * len(result_tys))()
 
-        trap = POINTER(ffi.wasm_trap_t)()
-        error = ffi.wasmtime_func_call(
-            self._ptr,
-            byref(params_arg),
-            byref(results_arg),
-            byref(trap))
-        if error:
-            raise WasmtimeError._from_ptr(error)
-        if trap:
-            raise Trap._from_ptr(trap)
+        with enter_wasm(store) as trap:
+            error = ffi.wasmtime_func_call(
+                store._context,
+                byref(self._func),
+                params_ptr,
+                len(params),
+                results_ptr,
+                len(result_tys),
+                trap)
+            if error:
+                raise WasmtimeError._from_ptr(error)
 
         results = []
         for i in range(0, len(result_tys)):
@@ -129,15 +104,14 @@ class Func:
         else:
             return results
 
-    def _as_extern(self) -> "pointer[ffi.wasm_extern_t]":
-        return ffi.wasm_func_as_extern(self._ptr)
-
-    def __del__(self) -> None:
-        if hasattr(self, '_owner') and self._owner is None:
-            ffi.wasm_func_delete(self._ptr)
+    def _as_extern(self) -> ffi.wasmtime_extern_t:
+        union = ffi.wasmtime_extern_union(func=self._func)
+        return ffi.wasmtime_extern_t(ffi.WASMTIME_EXTERN_FUNC, union)
 
 
 class Caller:
+    _context: "pointer[ffi.wasmtime_context_t]"
+
     def __init__(self, ptr: pointer):
         self._ptr = ptr
 
@@ -166,16 +140,18 @@ class Caller:
         """
 
         # First convert to a raw name so we can typecheck our argument
-        name_raw = ffi.str_to_name(name)
+        name_bytes = name.encode('utf-8')
+        name_buf = ffi.create_string_buffer(name_bytes)
 
         # Next see if we've been invalidated
         if not hasattr(self, '_ptr'):
             return None
 
         # And if we're not invalidated we can perform the actual lookup
-        ptr = ffi.wasmtime_caller_export_get(self._ptr, byref(name_raw))
-        if ptr:
-            return wrap_extern(ptr, None)
+        item = ffi.wasmtime_extern_t()
+        ok = ffi.wasmtime_caller_export_get(self._ptr, name_buf, len(name_bytes), byref(item))
+        if ok:
+            return wrap_extern(item)
         else:
             return None
 
@@ -187,41 +163,33 @@ def extract_val(val: Val) -> IntoVal:
     return val
 
 
-@ffi.wasm_func_callback_with_env_t  # type: ignore
-def trampoline(idx, params, results):  # type: ignore
-    return invoke(idx, params.contents, results.contents, [])
-
-
-@ffi.wasmtime_func_callback_with_env_t  # type: ignore
-def trampoline_with_caller(caller, idx, params, results):  # type: ignore
+@ffi.wasmtime_func_callback_t  # type: ignore
+def trampoline(idx, caller, params, nparams, results, nresults):  # type: ignore
     caller = Caller(caller)
     try:
-        return invoke(idx, params.contents, results.contents, [caller])
-    finally:
-        delattr(caller, '_ptr')
+        func, result_tys, access_caller = FUNCTIONS.get(idx or 0)
+        pyparams = []
+        if access_caller:
+            caller._context = ffi.wasmtime_caller_context(caller._ptr)
+            pyparams.append(caller)
 
-
-def invoke(idx, params, results, pyparams):  # type: ignore
-    func, result_tys, store = FUNCTIONS.get(idx or 0)
-
-    try:
-        for i in range(0, params.size):
-            pyparams.append(Val._value(params.data[i]))
+        for i in range(0, nparams):
+            pyparams.append(Val._value(params[i]))
         pyresults = func(*pyparams)
-        if results.size == 0:
+        if nresults == 0:
             if pyresults is not None:
                 raise WasmtimeError(
                     "callback produced results when it shouldn't")
-        elif results.size == 1:
+        elif nresults == 1:
             if isinstance(pyresults, Val):
                 # Because we are taking the inner value with `_into_raw`, we
                 # need to ensure that we have a unique `Val`.
                 val = pyresults._clone()
             else:
                 val = Val._convert(result_tys[0], pyresults)
-            results.data[0] = val._into_raw()
+            results[0] = val._into_raw()
         else:
-            if len(pyresults) != results.size:
+            if len(pyresults) != nresults:
                 raise WasmtimeError("callback produced wrong number of results")
             for i, result in enumerate(pyresults):
                 # Because we are taking the inner value with `_into_raw`, we
@@ -230,16 +198,17 @@ def invoke(idx, params, results, pyparams):  # type: ignore
                     val = result._clone()
                 else:
                     val = Val._convert(result_tys[i], result)
-                results.data[i] = val._into_raw()
-    except Exception:
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        fmt = traceback.format_exception(exc_type, exc_value, exc_traceback)
-        trap = Trap(store, "\n".join(fmt))
+                results[i] = val._into_raw()
+        return 0
+    except Exception as e:
+        global LAST_EXCEPTION
+        LAST_EXCEPTION = e
+        trap = Trap("python exception")
         ptr = trap._ptr
         delattr(trap, '_ptr')
         return cast(ptr, c_void_p).value
-
-    return 0
+    finally:
+        delattr(caller, '_ptr')
 
 
 @CFUNCTYPE(None, c_void_p)
@@ -279,3 +248,27 @@ class Slab(Generic[T]):
 
 
 FUNCTIONS: Slab[Tuple] = Slab()
+LAST_EXCEPTION: Optional[Exception] = None
+
+
+@contextmanager
+def enter_wasm(store: Storelike):  # type: ignore
+    try:
+        trap = POINTER(ffi.wasm_trap_t)()
+        yield byref(trap)
+        if trap:
+            trap_obj = Trap._from_ptr(trap)
+            maybe_raise_last_exn()
+            raise trap_obj
+    except WasmtimeError:
+        maybe_raise_last_exn()
+        raise
+
+
+def maybe_raise_last_exn() -> None:
+    global LAST_EXCEPTION
+    if LAST_EXCEPTION is None:
+        return
+    exn = LAST_EXCEPTION
+    LAST_EXCEPTION = None
+    raise exn

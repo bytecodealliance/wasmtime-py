@@ -1,18 +1,18 @@
 from . import _ffi as ffi
-from ctypes import POINTER, pointer, byref
-from wasmtime import Module, Trap, WasmtimeError, Store, InstanceType
+from ctypes import POINTER, byref
+from wasmtime import Module, WasmtimeError, Store, InstanceType
 from ._extern import wrap_extern, get_extern_ptr
 from ._exportable import AsExtern
-from typing import Sequence, Union, Optional, Mapping, Iterable, Any
+from typing import Sequence, Union, Optional, Mapping, Iterable
+from ._store import Storelike
+from ._func import enter_wasm
 
 
 class Instance:
-    _ptr: "pointer[ffi.wasm_instance_t]"
-    _module: Module
+    _instance: ffi.wasmtime_instance_t
     _exports: Optional["InstanceExports"]
-    _owner: Optional[Any]
 
-    def __init__(self, store: Store, module: Module, imports: Sequence[AsExtern]):
+    def __init__(self, store: Storelike, module: Module, imports: Sequence[AsExtern]):
         """
         Creates a new instance by instantiating the `module` given with the
         `imports` into the `store` provided.
@@ -25,53 +25,41 @@ class Instance:
         otherwise initializes the new instance.
         """
 
-        if not isinstance(store, Store):
-            raise TypeError("expected a Store")
-        if not isinstance(module, Module):
-            raise TypeError("expected a Module")
-
-        imports_ptr = (POINTER(ffi.wasm_extern_t) * len(imports))()
+        imports_ptr = (ffi.wasmtime_extern_t * len(imports))()
         for i, val in enumerate(imports):
             imports_ptr[i] = get_extern_ptr(val)
-        imports_arg = ffi.wasm_extern_vec_t(len(imports), imports_ptr)
 
-        instance = POINTER(ffi.wasm_instance_t)()
+        instance = ffi.wasmtime_instance_t()
         trap = POINTER(ffi.wasm_trap_t)()
-        error = ffi.wasmtime_instance_new(
-            store._ptr,
-            module._ptr,
-            byref(imports_arg),
-            byref(instance),
-            byref(trap))
-        if error:
-            raise WasmtimeError._from_ptr(error)
-        if trap:
-            raise Trap._from_ptr(trap)
-        self._ptr = instance
+        with enter_wasm(store) as trap:
+            error = ffi.wasmtime_instance_new(
+                store._context,
+                module._ptr,
+                imports_ptr,
+                len(imports),
+                byref(instance),
+                trap)
+            if error:
+                raise WasmtimeError._from_ptr(error)
+        self._instance = instance
         self._exports = None
-        self._owner = None
 
     @classmethod
-    def _from_ptr(cls, ptr: 'pointer[ffi.wasm_instance_t]', owner: Optional[Any]) -> "Instance":
+    def _from_raw(cls, instance: ffi.wasmtime_instance_t) -> "Instance":
         ty: "Instance" = cls.__new__(cls)
-        if not isinstance(ptr, POINTER(ffi.wasm_instance_t)):
-            raise TypeError("wrong pointer type")
-        ty._ptr = ptr
         ty._exports = None
-        ty._owner = owner
+        ty._instance = instance
         return ty
 
-    @property
-    def type(self) -> InstanceType:
+    def type(self, store: Store) -> InstanceType:
         """
         Gets the type of this instance as an `InstanceType`
         """
 
-        ptr = ffi.wasm_instance_type(self._ptr)
+        ptr = ffi.wasmtime_instance_type(store._context, byref(self._instance))
         return InstanceType._from_ptr(ptr, None)
 
-    @property
-    def exports(self) -> "InstanceExports":
+    def exports(self, store: Storelike) -> "InstanceExports":
         """
         Returns the exports of this module
 
@@ -79,32 +67,39 @@ class Instance:
         names of exports.
         """
         if self._exports is None:
-            externs = ExternTypeList()
-            ffi.wasm_instance_exports(self._ptr, byref(externs.vec))
-            extern_list = []
-            for i in range(0, externs.vec.size):
-                extern_list.append(wrap_extern(externs.vec.data[i], externs))
-            self._exports = InstanceExports(extern_list, self.type)
+            self._exports = InstanceExports(store, self)
         return self._exports
 
-    def _as_extern(self) -> "pointer[ffi.wasm_extern_t]":
-        return ffi.wasm_instance_as_extern(self._ptr)
-
-    def __del__(self) -> None:
-        if hasattr(self, '_owner') and self._owner is None:
-            ffi.wasm_instance_delete(self._ptr)
+    def _as_extern(self) -> ffi.wasmtime_extern_t:
+        union = ffi.wasmtime_extern_union(instance=self._instance)
+        return ffi.wasmtime_extern_t(ffi.WASMTIME_EXTERN_INSTANCE, union)
 
 
 class InstanceExports:
     _extern_list: Sequence[AsExtern]
     _extern_map: Mapping[str, AsExtern]
 
-    def __init__(self, extern_list: Sequence[AsExtern], ty: InstanceType):
-        self._extern_list = extern_list
+    def __init__(self, store: Storelike, instance: Instance):
+        self._extern_list = []
         self._extern_map = {}
-        exports = ty.exports
-        for i, extern in enumerate(extern_list):
-            self._extern_map[exports[i].name] = extern
+
+        i = 0
+        item = ffi.wasmtime_extern_t()
+        name_ptr = POINTER(ffi.c_char)()
+        name_len = ffi.c_size_t(0)
+        while ffi.wasmtime_instance_export_nth(
+                store._context,
+                byref(instance._instance),
+                i,
+                byref(name_ptr),
+                byref(name_len),
+                byref(item)):
+            name = ffi.to_str_raw(name_ptr, name_len.value)
+            extern = wrap_extern(item)
+            self._extern_list.append(extern)
+            self._extern_map[name] = extern
+            i += 1
+            item = ffi.wasmtime_extern_t()
 
     def __getitem__(self, idx: Union[int, str]) -> AsExtern:
         ret = self.get(idx)
@@ -127,11 +122,3 @@ class InstanceExports:
         if idx < len(self._extern_list):
             return self._extern_list[idx]
         return None
-
-
-class ExternTypeList:
-    def __init__(self) -> None:
-        self.vec = ffi.wasm_extern_vec_t(0, None)
-
-    def __del__(self) -> None:
-        ffi.wasm_extern_vec_delete(byref(self.vec))

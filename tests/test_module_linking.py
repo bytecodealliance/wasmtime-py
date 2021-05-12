@@ -33,7 +33,7 @@ class TestModuleLinking(unittest.TestCase):
             (module (module (export "")))
         """)
         i = Instance(store, module, [])
-        assert(isinstance(i.exports[0], Module))
+        assert(isinstance(i.exports(store)[0], Module))
 
     def test_instance_import(self):
         store = self.store()
@@ -52,4 +52,4 @@ class TestModuleLinking(unittest.TestCase):
             )
         """)
         i = Instance(store, instance, [])
-        assert(isinstance(i.exports[0], Instance))
+        assert(isinstance(i.exports(store)[0], Instance))

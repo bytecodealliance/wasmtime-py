@@ -8,40 +8,38 @@ class TestFunc(unittest.TestCase):
         store = Store()
         ty = FuncType([], [])
         func = Func(store, ty, lambda: None)
-        func()
-        self.assertEqual(func.param_arity, 0)
-        self.assertEqual(func.result_arity, 0)
-        self.assertTrue(isinstance(func.type, FuncType))
+        func(store)
+        self.assertTrue(isinstance(func.type(store), FuncType))
 
     def test_add(self):
         store = Store()
         ty = FuncType([ValType.i32(), ValType.i32()], [ValType.i32()])
         func = Func(store, ty, lambda a, b: a + b)
-        self.assertEqual(func(1, 2), 3)
+        self.assertEqual(func(store, 1, 2), 3)
 
     def test_calls(self):
         store = Store()
         ty = FuncType([ValType.i32()], [])
         func = Func(store, ty, lambda a: self.assertEqual(a, 1))
-        func(1)
+        func(store, 1)
 
         ty = FuncType([ValType.i64()], [])
         func = Func(store, ty, lambda a: self.assertEqual(a, 2))
-        func(Val.i64(2))
+        func(store, Val.i64(2))
 
         ty = FuncType([ValType.f32()], [])
         func = Func(store, ty, lambda a: self.assertEqual(a, 3.0))
-        func(3.0)
+        func(store, 3.0)
 
         ty = FuncType([ValType.f64()], [])
         func = Func(store, ty, lambda a: self.assertEqual(a, 4.0))
-        func(4.0)
+        func(store, 4.0)
 
     def test_multi_return(self):
         store = Store()
         ty = FuncType([], [ValType.i32(), ValType.i32()])
         func = Func(store, ty, lambda: [1, 2])
-        self.assertEqual(func(), [1, 2])
+        self.assertEqual(func(store), [1, 2])
 
     def test_errors(self):
         store = Store()
@@ -52,31 +50,42 @@ class TestFunc(unittest.TestCase):
             Func(store, 1, lambda: None)  # type: ignore
         func = Func(store, ty, lambda: None)
         with self.assertRaises(WasmtimeError):
-            func(2)
+            func(store, 2)
 
         ty = FuncType([ValType.i32()], [])
         func = Func(store, ty, lambda: None)
         with self.assertRaises(TypeError):
-            func(3.0)
+            func(store, 3.0)
         with self.assertRaises(TypeError):
-            func(Val.i64(3))
+            func(store, Val.i64(3))
         ty = FuncType([ValType.i32()], [])
 
         func = Func(store, ty, lambda x: x)
-        with self.assertRaises(Trap):
-            func(1)
+        with self.assertRaises(WasmtimeError, msg="produced results"):
+            func(store, 1)
 
     def test_produce_wrong(self):
         store = Store()
         ty = FuncType([], [ValType.i32(), ValType.i32()])
         func = Func(store, ty, lambda: 1)
-        with self.assertRaises(Trap):
-            func()
+        with self.assertRaises(TypeError, msg="has no len"):
+            func(store)
         func = Func(store, ty, lambda: [1, 2, 3])
-        with self.assertRaises(Trap):
-            func()
+        with self.assertRaises(WasmtimeError, msg="wrong number of results"):
+            func(store)
 
-    def test_typest(self):
+    def test_host_exception(self):
+        store = Store()
+        ty = FuncType([], [])
+
+        def do_raise():
+            raise Exception("hello")
+
+        func = Func(store, ty, do_raise)
+        with self.assertRaises(Exception, msg="hello"):
+            func(store)
+
+    def test_type(self):
         store = Store()
         i32 = ValType.i32()
         i64 = ValType.i64()
@@ -90,7 +99,7 @@ class TestFunc(unittest.TestCase):
             return ret
 
         func = Func(store, ty, rev)
-        self.assertEqual(func(1, 2, 3.0, 4.0), [4.0, 3.0, 2, 1])
+        self.assertEqual(func(store, 1, 2, 3.0, 4.0), [4.0, 3.0, 2, 1])
 
     def test_access_caller(self):
         # Test that we get *something*
@@ -101,7 +110,7 @@ class TestFunc(unittest.TestCase):
             self.assertEqual(caller.get('x'), None)
             self.assertEqual(caller.get('y'), None)
 
-        Func(store, FuncType([], []), runtest, access_caller=True)()
+        Func(store, FuncType([], []), runtest, access_caller=True)(store)
 
         hit = {}
 
@@ -114,10 +123,10 @@ class TestFunc(unittest.TestCase):
             mem = caller.get('foo')
             self.assertTrue(isinstance(mem, Memory))
 
-            self.assertEqual(mem.data_ptr[0], ord('f'))
-            self.assertEqual(mem.data_ptr[1], ord('o'))
-            self.assertEqual(mem.data_ptr[2], ord('o'))
-            self.assertEqual(mem.data_ptr[3], 0)
+            self.assertEqual(mem.data_ptr(caller)[0], ord('f'))
+            self.assertEqual(mem.data_ptr(caller)[1], ord('o'))
+            self.assertEqual(mem.data_ptr(caller)[2], ord('o'))
+            self.assertEqual(mem.data_ptr(caller)[3], 0)
 
         module = Module(store.engine, """
             (module
@@ -141,6 +150,6 @@ class TestFunc(unittest.TestCase):
             raise WasmtimeError('foo')
 
         func = Func(store, FuncType([], []), runtest3, access_caller=True)
-        with self.assertRaises(Trap):
+        with self.assertRaises(WasmtimeError, msg='foo'):
             Instance(store, module, [func])
         self.assertTrue(hit2['caller'].get('foo') is None)

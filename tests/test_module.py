@@ -10,7 +10,7 @@ class TestModule(unittest.TestCase):
         Module(Engine(), bytearray(b'\0asm\x01\0\0\0'))
 
     def test_invalid(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaises(AttributeError):
             Module.validate(1, b'')  # type: ignore
         with self.assertRaises(TypeError):
             Module.validate(Store(), 2)  # type: ignore
@@ -24,10 +24,10 @@ class TestModule(unittest.TestCase):
             Module(Engine(), b'\x00')
 
     def test_validate(self):
-        store = Store()
-        Module.validate(store, b'\0asm\x01\0\0\0')
+        engine = Engine()
+        Module.validate(engine, b'\0asm\x01\0\0\0')
         with self.assertRaises(WasmtimeError):
-            self.assertFalse(Module.validate(store, b''))
+            Module.validate(engine, b'')
 
     def test_imports(self):
         store = Store()
@@ -148,9 +148,9 @@ class TestModule(unittest.TestCase):
         assert(isinstance(exports[3].type, TableType))
 
     def test_serialize(self):
-        store = Store()
-        module = Module(store.engine, '(module)')
+        engine = Engine()
+        module = Module(engine, '(module)')
         encoded = module.serialize()
-        module = Module.deserialize(store.engine, encoded)
+        module = Module.deserialize(engine, encoded)
         assert(len(module.imports) == 0)
         assert(len(module.exports) == 0)

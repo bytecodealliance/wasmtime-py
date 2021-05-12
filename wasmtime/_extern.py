@@ -1,43 +1,28 @@
 from . import _ffi as ffi
 from ctypes import *
 from ._exportable import AsExtern
-from typing import Optional, Any
 from wasmtime import WasmtimeError
 
 
-def wrap_extern(ptr: 'pointer[ffi.wasm_extern_t]', owner: Optional[Any]) -> AsExtern:
+def wrap_extern(ptr: ffi.wasmtime_extern_t) -> AsExtern:
     from wasmtime import Func, Table, Global, Memory, Module, Instance
 
-    if not isinstance(ptr, POINTER(ffi.wasm_extern_t)):
-        raise TypeError("wrong pointer type")
-
-    # We must free this as an extern, so if there's no ambient owner then
-    # configure an owner with the right destructor
-    if owner is None:
-        owner = Extern(ptr)
-
-    val = ffi.wasm_extern_as_func(ptr)
-    if val:
-        return Func._from_ptr(val, owner)
-    val = ffi.wasm_extern_as_table(ptr)
-    if val:
-        return Table._from_ptr(val, owner)
-    val = ffi.wasm_extern_as_global(ptr)
-    if val:
-        return Global._from_ptr(val, owner)
-    val = ffi.wasm_extern_as_memory(ptr)
-    if val:
-        return Memory._from_ptr(val, owner)
-    val = ffi.wasm_extern_as_instance(ptr)
-    if val:
-        return Instance._from_ptr(val, owner)
-    val = ffi.wasm_extern_as_module(ptr)
-    if val:
-        return Module._from_ptr(val, owner)
+    if ptr.kind == ffi.WASMTIME_EXTERN_FUNC.value:
+        return Func._from_raw(ptr.of.func)
+    if ptr.kind == ffi.WASMTIME_EXTERN_TABLE.value:
+        return Table._from_raw(ptr.of.table)
+    if ptr.kind == ffi.WASMTIME_EXTERN_GLOBAL.value:
+        return Global._from_raw(ptr.of.global_)
+    if ptr.kind == ffi.WASMTIME_EXTERN_MEMORY.value:
+        return Memory._from_raw(ptr.of.memory)
+    if ptr.kind == ffi.WASMTIME_EXTERN_INSTANCE.value:
+        return Instance._from_raw(ptr.of.instance)
+    if ptr.kind == ffi.WASMTIME_EXTERN_MODULE.value:
+        return Module._from_ptr(ptr.of.module)
     raise WasmtimeError("unknown extern")
 
 
-def get_extern_ptr(item: AsExtern) -> "pointer[ffi.wasm_extern_t]":
+def get_extern_ptr(item: AsExtern) -> ffi.wasmtime_extern_t:
     from wasmtime import Func, Table, Global, Memory, Module, Instance
 
     if isinstance(item, Func):

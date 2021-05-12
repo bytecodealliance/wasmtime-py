@@ -5,16 +5,8 @@ from wasmtime import *
 
 class TestTrap(unittest.TestCase):
     def test_new(self):
-        store = Store()
-        trap = Trap(store, 'x')
+        trap = Trap('x')
         self.assertEqual(trap.message, u'x')
-
-    def test_errors(self):
-        store = Store()
-        with self.assertRaises(TypeError):
-            Trap(1, '')  # type: ignore
-        with self.assertRaises(TypeError):
-            Trap(store, 1)  # type: ignore
 
     def test_frames(self):
         store = Store()
@@ -30,9 +22,9 @@ class TestTrap(unittest.TestCase):
         """)
         i = Instance(store, module, [])
         try:
-            e = i.exports[0]
+            e = i.exports(store)[0]
             assert(isinstance(e, Func))
-            e()
+            e(store)
         except Trap as e:
             trap = e
 
@@ -67,9 +59,9 @@ wasm backtrace:
         """)
         i = Instance(store, module, [])
         try:
-            e = i.exports[0]
+            e = i.exports(store)[0]
             assert(isinstance(e, Func))
-            e()
+            e(store)
         except Trap as e:
             trap = e
 
@@ -80,8 +72,9 @@ wasm backtrace:
         self.assertEqual(frames[0].module_name, None)
 
     def test_wasi_exit(self):
-        store = Store()
-        module = Module(store.engine, """
+        linker = Linker(Engine())
+        linker.define_wasi()
+        module = Module(linker.engine, """
             (module
                 (import "wasi_snapshot_preview1" "proc_exit" (func $exit (param i32)))
                 (memory (export "memory") 1)
@@ -90,21 +83,20 @@ wasm backtrace:
                     call $exit)
             )
         """)
-        linker = Linker(store)
-        wasi = WasiConfig()
-        linker.define_wasi(WasiInstance(store, "wasi_snapshot_preview1", wasi))
-        instance = linker.instantiate(module)
-        exit = instance.exports["exit"]
+        store = Store(linker.engine)
+        store.set_wasi(WasiConfig())
+        instance = linker.instantiate(store, module)
+        exit = instance.exports(store)["exit"]
         assert(isinstance(exit, Func))
 
         try:
-            exit(0)
+            exit(store, 0)
             assert(False)
         except ExitTrap as e:
             assert(e.code == 0)
 
         try:
-            exit(1)
+            exit(store, 1)
             assert(False)
         except ExitTrap as e:
             assert(e.code == 1)

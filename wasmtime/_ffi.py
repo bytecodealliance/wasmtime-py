@@ -35,9 +35,27 @@ WASM_F32 = c_uint8(2)
 WASM_F64 = c_uint8(3)
 WASM_ANYREF = c_uint8(128)
 WASM_FUNCREF = c_uint8(129)
+# WASM_V128 = c_uint8(4)
+
+WASMTIME_I32 = c_uint8(0)
+WASMTIME_I64 = c_uint8(1)
+WASMTIME_F32 = c_uint8(2)
+WASMTIME_F64 = c_uint8(3)
+WASMTIME_V128 = c_uint8(4)
+WASMTIME_FUNCREF = c_uint8(5)
+WASMTIME_EXTERNREF = c_uint8(6)
 
 WASM_CONST = c_uint8(0)
 WASM_VAR = c_uint8(1)
+
+WASMTIME_EXTERN_FUNC = c_uint8(0)
+WASMTIME_EXTERN_GLOBAL = c_uint8(1)
+WASMTIME_EXTERN_TABLE = c_uint8(2)
+WASMTIME_EXTERN_MEMORY = c_uint8(3)
+WASMTIME_EXTERN_INSTANCE = c_uint8(4)
+WASMTIME_EXTERN_MODULE = c_uint8(5)
+
+WASMTIME_FUNCREF_NULL = (1 << 64) - 1
 
 
 class wasm_ref_t(Structure):
@@ -67,7 +85,7 @@ class wasm_val_t(Structure):
     of: wasm_val_union
 
 
-from ._bindings import * # noqa
+from ._bindings import *  # noqa
 
 
 def to_bytes(vec: wasm_byte_vec_t) -> bytearray:
@@ -77,6 +95,10 @@ def to_bytes(vec: wasm_byte_vec_t) -> bytearray:
 
 def to_str(vec: wasm_byte_vec_t) -> str:
     return to_bytes(vec).decode("utf-8")
+
+
+def to_str_raw(ptr: pointer, size: int) -> str:
+    return string_at(ptr, size).decode("utf-8")
 
 
 def str_to_name(s: str, trailing_nul: bool = False) -> wasm_byte_vec_t:

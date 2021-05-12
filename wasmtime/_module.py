@@ -1,7 +1,6 @@
 from . import _ffi as ffi
-from ._types import ExportTypeList, ImportTypeList
 from ctypes import *
-from wasmtime import Store, Engine, wat2wasm, ImportType, ExportType, WasmtimeError, ModuleType
+from wasmtime import Engine, wat2wasm, ImportType, ExportType, WasmtimeError, ModuleType
 import typing
 
 
@@ -35,22 +34,19 @@ class Module:
 
         # TODO: can the copy be avoided here? I can't for the life of me
         # figure this out.
-        c_ty = c_uint8 * len(wasm)
-        binary = ffi.wasm_byte_vec_t(len(wasm), c_ty.from_buffer_copy(wasm))
-        ptr = POINTER(ffi.wasm_module_t)()
-        error = ffi.wasmtime_module_new(engine._ptr, byref(binary), byref(ptr))
+        binary = (c_uint8 * len(wasm)).from_buffer_copy(wasm)
+        ptr = POINTER(ffi.wasmtime_module_t)()
+        error = ffi.wasmtime_module_new(engine._ptr, binary, len(wasm), byref(ptr))
         if error:
             raise WasmtimeError._from_ptr(error)
         self._ptr = ptr
-        self._owner = None
 
     @classmethod
-    def _from_ptr(cls, ptr: "pointer[ffi.wasm_module_t]", owner: typing.Optional[typing.Any]) -> "Module":
+    def _from_ptr(cls, ptr: "pointer[ffi.wasmtime_module_t]") -> "Module":
         ty: "Module" = cls.__new__(cls)
-        if not isinstance(ptr, POINTER(ffi.wasm_module_t)):
+        if not isinstance(ptr, POINTER(ffi.wasmtime_module_t)):
             raise TypeError("wrong pointer type")
         ty._ptr = ptr
-        ty._owner = owner
         return ty
 
     @classmethod
@@ -64,26 +60,26 @@ class Module:
         same configuration within `Engine`.
         """
 
-        if not isinstance(engine, Engine):
-            raise TypeError("expected an Engine")
         if not isinstance(encoded, (bytes, bytearray)):
             raise TypeError("expected bytes")
 
+        ptr = POINTER(ffi.wasmtime_module_t)()
+
         # TODO: can the copy be avoided here? I can't for the life of me
         # figure this out.
-        c_ty = c_uint8 * len(encoded)
-        binary = ffi.wasm_byte_vec_t(len(encoded), c_ty.from_buffer_copy(encoded))
-        ptr = POINTER(ffi.wasm_module_t)()
-        error = ffi.wasmtime_module_deserialize(engine._ptr, byref(binary), byref(ptr))
+        error = ffi.wasmtime_module_deserialize(
+            engine._ptr,
+            (c_uint8 * len(encoded)).from_buffer_copy(encoded),
+            len(encoded),
+            byref(ptr))
         if error:
             raise WasmtimeError._from_ptr(error)
         ret: "Module" = cls.__new__(cls)
         ret._ptr = ptr
-        ret._owner = None
         return ret
 
     @classmethod
-    def validate(cls, store: Store, wasm: typing.Union[bytes, bytearray]) -> None:
+    def validate(cls, engine: Engine, wasm: typing.Union[bytes, bytearray]) -> None:
         """
         Validates whether the list of bytes `wasm` provided is a valid
         WebAssembly binary given the configuration in `store`
@@ -91,16 +87,14 @@ class Module:
         Raises a `WasmtimeError` if the wasm isn't valid.
         """
 
-        if not isinstance(store, Store):
-            raise TypeError("expected a Store")
         if not isinstance(wasm, (bytes, bytearray)):
             raise TypeError("expected wasm bytes")
 
         # TODO: can the copy be avoided here? I can't for the life of me
         # figure this out.
-        c_ty = c_uint8 * len(wasm)
-        binary = ffi.wasm_byte_vec_t(len(wasm), c_ty.from_buffer_copy(wasm))
-        error = ffi.wasmtime_module_validate(store._ptr, byref(binary))
+        buf = (c_uint8 * len(wasm)).from_buffer_copy(wasm)
+        error = ffi.wasmtime_module_validate(engine._ptr, buf, len(wasm))
+
         if error:
             raise WasmtimeError._from_ptr(error)
 
@@ -110,7 +104,7 @@ class Module:
         Gets the type of this module as a `ModuleType`
         """
 
-        ptr = ffi.wasm_module_type(self._ptr)
+        ptr = ffi.wasmtime_module_type(self._ptr)
         return ModuleType._from_ptr(ptr, None)
 
     @property
@@ -119,25 +113,14 @@ class Module:
         Returns the types of imports that this module has
         """
 
-        imports = ImportTypeList()
-        ffi.wasm_module_imports(self._ptr, byref(imports.vec))
-        ret = []
-        for i in range(0, imports.vec.size):
-            ret.append(ImportType._from_ptr(imports.vec.data[i], imports))
-        return ret
+        return self.type.imports
 
     @property
     def exports(self) -> typing.List[ExportType]:
         """
         Returns the types of the exports that this module has
         """
-
-        exports = ExportTypeList()
-        ffi.wasm_module_exports(self._ptr, byref(exports.vec))
-        ret = []
-        for i in range(0, exports.vec.size):
-            ret.append(ExportType._from_ptr(exports.vec.data[i], exports))
-        return ret
+        return self.type.exports
 
     def serialize(self) -> bytearray:
         """
@@ -155,9 +138,10 @@ class Module:
         ffi.wasm_byte_vec_delete(byref(raw))
         return ret
 
-    def _as_extern(self) -> "pointer[ffi.wasm_extern_t]":
-        return ffi.wasm_module_as_extern(self._ptr)
+    def _as_extern(self) -> ffi.wasmtime_extern_t:
+        union = ffi.wasmtime_extern_union(module=self._ptr)
+        return ffi.wasmtime_extern_t(ffi.WASMTIME_EXTERN_MODULE, union)
 
     def __del__(self) -> None:
-        if hasattr(self, '_owner') and self._owner is None:
-            ffi.wasm_module_delete(self._ptr)
+        if hasattr(self, '_ptr'):
+            ffi.wasmtime_module_delete(self._ptr)

@@ -7,7 +7,7 @@ can `import your_wasm_file` which will automatically compile and instantiate
 `your_wasm_file.wasm` and hook it up into Python's module system.
 """
 
-from wasmtime import Module, Linker, Store, WasiInstance, WasiConfig
+from wasmtime import Module, Linker, Store, WasiConfig
 from wasmtime import Func, Table, Global, Memory
 import sys
 import os.path
@@ -18,11 +18,12 @@ from importlib.util import spec_from_file_location
 
 predefined_modules = []
 store = Store()
-linker = Linker(store)
+linker = Linker(store.engine)
 # TODO: how to configure wasi?
-wasi = WasiInstance(store, "wasi_snapshot_preview1", WasiConfig())
+store.set_wasi(WasiConfig())
 predefined_modules.append("wasi_snapshot_preview1")
-linker.define_wasi(wasi)
+predefined_modules.append("wasi_unstable")
+linker.define_wasi()
 linker.allow_shadowing = True
 
 # Mostly copied from
@@ -77,10 +78,16 @@ class _WasmtimeLoader(Loader):
                 item = Func(store, wasm_import.type, item)
             linker.define(module_name, field_name, item)
 
-        res = linker.instantiate(wasm_module)
-        exports = res.exports
+        res = linker.instantiate(store, wasm_module)
+        exports = res.exports(store)
         for i, export in enumerate(wasm_module.exports):
-            module.__dict__[export.name] = exports[i]
+            item = exports[i]
+            # Calling a function requires a `Store`, so bind the first argument
+            # to our loader's store
+            if isinstance(item, Func):
+                func = item
+                item = lambda *args: func(store, *args)  # noqa
+            module.__dict__[export.name] = item
 
 
 sys.meta_path.insert(0, _WasmtimeMetaFinder())

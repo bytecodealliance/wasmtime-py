@@ -40,10 +40,10 @@ class TestExternRef(unittest.TestCase):
             """
         )
 
-        null_externref = instance.exports.get("null_externref")
-        self.assertEqual(null_externref(), None)
+        null_externref = instance.exports(store).get("null_externref")
+        self.assertEqual(null_externref(store), None)
 
-        f = instance.exports.get("f")
+        f = instance.exports(store).get("f")
         externs = [42, True, False, None, "Hello", {"x": 1}, [12, 13, 14], Config()]
 
         for extern in externs:
@@ -55,7 +55,7 @@ class TestExternRef(unittest.TestCase):
 
             # And we can round trip the externref through Wasm and still get our
             # extern data.
-            result = f(ref)
+            result = f(store, ref)
             self.assertEqual(result, extern)
 
     def test_externref_tables(self):
@@ -64,32 +64,32 @@ class TestExternRef(unittest.TestCase):
         table = Table(store, ty, "init")
 
         for i in range(0, 10):
-            self.assertEqual(table[i], "init")
+            self.assertEqual(table.get(store, i), "init")
 
-        table.grow(2, "grown")
+        table.grow(store, 2, "grown")
 
         for i in range(0, 10):
-            self.assertEqual(table[i], "init")
+            self.assertEqual(table.get(store, i), "init")
         for i in range(10, 12):
-            self.assertEqual(table[i], "grown")
+            self.assertEqual(table.get(store, i), "grown")
 
-        table[7] = "lucky"
+        table.set(store, 7, "lucky")
 
         for i in range(0, 7):
-            self.assertEqual(table[i], "init")
-        self.assertEqual(table[7], "lucky")
+            self.assertEqual(table.get(store, i), "init")
+        self.assertEqual(table.get(store, 7), "lucky")
         for i in range(8, 10):
-            self.assertEqual(table[i], "init")
+            self.assertEqual(table.get(store, i), "init")
         for i in range(10, 12):
-            self.assertEqual(table[i], "grown")
+            self.assertEqual(table.get(store, i), "grown")
 
     def test_externref_in_global(self):
         store = ref_types_store()
         ty = GlobalType(ValType.externref(), True)
         g = Global(store, ty, Val.externref("hello"))
-        self.assertEqual(g.value, "hello")
-        g.value = "goodbye"
-        self.assertEqual(g.value, "goodbye")
+        self.assertEqual(g.value(store), "hello")
+        g.set_value(store, "goodbye")
+        self.assertEqual(g.value(store), "goodbye")
 
     def test_dtor_global(self):
         obj = {}  # type: ignore
@@ -97,7 +97,7 @@ class TestExternRef(unittest.TestCase):
         ty = GlobalType(ValType.externref(), True)
         g = Global(store, ty, Val.externref(SetHitOnDrop(obj)))
         assert(not obj['hit'])
-        g.value = None
+        g.set_value(store, None)
         assert(obj['hit'])
 
     def test_dtor_func(self):
@@ -109,9 +109,9 @@ class TestExternRef(unittest.TestCase):
             """
         )
 
-        f = instance.exports.get("f")
+        f = instance.exports(store).get("f")
         obj = {}  # type: ignore
-        f(SetHitOnDrop(obj))
+        f(store, SetHitOnDrop(obj))
         store.gc()
         assert(obj['hit'])
 
@@ -131,10 +131,10 @@ class TestFuncRef(unittest.TestCase):
             """
         )
 
-        null_funcref = instance.exports.get("null_funcref")
-        self.assertEqual(null_funcref(), None)
+        null_funcref = instance.exports(store).get("null_funcref")
+        self.assertEqual(null_funcref(store), None)
 
-        f = instance.exports.get("f")
+        f = instance.exports(store).get("f")
 
         ty = FuncType([], [ValType.i32()])
         g = Func(store, ty, lambda: 42)
@@ -145,13 +145,13 @@ class TestFuncRef(unittest.TestCase):
         # And the funcref's points to `g`.
         g2 = ref_g_val.as_funcref()
         if isinstance(g2, Func):
-            self.assertEqual(g2(), 42)
+            self.assertEqual(g2(store), 42)
         else:
             self.fail("g2 is not a funcref: g2 = %r" % g2)
 
         # And we can round trip the funcref through Wasm.
-        g3 = f(ref_g_val)
+        g3 = f(store, ref_g_val)
         if isinstance(g3, Func):
-            self.assertEqual(g3(), 42)
+            self.assertEqual(g3(store), 42)
         else:
             self.fail("g3 is not a funcref: g3 = %r" % g3)

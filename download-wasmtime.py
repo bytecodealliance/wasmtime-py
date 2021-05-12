@@ -42,14 +42,16 @@ def main(platform, arch):
     except Exception:
         pass
     os.makedirs(os.path.dirname(dst))
-    os.makedirs(os.path.join('wasmtime', 'include'))
+    os.makedirs(os.path.join('wasmtime', 'include', 'wasmtime'))
 
     with urllib.request.urlopen(url) as f:
         contents = f.read()
 
     def final_loc(name):
-        if name.endswith('.h'):
-            return os.path.join('wasmtime', 'include', os.path.basename(name))
+        parts = name.split('include/')
+        print(parts)
+        if len(parts) > 1 and name.endswith('.h'):
+            return os.path.join('wasmtime', 'include', parts[1])
         elif name.endswith('.dll') or name.endswith('.so') or name.endswith('.dylib'):
             return dst
         else:

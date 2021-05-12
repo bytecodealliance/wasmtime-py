@@ -1,56 +1,47 @@
 from . import _ffi as ffi
 from ctypes import *
-from wasmtime import TableType, Store, WasmtimeError, IntoVal, Val, ValType
+from wasmtime import TableType, Store, WasmtimeError, IntoVal, Val
 from typing import Optional, Any
+from ._store import Storelike
 
 
 class Table:
-    _ptr: "pointer[ffi.wasm_table_t]"
+    _table: ffi.wasmtime_table_t
 
     def __init__(self, store: Store, ty: TableType, init: IntoVal):
         """
         Creates a new table within `store` with the specified `ty`.
         """
 
-        if not isinstance(store, Store):
-            raise TypeError("expected a `Store`")
-        if not isinstance(ty, TableType):
-            raise TypeError("expected a `TableType`")
-
         init_val = Val._convert(ty.element, init)
 
-        ptr = ffi.wasm_table_new(store._ptr, ty._ptr, init_val._unwrap_raw().of.ref)
-        if not ptr:
-            raise WasmtimeError("Failed to create table")
-        self._ptr = ptr
-        self._owner = None
+        table = ffi.wasmtime_table_t()
+        error = ffi.wasmtime_table_new(store._context, ty._ptr, byref(init_val._unwrap_raw()), byref(table))
+        if error:
+            raise WasmtimeError._from_ptr(error)
+        self._table = table
 
     @classmethod
-    def _from_ptr(cls, ptr: "pointer[ffi.wasm_table_t]", owner: Optional[Any]) -> "Table":
+    def _from_raw(cls, table: ffi.wasmtime_table_t) -> "Table":
         ty: "Table" = cls.__new__(cls)
-        if not isinstance(ptr, POINTER(ffi.wasm_table_t)):
-            raise TypeError("wrong pointer type")
-        ty._ptr = ptr
-        ty._owner = owner
+        ty._table = table
         return ty
 
-    @property
-    def type(self) -> TableType:
+    def type(self, store: Storelike) -> TableType:
         """
         Gets the type of this table as a `TableType`
         """
 
-        ptr = ffi.wasm_table_type(self._ptr)
+        ptr = ffi.wasmtime_table_type(store._context, byref(self._table))
         return TableType._from_ptr(ptr, None)
 
-    @property
-    def size(self) -> int:
+    def size(self, store: Storelike) -> int:
         """
         Gets the size, in elements, of this table
         """
-        return ffi.wasm_table_size(self._ptr)
+        return ffi.wasmtime_table_size(store._context, byref(self._table))
 
-    def grow(self, amt: int, init: IntoVal) -> int:
+    def grow(self, store: Storelike, amt: int, init: IntoVal) -> int:
         """
         Grows this table by the specified number of slots, using the specified
         initializer for all new table slots.
@@ -58,13 +49,14 @@ class Table:
         Raises a `WasmtimeError` if the table could not be grown.
         Returns the previous size of the table otherwise.
         """
-        init_val = Val._convert(self.type.element, init)
-        ok = ffi.wasm_table_grow(self._ptr, c_uint32(amt), init_val._unwrap_raw().of.ref)
-        if not ok:
-            raise WasmtimeError("failed to grow table")
-        return self.size - amt
+        init_val = Val._convert(self.type(store).element, init)
+        prev = c_uint32(0)
+        error = ffi.wasmtime_table_grow(store._context, byref(self._table), c_uint32(amt), byref(init_val._unwrap_raw()), byref(prev))
+        if error:
+            raise WasmtimeError._from_ptr(error)
+        return prev.value
 
-    def __getitem__(self, idx: int) -> Optional[Any]:
+    def get(self, store: Store, idx: int) -> Optional[Any]:
         """
         Gets an individual element within this table.
 
@@ -75,22 +67,19 @@ class Table:
 
         Returns the wrapped extern data for non-null `externref` table elements.
 
-        Raises an `WasmtimeError` if `idx` is out of bounds.
+        Returns `None` if `idx` is out of bounds.
         """
-        if idx >= self.size:
-            raise WasmtimeError("table index out of bounds")
-
-        if self.type.element == ValType.externref():
-            val = Val.externref(None)
-        elif self.type.element == ValType.funcref():
-            val = Val.funcref(None)
+        raw = ffi.wasmtime_val_t()
+        ok = ffi.wasmtime_table_get(store._context, byref(self._table), idx, byref(raw))
+        if not ok:
+            return None
+        val = Val(raw)
+        if val.value:
+            return val.value
         else:
-            raise WasmtimeError("unsupported table element type")
+            return val
 
-        val._unwrap_raw().of.ref = ffi.wasm_table_get(self._ptr, idx)
-        return val.value
-
-    def __setitem__(self, idx: int, val: IntoVal) -> None:
+    def set(self, store: Store, idx: int, val: IntoVal) -> None:
         """
         Sets an individual element within this table.
 
@@ -103,17 +92,11 @@ class Table:
 
         Raises a `WasmtimeError` if `idx` is out of bounds.
         """
-        if idx >= self.size:
-            raise WasmtimeError("Index out of bounds when setting table element")
+        value = Val._convert(self.type(store).element, val)
+        error = ffi.wasmtime_table_set(store._context, byref(self._table), idx, byref(value._unwrap_raw()))
+        if error:
+            raise WasmtimeError._from_ptr(error)
 
-        value = Val._convert(self.type.element, val)
-        ok = ffi.wasm_table_set(self._ptr, idx, value._unwrap_raw().of.ref)
-        if not ok:
-            raise WasmtimeError("Failed to set table element")
-
-    def _as_extern(self) -> "pointer[ffi.wasm_extern_t]":
-        return ffi.wasm_table_as_extern(self._ptr)
-
-    def __del__(self) -> None:
-        if hasattr(self, '_owner') and self._owner is None:
-            ffi.wasm_table_delete(self._ptr)
+    def _as_extern(self) -> ffi.wasmtime_extern_t:
+        union = ffi.wasmtime_extern_union(table=self._table)
+        return ffi.wasmtime_extern_t(ffi.WASMTIME_EXTERN_TABLE, union)
