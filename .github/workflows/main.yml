@@ -8,13 +8,19 @@ on:
   schedule:
     - cron: '0 0 * * *' # run at 00:00 UTC
 
+# Cancel any in-flight jobs for the same PR/branch so there's only one active
+# at a time
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: [3.6, 3.7, 3.8]
+        python-version: [3.6, 3.7, 3.8, 3.9]
         exclude:
         # Looks like pypy on Windows is 32-bit, so don't test it since we
         # only work with 64-bit builds

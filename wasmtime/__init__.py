@@ -28,7 +28,7 @@ from ._globals import Global
 from ._table import Table
 from ._memory import Memory
 from ._instance import Instance
-from ._wasi import WasiInstance, WasiConfig
+from ._wasi import WasiConfig
 from ._linker import Linker
 
 __all__ = [
@@ -57,7 +57,6 @@ __all__ = [
     'Module',
     'Instance',
     'WasiConfig',
-    'WasiInstance',
     'Linker',
     'WasmtimeError',
 ]

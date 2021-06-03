@@ -238,7 +238,7 @@ class Limits:
         min = val.contents.min
         max = val.contents.max
         if max == 0xffffffff:
-            max = None
+            return Limits(min, None)
         return Limits(min, max)
 
 
@@ -322,16 +322,16 @@ class MemoryType:
 
 
 class ModuleType:
-    _ptr: "pointer[ffi.wasm_moduletype_t]"
+    _ptr: "pointer[ffi.wasmtime_moduletype_t]"
     _owner: Optional[Any]
 
     def __init__(self) -> None:
         raise WasmtimeError("cannot create a `ModuleType` currently")
 
     @classmethod
-    def _from_ptr(cls, ptr: "pointer[ffi.wasm_moduletype_t]", owner: Optional[Any]) -> "ModuleType":
+    def _from_ptr(cls, ptr: "pointer[ffi.wasmtime_moduletype_t]", owner: Optional[Any]) -> "ModuleType":
         ty: "ModuleType" = cls.__new__(cls)
-        if not isinstance(ptr, POINTER(ffi.wasm_moduletype_t)):
+        if not isinstance(ptr, POINTER(ffi.wasmtime_moduletype_t)):
             raise TypeError("wrong pointer type")
         ty._ptr = ptr
         ty._owner = owner
@@ -344,7 +344,7 @@ class ModuleType:
         """
 
         exports = ExportTypeList()
-        ffi.wasm_moduletype_exports(self._ptr, byref(exports.vec))
+        ffi.wasmtime_moduletype_exports(self._ptr, byref(exports.vec))
         ret = []
         for i in range(0, exports.vec.size):
             ret.append(ExportType._from_ptr(exports.vec.data[i], exports))
@@ -357,31 +357,31 @@ class ModuleType:
         """
 
         imports = ImportTypeList()
-        ffi.wasm_moduletype_imports(self._ptr, byref(imports.vec))
+        ffi.wasmtime_moduletype_imports(self._ptr, byref(imports.vec))
         ret = []
         for i in range(0, imports.vec.size):
             ret.append(ImportType._from_ptr(imports.vec.data[i], imports))
         return ret
 
     def _as_extern(self) -> "pointer[ffi.wasm_externtype_t]":
-        return ffi.wasm_moduletype_as_externtype_const(self._ptr)
+        return ffi.wasmtime_moduletype_as_externtype(self._ptr)
 
     def __del__(self) -> None:
         if hasattr(self, '_owner') and self._owner is None:
-            ffi.wasm_moduletype_delete(self._ptr)
+            ffi.wasmtime_moduletype_delete(self._ptr)
 
 
 class InstanceType:
-    _ptr: "pointer[ffi.wasm_instancetype_t]"
+    _ptr: "pointer[ffi.wasmtime_instancetype_t]"
     _owner: Optional[Any]
 
     def __init__(self) -> None:
         raise WasmtimeError("cannot create an `InstanceType` currently")
 
     @classmethod
-    def _from_ptr(cls, ptr: "pointer[ffi.wasm_instancetype_t]", owner: Optional[Any]) -> "InstanceType":
+    def _from_ptr(cls, ptr: "pointer[ffi.wasmtime_instancetype_t]", owner: Optional[Any]) -> "InstanceType":
         ty: "InstanceType" = cls.__new__(cls)
-        if not isinstance(ptr, POINTER(ffi.wasm_instancetype_t)):
+        if not isinstance(ptr, POINTER(ffi.wasmtime_instancetype_t)):
             raise TypeError("wrong pointer type")
         ty._ptr = ptr
         ty._owner = owner
@@ -394,39 +394,39 @@ class InstanceType:
         """
 
         exports = ExportTypeList()
-        ffi.wasm_instancetype_exports(self._ptr, byref(exports.vec))
+        ffi.wasmtime_instancetype_exports(self._ptr, byref(exports.vec))
         ret = []
         for i in range(0, exports.vec.size):
             ret.append(ExportType._from_ptr(exports.vec.data[i], exports))
         return ret
 
     def _as_extern(self) -> "pointer[ffi.wasm_externtype_t]":
-        return ffi.wasm_instancetype_as_externtype_const(self._ptr)
+        return ffi.wasmtime_instancetype_as_externtype(self._ptr)
 
     def __del__(self) -> None:
         if hasattr(self, '_owner') and self._owner is None:
-            ffi.wasm_instancetype_delete(self._ptr)
+            ffi.wasmtime_instancetype_delete(self._ptr)
 
 
 def wrap_externtype(ptr: "pointer[ffi.wasm_externtype_t]", owner: Optional[Any]) -> "AsExternType":
     if not isinstance(ptr, POINTER(ffi.wasm_externtype_t)):
         raise TypeError("wrong pointer type")
-    val = ffi.wasm_externtype_as_functype_const(ptr)
+    val = ffi.wasm_externtype_as_functype(ptr)
     if val:
         return FuncType._from_ptr(val, owner)
-    val = ffi.wasm_externtype_as_tabletype_const(ptr)
+    val = ffi.wasm_externtype_as_tabletype(ptr)
     if val:
         return TableType._from_ptr(val, owner)
-    val = ffi.wasm_externtype_as_globaltype_const(ptr)
+    val = ffi.wasm_externtype_as_globaltype(ptr)
     if val:
         return GlobalType._from_ptr(val, owner)
-    val = ffi.wasm_externtype_as_memorytype_const(ptr)
+    val = ffi.wasm_externtype_as_memorytype(ptr)
     if val:
         return MemoryType._from_ptr(val, owner)
-    val = ffi.wasm_externtype_as_moduletype_const(ptr)
+    val = ffi.wasmtime_externtype_as_moduletype(ptr)
     if val:
         return ModuleType._from_ptr(val, owner)
-    val = ffi.wasm_externtype_as_instancetype_const(ptr)
+    val = ffi.wasmtime_externtype_as_instancetype(ptr)
     if val:
         return InstanceType._from_ptr(val, owner)
     raise WasmtimeError("unknown extern type")

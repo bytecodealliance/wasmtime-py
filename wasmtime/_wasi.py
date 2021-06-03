@@ -1,10 +1,8 @@
 from ctypes import *
-from wasmtime import Store, Trap, ImportType, WasmtimeError
+from wasmtime import WasmtimeError
 from . import _ffi as ffi
-from ._extern import wrap_extern
 from ._config import setter_property
-from typing import Optional, List, Iterable
-from ._exportable import AsExtern
+from typing import List, Iterable
 
 
 class WasiConfig:
@@ -141,41 +139,3 @@ def to_char_array(strings: List[str]) -> "pointer[pointer[c_char]]":
     for i, s in enumerate(strings):
         ptrs[i] = c_char_p(s.encode('utf-8'))
     return cast(ptrs, POINTER(POINTER(c_char)))
-
-
-class WasiInstance:
-    _ptr: "pointer[ffi.wasi_instance_t]"
-
-    def __init__(self, store: Store, name: str, config: WasiConfig):
-        if not isinstance(store, Store):
-            raise TypeError("expected a `Store`")
-        if not isinstance(name, str):
-            raise TypeError("expected a `str`")
-        name_bytes = name.encode('utf-8')
-        if not isinstance(config, WasiConfig):
-            raise TypeError("expected a `WasiConfig`")
-        ptr = config._ptr
-        delattr(config, '_ptr')
-
-        trap = POINTER(ffi.wasm_trap_t)()
-        ptr = ffi.wasi_instance_new(
-            store._ptr, c_char_p(name_bytes), ptr, byref(trap))
-        if not ptr:
-            if trap:
-                raise Trap._from_ptr(trap)
-            raise WasmtimeError("failed to create wasi instance")
-        self._ptr = ptr
-        self.store = store
-
-    def bind(self, import_: ImportType) -> Optional[AsExtern]:
-        if not isinstance(import_, ImportType):
-            raise TypeError("expected an `ImportType`")
-        ptr = ffi.wasi_instance_bind_import(self._ptr, import_._ptr)
-        if ptr:
-            return wrap_extern(ptr, self)
-        else:
-            return None
-
-    def __del__(self) -> None:
-        if hasattr(self, '_ptr'):
-            ffi.wasi_instance_delete(self._ptr)

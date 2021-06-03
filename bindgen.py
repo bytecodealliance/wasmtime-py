@@ -40,6 +40,27 @@ class Visitor(c_ast.NodeVisitor):
             for decl in node.decls:
                 self.ret += "        (\"{}\", {}),\n".format(decl.name, type_name(decl.type))
             self.ret += "    ]\n"
+            for decl in node.decls:
+                self.ret += "    {}: {}\n".format(decl.name, type_name(decl.type, typing=True))
+        else:
+            self.ret += "    pass\n"
+
+    def visit_Union(self, node):
+        if not node.name or not node.name.startswith('was'):
+            return
+
+        self.ret += "\n"
+        self.ret += "class {}(Union):\n".format(node.name)
+        if node.decls:
+            self.ret += "    _fields_ = [\n"
+            for decl in node.decls:
+                self.ret += "        (\"{}\", {}),\n".format(name(decl.name), type_name(decl.type))
+            self.ret += "    ]\n"
+            for decl in node.decls:
+                self.ret += "    {}: {}".format(name(decl.name), type_name(decl.type, typing=True))
+                if decl.name == 'v128':
+                    self.ret += '  # type: ignore'
+                self.ret += "\n"
         else:
             self.ret += "    pass\n"
 
@@ -50,7 +71,10 @@ class Visitor(c_ast.NodeVisitor):
         tyname = type_name(node.type)
         if tyname != node.name:
             self.ret += "\n"
-            self.ret += "{} = {}\n".format(node.name, type_name(node.type))
+            if isinstance(node.type, c_ast.ArrayDecl):
+                self.ret += "{} = {} * {}\n".format(node.name, type_name(node.type.type), node.type.dim.value)
+            else:
+                self.ret += "{} = {}\n".format(node.name, type_name(node.type))
 
     def visit_FuncDecl(self, node):
         if isinstance(node.type, c_ast.TypeDecl):
@@ -67,20 +91,10 @@ class Visitor(c_ast.NodeVisitor):
         if not name.startswith('was'):
             return
 
-        # TODO: these are bugs with upstream wasmtime
-        if name == 'wasm_frame_copy':
-            return
+        # This function forward-declares `wasm_instance_t` which doesn't work
+        # with this binding generator, but for now this isn't used anyway so
+        # just skip it.
         if name == 'wasm_frame_instance':
-            return
-        if name == 'wasm_module_serialize':
-            return
-        if name == 'wasm_module_deserialize':
-            return
-        if '_ref_as_' in name:
-            return
-        if 'extern_const' in name:
-            return
-        if 'foreign' in name:
             return
 
         ret = ty.type
@@ -99,7 +113,13 @@ class Visitor(c_ast.NodeVisitor):
                 argpairs.append("{}: Any".format(argname))
                 argnames.append(argname)
                 argtypes.append(tyname)
-        retty = type_name(node.type, ptr, typing=True)
+
+        # It seems like this is the actual return value of the function, not a
+        # pointer. Special-case this so the type-checking agrees with runtime.
+        if type_name(ret, ptr) == 'c_void_p':
+            retty = 'int'
+        else:
+            retty = type_name(node.type, ptr, typing=True)
 
         self.ret += "\n"
         self.ret += "_{0} = dll.{0}\n".format(name)
@@ -107,6 +127,12 @@ class Visitor(c_ast.NodeVisitor):
         self.ret += "_{}.argtypes = [{}]\n".format(name, ', '.join(argtypes))
         self.ret += "def {}({}) -> {}:\n".format(name, ', '.join(argpairs), retty)
         self.ret += "    return _{}({})  # type: ignore\n".format(name, ', '.join(argnames))
+
+
+def name(name):
+    if name == 'global':
+        return 'global_'
+    return name
 
 
 def type_name(ty, ptr=False, typing=False):
@@ -131,10 +157,18 @@ def type_name(ty, ptr=False, typing=False):
             return "c_ubyte"
         elif ty.names[0] == "uint8_t":
             return "c_uint8"
+        elif ty.names[0] == "int32_t":
+            return "int" if typing else "c_int32"
         elif ty.names[0] == "uint32_t":
             return "int" if typing else "c_uint32"
         elif ty.names[0] == "uint64_t":
             return "c_uint64"
+        elif ty.names[0] == "int64_t":
+            return "int" if typing else "c_int64"
+        elif ty.names[0] == "float32_t":
+            return "float" if typing else "c_float"
+        elif ty.names[0] == "float64_t":
+            return "float" if typing else "c_double"
         elif ty.names[0] == "size_t":
             return "int" if typing else "c_size_t"
         elif ty.names[0] == "char":
@@ -148,6 +182,8 @@ def type_name(ty, ptr=False, typing=False):
             return "int"
         return ty.names[0]
     elif isinstance(ty, c_ast.Struct):
+        return ty.name
+    elif isinstance(ty, c_ast.Union):
         return ty.name
     elif isinstance(ty, c_ast.FuncDecl):
         tys = []

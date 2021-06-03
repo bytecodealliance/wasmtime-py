@@ -27,18 +27,18 @@ print("Instantiating module...")
 instance = Instance(store, module, [callback_func])
 
 print("Extracting export...")
-g = instance.exports["g"]
+g = instance.exports(store)["g"]
 
 print("Calling export \"g\"...")
-results = g(1, 3)
+results = g(store, 1, 3)
 print("> {} {}".format(results[0], results[1]))
 
 assert(results[0] == 4)
 assert(results[1] == 2)
 
 print("Calling export \"round_trip_many\"...")
-round_trip_many = instance.exports["round_trip_many"]
-results = round_trip_many(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+round_trip_many = instance.exports(store)["round_trip_many"]
+results = round_trip_many(store, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
 print("Printing result...")
 print(">")

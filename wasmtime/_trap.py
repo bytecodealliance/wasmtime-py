@@ -1,24 +1,16 @@
 from . import _ffi as ffi
 from ctypes import byref, POINTER, pointer, c_int
-from wasmtime import Store, WasmtimeError
 from typing import Optional, Any, List
 
 
 class Trap(Exception):
-    def __init__(self, store: Store, message: str):
+    def __init__(self, message: str):
         """
-        Creates a new trap in `store` with the given `message`
+        Creates a new trap with the given `message`
         """
 
-        if not isinstance(store, Store):
-            raise TypeError("expected a Store")
-        if not isinstance(message, str):
-            raise TypeError("expected a string")
-        message_raw = ffi.str_to_name(message, trailing_nul=True)
-        ptr = ffi.wasm_trap_new(store._ptr, byref(message_raw))
-        if not ptr:
-            raise WasmtimeError("failed to create trap")
-        self._ptr = ptr
+        vec = message.encode('utf-8')
+        self._ptr = ffi.wasmtime_trap_new(ffi.create_string_buffer(vec), len(vec))
 
     @classmethod
     def _from_ptr(cls, ptr: "pointer[ffi.wasm_trap_t]") -> "Trap":
