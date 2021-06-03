@@ -59,8 +59,8 @@ def say_hello():
 hello = Func(store, FuncType([], []), say_hello)
 
 instance = Instance(store, module, [hello])
-run = instance.exports["run"]
-run()
+run = instance.exports(store)["run"]
+run(store)
 ```
 
 Be sure to check out the [`examples` directory], which has other usage patterns
