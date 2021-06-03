@@ -8,6 +8,11 @@ from ._exportable import AsExtern
 from ._store import Storelike
 
 
+T = TypeVar('T')
+FUNCTIONS: "Slab[Tuple]"
+LAST_EXCEPTION: Optional[Exception] = None
+
+
 class Func:
     _func: ffi.wasmtime_func_t
 
@@ -216,9 +221,6 @@ def finalize(idx):  # type: ignore
     FUNCTIONS.deallocate(idx or 0)
 
 
-T = TypeVar('T')
-
-
 class Slab(Generic[T]):
     list: List[Union[int, T]]
     next: int
@@ -247,8 +249,7 @@ class Slab(Generic[T]):
         self.next = idx
 
 
-FUNCTIONS: Slab[Tuple] = Slab()
-LAST_EXCEPTION: Optional[Exception] = None
+FUNCTIONS = Slab()
 
 
 @contextmanager
