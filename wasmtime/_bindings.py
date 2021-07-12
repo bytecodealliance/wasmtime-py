@@ -2029,6 +2029,12 @@ _wasmtime_config_wasm_multi_value_set.argtypes = [POINTER(wasm_config_t), c_bool
 def wasmtime_config_wasm_multi_value_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_wasm_multi_value_set(arg0, arg1)  # type: ignore
 
+_wasmtime_config_wasm_multi_memory_set = dll.wasmtime_config_wasm_multi_memory_set
+_wasmtime_config_wasm_multi_memory_set.restype = None
+_wasmtime_config_wasm_multi_memory_set.argtypes = [POINTER(wasm_config_t), c_bool]
+def wasmtime_config_wasm_multi_memory_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_wasm_multi_memory_set(arg0, arg1)  # type: ignore
+
 _wasmtime_config_wasm_module_linking_set = dll.wasmtime_config_wasm_module_linking_set
 _wasmtime_config_wasm_module_linking_set.restype = None
 _wasmtime_config_wasm_module_linking_set.argtypes = [POINTER(wasm_config_t), c_bool]

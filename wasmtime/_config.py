@@ -107,6 +107,18 @@ class Config:
         ffi.wasmtime_config_wasm_module_linking_set(self._ptr, enable)
 
     @setter_property
+    def wasm_multi_memory(self, enable: bool) -> None:
+        """
+        Configures whether the wasm [multi memory proposal] is enabled.
+
+        [multi memory proposal]: https://github.com/webassembly/multi-memory
+        """
+
+        if not isinstance(enable, bool):
+            raise TypeError('expected a bool')
+        ffi.wasmtime_config_wasm_multi_memory_set(self._ptr, enable)
+
+    @setter_property
     def strategy(self, strategy: str) -> None:
         """
         Configures the compilation strategy used for wasm code.
