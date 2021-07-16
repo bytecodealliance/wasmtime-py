@@ -1,6 +1,32 @@
 from . import _ffi as ffi
+from enum import Enum
 from ctypes import byref, POINTER, pointer, c_int
 from typing import Optional, Any, List
+
+
+class TrapCode(Enum):
+    # The current stack space was exhausted.
+    STACK_OVERFLOW = 0
+    # An out-of-bounds memory access.
+    MEMORY_OUT_OF_BOUNDS = 1
+    # A wasm atomic operation was presented with a not-naturally-aligned linear-memory address.
+    HEAP_MISALIGNED = 2
+    # An out-of-bounds access to a table.
+    TABLE_OUT_OF_BOUNDS = 3
+    # Indirect call to a null table entry.
+    INDIRECT_CALL_TO_NULL = 4
+    # Signature mismatch on indirect call.
+    BAD_SIGNATURE = 5
+    # An integer arithmetic operation caused an overflow.
+    INTEGER_OVERFLOW = 6
+    # An integer division by zero.
+    INTEGER_DIVISION_BY_ZERO = 7
+    # Failed float-to-int conversion.
+    BAD_CONVERSION_TO_INTEGER = 8
+    # Code that was supposed to have been unreachable was reached.
+    UNREACHABLE = 9
+    # Execution has potentially run too long and may be interrupted.
+    INTERRUPT = 10
 
 
 class Trap(Exception):
@@ -50,6 +76,20 @@ class Trap(Exception):
         for i in range(0, frames.vec.size):
             ret.append(Frame._from_ptr(frames.vec.data[i], frames))
         return ret
+
+    @property
+    def trap_code(self) -> Optional[TrapCode]:
+        """
+        Returns an optional `TrapCode` that corresponds to why this trap
+        happened.
+
+        Note that `None` may be returned for manually created traps which do
+        not have an associated code with them.
+        """
+        code = ffi.wasmtime_trap_code_t()
+        if ffi.wasmtime_trap_code(self._ptr, byref(code)):
+            return TrapCode(code.value)
+        return None
 
     def __str__(self) -> str:
         return self.message

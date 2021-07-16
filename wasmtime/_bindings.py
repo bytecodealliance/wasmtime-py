@@ -2676,11 +2676,19 @@ _wasmtime_table_grow.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_t
 def wasmtime_table_grow(store: Any, table: Any, delta: Any, init: Any, prev_size: Any) -> pointer:
     return _wasmtime_table_grow(store, table, delta, init, prev_size)  # type: ignore
 
+wasmtime_trap_code_t = c_uint8
+
 _wasmtime_trap_new = dll.wasmtime_trap_new
 _wasmtime_trap_new.restype = POINTER(wasm_trap_t)
 _wasmtime_trap_new.argtypes = [POINTER(c_char), c_size_t]
 def wasmtime_trap_new(msg: Any, msg_len: Any) -> pointer:
     return _wasmtime_trap_new(msg, msg_len)  # type: ignore
+
+_wasmtime_trap_code = dll.wasmtime_trap_code
+_wasmtime_trap_code.restype = c_bool
+_wasmtime_trap_code.argtypes = [POINTER(wasm_trap_t), POINTER(wasmtime_trap_code_t)]
+def wasmtime_trap_code(arg0: Any, code: Any) -> c_bool:
+    return _wasmtime_trap_code(arg0, code)  # type: ignore
 
 _wasmtime_trap_exit_status = dll.wasmtime_trap_exit_status
 _wasmtime_trap_exit_status.restype = c_bool

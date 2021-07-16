@@ -49,6 +49,7 @@ wasm backtrace:
     1:   0x28 - module!foo
     2:   0x23 - module!<wasm function 0>
 """)
+        self.assertEqual(trap.trap_code, TrapCode.UNREACHABLE)
 
     def test_frames_no_module(self):
         store = Store()
