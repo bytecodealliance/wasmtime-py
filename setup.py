@@ -32,6 +32,7 @@ setuptools.setup(
     },
     packages=['wasmtime'],
     include_package_data=True,
+    package_data={"wasmtime": ["py.typed"]},
     python_requires='>=3.6',
     test_suite="tests",
     extras_require={
