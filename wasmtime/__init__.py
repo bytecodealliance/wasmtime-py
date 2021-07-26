@@ -16,7 +16,7 @@ libraries are intended to be quite similar.
 from ._error import WasmtimeError
 from ._config import Config
 from ._engine import Engine
-from ._store import Store
+from ._store import Store, Storelike
 from ._types import FuncType, GlobalType, MemoryType, TableType
 from ._types import ValType, Limits, ImportType, ExportType, ModuleType, InstanceType
 from ._wat2wasm import wat2wasm
