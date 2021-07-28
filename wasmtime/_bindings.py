@@ -2568,6 +2568,12 @@ _wasmtime_linker_define.argtypes = [POINTER(wasmtime_linker_t), POINTER(c_char),
 def wasmtime_linker_define(linker: Any, module: Any, module_len: Any, name: Any, name_len: Any, item: Any) -> pointer:
     return _wasmtime_linker_define(linker, module, module_len, name, name_len, item)  # type: ignore
 
+_wasmtime_linker_define_func = dll.wasmtime_linker_define_func
+_wasmtime_linker_define_func.restype = POINTER(wasmtime_error_t)
+_wasmtime_linker_define_func.argtypes = [POINTER(wasmtime_linker_t), POINTER(c_char), c_size_t, POINTER(c_char), c_size_t, POINTER(wasm_functype_t), wasmtime_func_callback_t, c_void_p, CFUNCTYPE(None, c_void_p)]
+def wasmtime_linker_define_func(linker: Any, module: Any, module_len: Any, name: Any, name_len: Any, ty: Any, cb: Any, data: Any, finalizer: Any) -> pointer:
+    return _wasmtime_linker_define_func(linker, module, module_len, name, name_len, ty, cb, data, finalizer)  # type: ignore
+
 _wasmtime_linker_define_wasi = dll.wasmtime_linker_define_wasi
 _wasmtime_linker_define_wasi.restype = POINTER(wasmtime_error_t)
 _wasmtime_linker_define_wasi.argtypes = [POINTER(wasmtime_linker_t)]

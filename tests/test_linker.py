@@ -139,3 +139,25 @@ class TestLinker(unittest.TestCase):
         """)
         linker.define_module(store, "foo", module)
         assert(isinstance(linker.get(store, "foo", "f"), Func))
+
+    def test_define_func(self):
+        engine = Engine()
+        linker = Linker(engine)
+        called = {}
+        called['hits'] = 0
+
+        def call():
+            called['hits'] += 1
+
+        linker.define_func('a', 'b', FuncType([], []), call)
+        module = Module(engine, """
+            (module
+                (import "a" "b" (func))
+                (start 0)
+            )
+        """)
+        assert(called['hits'] == 0)
+        linker.instantiate(Store(engine), module)
+        assert(called['hits'] == 1)
+        linker.instantiate(Store(engine), module)
+        assert(called['hits'] == 2)

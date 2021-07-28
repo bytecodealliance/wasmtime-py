@@ -1,12 +1,13 @@
 from ctypes import *
-from wasmtime import Instance, Engine
+from wasmtime import Instance, Engine, FuncType
 from wasmtime import Module, WasmtimeError, Func
 from . import _ffi as ffi
 from ._extern import get_extern_ptr, wrap_extern
 from ._config import setter_property
 from ._exportable import AsExtern
 from ._store import Storelike
-from ._func import enter_wasm
+from ._func import enter_wasm, trampoline, FUNCTIONS, finalize
+from typing import Callable
 
 
 class Linker:
@@ -53,6 +54,35 @@ class Linker:
             name_buf,
             len(name_bytes),
             byref(raw_item))
+        if error:
+            raise WasmtimeError._from_ptr(error)
+
+    def define_func(self, module: str, name: str, ty: FuncType, func: Callable, access_caller: bool = False) -> None:
+        """
+        Defines a new function, by name, in this linker.
+
+        This method is similar to `define` except that you can directly define a
+        function without creating a `Func` itself. This enables
+        `Store`-independent functions to be inserted into this linker, meaning
+        the linker can be used to instantiate modules in multiple stores.
+        """
+        module_bytes = module.encode('utf-8')
+        module_buf = create_string_buffer(module_bytes)
+        name_bytes = name.encode('utf-8')
+        name_buf = create_string_buffer(name_bytes)
+        if not isinstance(ty, FuncType):
+            raise TypeError("expected a FuncType")
+        idx = FUNCTIONS.allocate((func, ty.results, access_caller))
+        error = ffi.wasmtime_linker_define_func(
+            self._ptr,
+            module_buf,
+            len(module_bytes),
+            name_buf,
+            len(name_bytes),
+            ty._ptr,
+            trampoline,
+            idx,
+            finalize)
         if error:
             raise WasmtimeError._from_ptr(error)
 
