@@ -119,6 +119,18 @@ class Config:
         ffi.wasmtime_config_wasm_multi_memory_set(self._ptr, enable)
 
     @setter_property
+    def wasm_memory64(self, enable: bool) -> None:
+        """
+        Configures whether the wasm [memory64 proposal] is enabled.
+
+        [memory64 proposal]: https://github.com/webassembly/memory64
+        """
+
+        if not isinstance(enable, bool):
+            raise TypeError('expected a bool')
+        ffi.wasmtime_config_wasm_memory64_set(self._ptr, enable)
+
+    @setter_property
     def strategy(self, strategy: str) -> None:
         """
         Configures the compilation strategy used for wasm code.

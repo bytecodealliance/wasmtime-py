@@ -13,6 +13,7 @@ class TestConfig(unittest.TestCase):
         config.wasm_bulk_memory = True
         config.wasm_multi_value = True
         config.wasm_multi_memory = True
+        config.wasm_memory64 = True
         config.cranelift_debug_verifier = True
         config.strategy = "cranelift"
         config.strategy = "auto"

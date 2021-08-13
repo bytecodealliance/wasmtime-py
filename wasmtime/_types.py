@@ -287,10 +287,21 @@ class TableType:
 
 
 class MemoryType:
-    def __init__(self, limits: Limits):
+    def __init__(self, limits: Limits, is_64: bool = False):
         if not isinstance(limits, Limits):
             raise TypeError("expected Limits")
-        ptr = ffi.wasm_memorytype_new(byref(limits.__ffi__()))
+        if is_64:
+            maximum = 0x10000000000000000
+        else:
+            maximum = 0x100000000
+        if limits.min >= maximum:
+            raise WasmtimeError("minimum size too large")
+        if limits.max and limits.max >= maximum:
+            raise WasmtimeError("maximum size too large")
+        ptr = ffi.wasmtime_memorytype_new(limits.min,
+                                          limits.max is not None,
+                                          limits.max if limits.max else 0,
+                                          is_64)
         if not ptr:
             raise WasmtimeError("failed to allocate MemoryType")
         self._ptr = ptr
@@ -310,8 +321,17 @@ class MemoryType:
         """
         Returns the limits on the size of this table
         """
-        val = ffi.wasm_memorytype_limits(self._ptr)
-        return Limits._from_ffi(val)
+        minimum = ffi.wasmtime_memorytype_minimum(self._ptr)
+        maximum = ffi.c_uint64(0)
+        has_max = ffi.wasmtime_memorytype_maximum(self._ptr, byref(maximum))
+        return Limits(minimum, maximum.value if has_max else None)
+
+    @property
+    def is_64(self) -> bool:
+        """
+        Returns whether or not this is a 64-bit memory
+        """
+        return ffi.wasmtime_memorytype_is64(self._ptr)
 
     def _as_extern(self) -> "pointer[ffi.wasm_externtype_t]":
         return ffi.wasm_memorytype_as_externtype_const(self._ptr)
