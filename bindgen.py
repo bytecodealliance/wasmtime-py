@@ -152,7 +152,7 @@ def type_name(ty, ptr=False, typing=False):
         if ty.names[0] == "void":
             return "None"
         elif ty.names[0] == "_Bool":
-            return "c_bool"
+            return "bool" if typing else "c_bool"
         elif ty.names[0] == "byte_t":
             return "c_ubyte"
         elif ty.names[0] == "uint8_t":
@@ -162,7 +162,7 @@ def type_name(ty, ptr=False, typing=False):
         elif ty.names[0] == "uint32_t":
             return "int" if typing else "c_uint32"
         elif ty.names[0] == "uint64_t":
-            return "c_uint64"
+            return "int" if typing else "c_uint64"
         elif ty.names[0] == "int64_t":
             return "int" if typing else "c_int64"
         elif ty.names[0] == "float32_t":

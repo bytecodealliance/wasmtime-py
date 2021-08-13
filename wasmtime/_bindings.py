@@ -825,7 +825,7 @@ def wasm_ref_copy(arg0: Any) -> pointer:
 _wasm_ref_same = dll.wasm_ref_same
 _wasm_ref_same.restype = c_bool
 _wasm_ref_same.argtypes = [POINTER(wasm_ref_t), POINTER(wasm_ref_t)]
-def wasm_ref_same(arg0: Any, arg1: Any) -> c_bool:
+def wasm_ref_same(arg0: Any, arg1: Any) -> bool:
     return _wasm_ref_same(arg0, arg1)  # type: ignore
 
 _wasm_ref_get_host_info = dll.wasm_ref_get_host_info
@@ -937,7 +937,7 @@ def wasm_trap_copy(arg0: Any) -> pointer:
 _wasm_trap_same = dll.wasm_trap_same
 _wasm_trap_same.restype = c_bool
 _wasm_trap_same.argtypes = [POINTER(wasm_trap_t), POINTER(wasm_trap_t)]
-def wasm_trap_same(arg0: Any, arg1: Any) -> c_bool:
+def wasm_trap_same(arg0: Any, arg1: Any) -> bool:
     return _wasm_trap_same(arg0, arg1)  # type: ignore
 
 _wasm_trap_get_host_info = dll.wasm_trap_get_host_info
@@ -1024,7 +1024,7 @@ def wasm_foreign_copy(arg0: Any) -> pointer:
 _wasm_foreign_same = dll.wasm_foreign_same
 _wasm_foreign_same.restype = c_bool
 _wasm_foreign_same.argtypes = [POINTER(wasm_foreign_t), POINTER(wasm_foreign_t)]
-def wasm_foreign_same(arg0: Any, arg1: Any) -> c_bool:
+def wasm_foreign_same(arg0: Any, arg1: Any) -> bool:
     return _wasm_foreign_same(arg0, arg1)  # type: ignore
 
 _wasm_foreign_get_host_info = dll.wasm_foreign_get_host_info
@@ -1093,7 +1093,7 @@ def wasm_module_copy(arg0: Any) -> pointer:
 _wasm_module_same = dll.wasm_module_same
 _wasm_module_same.restype = c_bool
 _wasm_module_same.argtypes = [POINTER(wasm_module_t), POINTER(wasm_module_t)]
-def wasm_module_same(arg0: Any, arg1: Any) -> c_bool:
+def wasm_module_same(arg0: Any, arg1: Any) -> bool:
     return _wasm_module_same(arg0, arg1)  # type: ignore
 
 _wasm_module_get_host_info = dll.wasm_module_get_host_info
@@ -1168,7 +1168,7 @@ def wasm_module_new(arg0: Any, binary: Any) -> pointer:
 _wasm_module_validate = dll.wasm_module_validate
 _wasm_module_validate.restype = c_bool
 _wasm_module_validate.argtypes = [POINTER(wasm_store_t), POINTER(wasm_byte_vec_t)]
-def wasm_module_validate(arg0: Any, binary: Any) -> c_bool:
+def wasm_module_validate(arg0: Any, binary: Any) -> bool:
     return _wasm_module_validate(arg0, binary)  # type: ignore
 
 _wasm_module_imports = dll.wasm_module_imports
@@ -1213,7 +1213,7 @@ def wasm_func_copy(arg0: Any) -> pointer:
 _wasm_func_same = dll.wasm_func_same
 _wasm_func_same.restype = c_bool
 _wasm_func_same.argtypes = [POINTER(wasm_func_t), POINTER(wasm_func_t)]
-def wasm_func_same(arg0: Any, arg1: Any) -> c_bool:
+def wasm_func_same(arg0: Any, arg1: Any) -> bool:
     return _wasm_func_same(arg0, arg1)  # type: ignore
 
 _wasm_func_get_host_info = dll.wasm_func_get_host_info
@@ -1316,7 +1316,7 @@ def wasm_global_copy(arg0: Any) -> pointer:
 _wasm_global_same = dll.wasm_global_same
 _wasm_global_same.restype = c_bool
 _wasm_global_same.argtypes = [POINTER(wasm_global_t), POINTER(wasm_global_t)]
-def wasm_global_same(arg0: Any, arg1: Any) -> c_bool:
+def wasm_global_same(arg0: Any, arg1: Any) -> bool:
     return _wasm_global_same(arg0, arg1)  # type: ignore
 
 _wasm_global_get_host_info = dll.wasm_global_get_host_info
@@ -1403,7 +1403,7 @@ def wasm_table_copy(arg0: Any) -> pointer:
 _wasm_table_same = dll.wasm_table_same
 _wasm_table_same.restype = c_bool
 _wasm_table_same.argtypes = [POINTER(wasm_table_t), POINTER(wasm_table_t)]
-def wasm_table_same(arg0: Any, arg1: Any) -> c_bool:
+def wasm_table_same(arg0: Any, arg1: Any) -> bool:
     return _wasm_table_same(arg0, arg1)  # type: ignore
 
 _wasm_table_get_host_info = dll.wasm_table_get_host_info
@@ -1471,7 +1471,7 @@ def wasm_table_get(arg0: Any, index: Any) -> pointer:
 _wasm_table_set = dll.wasm_table_set
 _wasm_table_set.restype = c_bool
 _wasm_table_set.argtypes = [POINTER(wasm_table_t), wasm_table_size_t, POINTER(wasm_ref_t)]
-def wasm_table_set(arg0: Any, index: Any, arg2: Any) -> c_bool:
+def wasm_table_set(arg0: Any, index: Any, arg2: Any) -> bool:
     return _wasm_table_set(arg0, index, arg2)  # type: ignore
 
 _wasm_table_size = dll.wasm_table_size
@@ -1483,7 +1483,7 @@ def wasm_table_size(arg0: Any) -> int:
 _wasm_table_grow = dll.wasm_table_grow
 _wasm_table_grow.restype = c_bool
 _wasm_table_grow.argtypes = [POINTER(wasm_table_t), wasm_table_size_t, POINTER(wasm_ref_t)]
-def wasm_table_grow(arg0: Any, delta: Any, init: Any) -> c_bool:
+def wasm_table_grow(arg0: Any, delta: Any, init: Any) -> bool:
     return _wasm_table_grow(arg0, delta, init)  # type: ignore
 
 class wasm_memory_t(Structure):
@@ -1504,7 +1504,7 @@ def wasm_memory_copy(arg0: Any) -> pointer:
 _wasm_memory_same = dll.wasm_memory_same
 _wasm_memory_same.restype = c_bool
 _wasm_memory_same.argtypes = [POINTER(wasm_memory_t), POINTER(wasm_memory_t)]
-def wasm_memory_same(arg0: Any, arg1: Any) -> c_bool:
+def wasm_memory_same(arg0: Any, arg1: Any) -> bool:
     return _wasm_memory_same(arg0, arg1)  # type: ignore
 
 _wasm_memory_get_host_info = dll.wasm_memory_get_host_info
@@ -1584,7 +1584,7 @@ def wasm_memory_size(arg0: Any) -> int:
 _wasm_memory_grow = dll.wasm_memory_grow
 _wasm_memory_grow.restype = c_bool
 _wasm_memory_grow.argtypes = [POINTER(wasm_memory_t), wasm_memory_pages_t]
-def wasm_memory_grow(arg0: Any, delta: Any) -> c_bool:
+def wasm_memory_grow(arg0: Any, delta: Any) -> bool:
     return _wasm_memory_grow(arg0, delta)  # type: ignore
 
 class wasm_extern_t(Structure):
@@ -1605,7 +1605,7 @@ def wasm_extern_copy(arg0: Any) -> pointer:
 _wasm_extern_same = dll.wasm_extern_same
 _wasm_extern_same.restype = c_bool
 _wasm_extern_same.argtypes = [POINTER(wasm_extern_t), POINTER(wasm_extern_t)]
-def wasm_extern_same(arg0: Any, arg1: Any) -> c_bool:
+def wasm_extern_same(arg0: Any, arg1: Any) -> bool:
     return _wasm_extern_same(arg0, arg1)  # type: ignore
 
 _wasm_extern_get_host_info = dll.wasm_extern_get_host_info
@@ -1814,7 +1814,7 @@ def wasm_instance_copy(arg0: Any) -> pointer:
 _wasm_instance_same = dll.wasm_instance_same
 _wasm_instance_same.restype = c_bool
 _wasm_instance_same.argtypes = [POINTER(wasm_instance_t), POINTER(wasm_instance_t)]
-def wasm_instance_same(arg0: Any, arg1: Any) -> c_bool:
+def wasm_instance_same(arg0: Any, arg1: Any) -> bool:
     return _wasm_instance_same(arg0, arg1)  # type: ignore
 
 _wasm_instance_get_host_info = dll.wasm_instance_get_host_info
@@ -1913,7 +1913,7 @@ def wasi_config_inherit_env(config: Any) -> None:
 _wasi_config_set_stdin_file = dll.wasi_config_set_stdin_file
 _wasi_config_set_stdin_file.restype = c_bool
 _wasi_config_set_stdin_file.argtypes = [POINTER(wasi_config_t), POINTER(c_char)]
-def wasi_config_set_stdin_file(config: Any, path: Any) -> c_bool:
+def wasi_config_set_stdin_file(config: Any, path: Any) -> bool:
     return _wasi_config_set_stdin_file(config, path)  # type: ignore
 
 _wasi_config_inherit_stdin = dll.wasi_config_inherit_stdin
@@ -1925,7 +1925,7 @@ def wasi_config_inherit_stdin(config: Any) -> None:
 _wasi_config_set_stdout_file = dll.wasi_config_set_stdout_file
 _wasi_config_set_stdout_file.restype = c_bool
 _wasi_config_set_stdout_file.argtypes = [POINTER(wasi_config_t), POINTER(c_char)]
-def wasi_config_set_stdout_file(config: Any, path: Any) -> c_bool:
+def wasi_config_set_stdout_file(config: Any, path: Any) -> bool:
     return _wasi_config_set_stdout_file(config, path)  # type: ignore
 
 _wasi_config_inherit_stdout = dll.wasi_config_inherit_stdout
@@ -1937,7 +1937,7 @@ def wasi_config_inherit_stdout(config: Any) -> None:
 _wasi_config_set_stderr_file = dll.wasi_config_set_stderr_file
 _wasi_config_set_stderr_file.restype = c_bool
 _wasi_config_set_stderr_file.argtypes = [POINTER(wasi_config_t), POINTER(c_char)]
-def wasi_config_set_stderr_file(config: Any, path: Any) -> c_bool:
+def wasi_config_set_stderr_file(config: Any, path: Any) -> bool:
     return _wasi_config_set_stderr_file(config, path)  # type: ignore
 
 _wasi_config_inherit_stderr = dll.wasi_config_inherit_stderr
@@ -1949,7 +1949,7 @@ def wasi_config_inherit_stderr(config: Any) -> None:
 _wasi_config_preopen_dir = dll.wasi_config_preopen_dir
 _wasi_config_preopen_dir.restype = c_bool
 _wasi_config_preopen_dir.argtypes = [POINTER(wasi_config_t), POINTER(c_char), POINTER(c_char)]
-def wasi_config_preopen_dir(config: Any, path: Any, guest_path: Any) -> c_bool:
+def wasi_config_preopen_dir(config: Any, path: Any, guest_path: Any) -> bool:
     return _wasi_config_preopen_dir(config, path, guest_path)  # type: ignore
 
 class wasmtime_error(Structure):
@@ -2040,6 +2040,12 @@ _wasmtime_config_wasm_module_linking_set.restype = None
 _wasmtime_config_wasm_module_linking_set.argtypes = [POINTER(wasm_config_t), c_bool]
 def wasmtime_config_wasm_module_linking_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_wasm_module_linking_set(arg0, arg1)  # type: ignore
+
+_wasmtime_config_wasm_memory64_set = dll.wasmtime_config_wasm_memory64_set
+_wasmtime_config_wasm_memory64_set.restype = None
+_wasmtime_config_wasm_memory64_set.argtypes = [POINTER(wasm_config_t), c_bool]
+def wasmtime_config_wasm_memory64_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_wasm_memory64_set(arg0, arg1)  # type: ignore
 
 _wasmtime_config_strategy_set = dll.wasmtime_config_strategy_set
 _wasmtime_config_strategy_set.restype = POINTER(wasmtime_error_t)
@@ -2226,7 +2232,7 @@ def wasmtime_context_add_fuel(store: Any, fuel: Any) -> pointer:
 _wasmtime_context_fuel_consumed = dll.wasmtime_context_fuel_consumed
 _wasmtime_context_fuel_consumed.restype = c_bool
 _wasmtime_context_fuel_consumed.argtypes = [POINTER(wasmtime_context_t), POINTER(c_uint64)]
-def wasmtime_context_fuel_consumed(context: Any, fuel: Any) -> c_bool:
+def wasmtime_context_fuel_consumed(context: Any, fuel: Any) -> bool:
     return _wasmtime_context_fuel_consumed(context, fuel)  # type: ignore
 
 _wasmtime_context_set_wasi = dll.wasmtime_context_set_wasi
@@ -2263,7 +2269,7 @@ class wasmtime_func(Structure):
         ("store_id", c_uint64),
         ("index", c_size_t),
     ]
-    store_id: c_uint64
+    store_id: int
     index: int
 
 wasmtime_func_t = wasmtime_func
@@ -2273,7 +2279,7 @@ class wasmtime_table(Structure):
         ("store_id", c_uint64),
         ("index", c_size_t),
     ]
-    store_id: c_uint64
+    store_id: int
     index: int
 
 wasmtime_table_t = wasmtime_table
@@ -2283,7 +2289,7 @@ class wasmtime_memory(Structure):
         ("store_id", c_uint64),
         ("index", c_size_t),
     ]
-    store_id: c_uint64
+    store_id: int
     index: int
 
 wasmtime_memory_t = wasmtime_memory
@@ -2293,7 +2299,7 @@ class wasmtime_instance(Structure):
         ("store_id", c_uint64),
         ("index", c_size_t),
     ]
-    store_id: c_uint64
+    store_id: int
     index: int
 
 wasmtime_instance_t = wasmtime_instance
@@ -2303,7 +2309,7 @@ class wasmtime_global(Structure):
         ("store_id", c_uint64),
         ("index", c_size_t),
     ]
-    store_id: c_uint64
+    store_id: int
     index: int
 
 wasmtime_global_t = wasmtime_global
@@ -2453,7 +2459,7 @@ def wasmtime_func_call(store: Any, func: Any, args: Any, nargs: Any, results: An
 _wasmtime_caller_export_get = dll.wasmtime_caller_export_get
 _wasmtime_caller_export_get.restype = c_bool
 _wasmtime_caller_export_get.argtypes = [POINTER(wasmtime_caller_t), POINTER(c_char), c_size_t, POINTER(wasmtime_extern_t)]
-def wasmtime_caller_export_get(caller: Any, name: Any, name_len: Any, item: Any) -> c_bool:
+def wasmtime_caller_export_get(caller: Any, name: Any, name_len: Any, item: Any) -> bool:
     return _wasmtime_caller_export_get(caller, name, name_len, item)  # type: ignore
 
 _wasmtime_caller_context = dll.wasmtime_caller_context
@@ -2530,13 +2536,13 @@ def wasmtime_instance_type(store: Any, instance: Any) -> pointer:
 _wasmtime_instance_export_get = dll.wasmtime_instance_export_get
 _wasmtime_instance_export_get.restype = c_bool
 _wasmtime_instance_export_get.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_instance_t), POINTER(c_char), c_size_t, POINTER(wasmtime_extern_t)]
-def wasmtime_instance_export_get(store: Any, instance: Any, name: Any, name_len: Any, item: Any) -> c_bool:
+def wasmtime_instance_export_get(store: Any, instance: Any, name: Any, name_len: Any, item: Any) -> bool:
     return _wasmtime_instance_export_get(store, instance, name, name_len, item)  # type: ignore
 
 _wasmtime_instance_export_nth = dll.wasmtime_instance_export_nth
 _wasmtime_instance_export_nth.restype = c_bool
 _wasmtime_instance_export_nth.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_instance_t), c_size_t, POINTER(POINTER(c_char)), POINTER(c_size_t), POINTER(wasmtime_extern_t)]
-def wasmtime_instance_export_nth(store: Any, instance: Any, index: Any, name: Any, name_len: Any, item: Any) -> c_bool:
+def wasmtime_instance_export_nth(store: Any, instance: Any, index: Any, name: Any, name_len: Any, item: Any) -> bool:
     return _wasmtime_instance_export_nth(store, instance, index, name, name_len, item)  # type: ignore
 
 class wasmtime_linker(Structure):
@@ -2607,8 +2613,32 @@ def wasmtime_linker_get_default(linker: Any, store: Any, name: Any, name_len: An
 _wasmtime_linker_get = dll.wasmtime_linker_get
 _wasmtime_linker_get.restype = c_bool
 _wasmtime_linker_get.argtypes = [POINTER(wasmtime_linker_t), POINTER(wasmtime_context_t), POINTER(c_char), c_size_t, POINTER(c_char), c_size_t, POINTER(wasmtime_extern_t)]
-def wasmtime_linker_get(linker: Any, store: Any, module: Any, module_len: Any, name: Any, name_len: Any, item: Any) -> c_bool:
+def wasmtime_linker_get(linker: Any, store: Any, module: Any, module_len: Any, name: Any, name_len: Any, item: Any) -> bool:
     return _wasmtime_linker_get(linker, store, module, module_len, name, name_len, item)  # type: ignore
+
+_wasmtime_memorytype_new = dll.wasmtime_memorytype_new
+_wasmtime_memorytype_new.restype = POINTER(wasm_memorytype_t)
+_wasmtime_memorytype_new.argtypes = [c_uint64, c_bool, c_uint64, c_bool]
+def wasmtime_memorytype_new(min: Any, max_present: Any, max: Any, is_64: Any) -> pointer:
+    return _wasmtime_memorytype_new(min, max_present, max, is_64)  # type: ignore
+
+_wasmtime_memorytype_minimum = dll.wasmtime_memorytype_minimum
+_wasmtime_memorytype_minimum.restype = c_uint64
+_wasmtime_memorytype_minimum.argtypes = [POINTER(wasm_memorytype_t)]
+def wasmtime_memorytype_minimum(ty: Any) -> int:
+    return _wasmtime_memorytype_minimum(ty)  # type: ignore
+
+_wasmtime_memorytype_maximum = dll.wasmtime_memorytype_maximum
+_wasmtime_memorytype_maximum.restype = c_bool
+_wasmtime_memorytype_maximum.argtypes = [POINTER(wasm_memorytype_t), POINTER(c_uint64)]
+def wasmtime_memorytype_maximum(ty: Any, max: Any) -> bool:
+    return _wasmtime_memorytype_maximum(ty, max)  # type: ignore
+
+_wasmtime_memorytype_is64 = dll.wasmtime_memorytype_is64
+_wasmtime_memorytype_is64.restype = c_bool
+_wasmtime_memorytype_is64.argtypes = [POINTER(wasm_memorytype_t)]
+def wasmtime_memorytype_is64(ty: Any) -> bool:
+    return _wasmtime_memorytype_is64(ty)  # type: ignore
 
 _wasmtime_memory_new = dll.wasmtime_memory_new
 _wasmtime_memory_new.restype = POINTER(wasmtime_error_t)
@@ -2635,14 +2665,14 @@ def wasmtime_memory_data_size(store: Any, memory: Any) -> int:
     return _wasmtime_memory_data_size(store, memory)  # type: ignore
 
 _wasmtime_memory_size = dll.wasmtime_memory_size
-_wasmtime_memory_size.restype = c_uint32
+_wasmtime_memory_size.restype = c_uint64
 _wasmtime_memory_size.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_memory_t)]
 def wasmtime_memory_size(store: Any, memory: Any) -> int:
     return _wasmtime_memory_size(store, memory)  # type: ignore
 
 _wasmtime_memory_grow = dll.wasmtime_memory_grow
 _wasmtime_memory_grow.restype = POINTER(wasmtime_error_t)
-_wasmtime_memory_grow.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_memory_t), c_uint32, POINTER(c_uint32)]
+_wasmtime_memory_grow.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_memory_t), c_uint64, POINTER(c_uint64)]
 def wasmtime_memory_grow(store: Any, memory: Any, delta: Any, prev_size: Any) -> pointer:
     return _wasmtime_memory_grow(store, memory, delta, prev_size)  # type: ignore
 
@@ -2661,7 +2691,7 @@ def wasmtime_table_type(store: Any, table: Any) -> pointer:
 _wasmtime_table_get = dll.wasmtime_table_get
 _wasmtime_table_get.restype = c_bool
 _wasmtime_table_get.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_table_t), c_uint32, POINTER(wasmtime_val_t)]
-def wasmtime_table_get(store: Any, table: Any, index: Any, val: Any) -> c_bool:
+def wasmtime_table_get(store: Any, table: Any, index: Any, val: Any) -> bool:
     return _wasmtime_table_get(store, table, index, val)  # type: ignore
 
 _wasmtime_table_set = dll.wasmtime_table_set
@@ -2693,13 +2723,13 @@ def wasmtime_trap_new(msg: Any, msg_len: Any) -> pointer:
 _wasmtime_trap_code = dll.wasmtime_trap_code
 _wasmtime_trap_code.restype = c_bool
 _wasmtime_trap_code.argtypes = [POINTER(wasm_trap_t), POINTER(wasmtime_trap_code_t)]
-def wasmtime_trap_code(arg0: Any, code: Any) -> c_bool:
+def wasmtime_trap_code(arg0: Any, code: Any) -> bool:
     return _wasmtime_trap_code(arg0, code)  # type: ignore
 
 _wasmtime_trap_exit_status = dll.wasmtime_trap_exit_status
 _wasmtime_trap_exit_status.restype = c_bool
 _wasmtime_trap_exit_status.argtypes = [POINTER(wasm_trap_t), POINTER(c_int)]
-def wasmtime_trap_exit_status(arg0: Any, status: Any) -> c_bool:
+def wasmtime_trap_exit_status(arg0: Any, status: Any) -> bool:
     return _wasmtime_trap_exit_status(arg0, status)  # type: ignore
 
 _wasmtime_frame_func_name = dll.wasmtime_frame_func_name

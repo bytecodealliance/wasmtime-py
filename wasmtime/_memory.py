@@ -39,7 +39,7 @@ class Memory:
 
         if delta < 0:
             raise WasmtimeError("cannot grow by negative amount")
-        prev = ffi.c_uint32(0)
+        prev = ffi.c_uint64(0)
         error = ffi.wasmtime_memory_grow(store._context, byref(self._memory), delta, byref(prev))
         if error:
             raise WasmtimeError._from_ptr(error)
