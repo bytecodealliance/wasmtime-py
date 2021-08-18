@@ -86,7 +86,7 @@ class _WasmtimeLoader(Loader):
             # to our loader's store
             if isinstance(item, Func):
                 func = item
-                item = lambda *args: func(store, *args)  # noqa
+                item = lambda *args,func=func: func(store, *args)  # noqa
             module.__dict__[export.name] = item
 
 
