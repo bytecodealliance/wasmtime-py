@@ -2177,6 +2177,12 @@ _wasmtime_module_deserialize.argtypes = [POINTER(wasm_engine_t), POINTER(c_uint8
 def wasmtime_module_deserialize(engine: Any, bytes: Any, bytes_len: Any, ret: Any) -> pointer:
     return _wasmtime_module_deserialize(engine, bytes, bytes_len, ret)  # type: ignore
 
+_wasmtime_module_deserialize_file = dll.wasmtime_module_deserialize_file
+_wasmtime_module_deserialize_file.restype = POINTER(wasmtime_error_t)
+_wasmtime_module_deserialize_file.argtypes = [POINTER(wasm_engine_t), POINTER(c_char), POINTER(POINTER(wasmtime_module_t))]
+def wasmtime_module_deserialize_file(engine: Any, path: Any, ret: Any) -> pointer:
+    return _wasmtime_module_deserialize_file(engine, path, ret)  # type: ignore
+
 class wasmtime_store(Structure):
     pass
 

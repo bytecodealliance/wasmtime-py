@@ -79,6 +79,27 @@ class Module:
         return ret
 
     @classmethod
+    def deserialize_file(cls, engine: Engine, path: str) -> 'Module':
+        """
+        Deserializes bytes previously created by `Module.serialize` that are
+        stored in a file on the filesystem.
+
+        Otherwise this function is the same as `Module.deserialize`.
+        """
+
+        ptr = POINTER(ffi.wasmtime_module_t)()
+        path_bytes = path.encode('utf-8')
+        error = ffi.wasmtime_module_deserialize_file(
+            engine._ptr,
+            path_bytes,
+            byref(ptr))
+        if error:
+            raise WasmtimeError._from_ptr(error)
+        ret: "Module" = cls.__new__(cls)
+        ret._ptr = ptr
+        return ret
+
+    @classmethod
     def validate(cls, engine: Engine, wasm: typing.Union[bytes, bytearray]) -> None:
         """
         Validates whether the list of bytes `wasm` provided is a valid

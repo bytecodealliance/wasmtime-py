@@ -1,4 +1,5 @@
 import unittest
+import tempfile
 
 from wasmtime import *
 
@@ -154,3 +155,9 @@ class TestModule(unittest.TestCase):
         module = Module.deserialize(engine, encoded)
         assert(len(module.imports) == 0)
         assert(len(module.exports) == 0)
+        with tempfile.NamedTemporaryFile() as fp:
+            fp.write(encoded)
+            fp.flush()
+            module = Module.deserialize_file(engine, fp.name)
+            assert(len(module.imports) == 0)
+            assert(len(module.exports) == 0)
