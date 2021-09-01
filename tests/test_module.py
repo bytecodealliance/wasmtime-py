@@ -1,4 +1,5 @@
 import unittest
+import tempfile
 
 from wasmtime import *
 
@@ -154,3 +155,14 @@ class TestModule(unittest.TestCase):
         module = Module.deserialize(engine, encoded)
         assert(len(module.imports) == 0)
         assert(len(module.exports) == 0)
+        with tempfile.TemporaryDirectory() as d:
+            path = d + '/module.bin'
+            with open(path, 'wb') as f:
+                f.write(encoded)
+            module = Module.deserialize_file(engine, path)
+            assert(len(module.imports) == 0)
+            assert(len(module.exports) == 0)
+
+            # Run the destructor for `Module` which has an mmap to the file
+            # which prevents deletion on Windows.
+            del module
