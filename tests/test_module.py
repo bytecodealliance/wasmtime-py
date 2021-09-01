@@ -165,4 +165,4 @@ class TestModule(unittest.TestCase):
 
             # Run the destructor for `Module` which has an mmap to the file
             # which prevents deletion on Windows.
-            module = None
+            del module
