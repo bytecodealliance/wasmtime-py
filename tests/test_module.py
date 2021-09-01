@@ -155,9 +155,10 @@ class TestModule(unittest.TestCase):
         module = Module.deserialize(engine, encoded)
         assert(len(module.imports) == 0)
         assert(len(module.exports) == 0)
-        with tempfile.NamedTemporaryFile() as fp:
-            fp.write(encoded)
-            fp.flush()
-            module = Module.deserialize_file(engine, fp.name)
+        with tempfile.TemporaryDirectory() as d:
+            path = d + '/module.bin'
+            with open(path, 'wb') as f:
+                f.write(encoded)
+            module = Module.deserialize_file(engine, path)
             assert(len(module.imports) == 0)
             assert(len(module.exports) == 0)
