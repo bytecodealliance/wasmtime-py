@@ -2241,6 +2241,12 @@ _wasmtime_context_fuel_consumed.argtypes = [POINTER(wasmtime_context_t), POINTER
 def wasmtime_context_fuel_consumed(context: Any, fuel: Any) -> bool:
     return _wasmtime_context_fuel_consumed(context, fuel)  # type: ignore
 
+_wasmtime_context_consume_fuel = dll.wasmtime_context_consume_fuel
+_wasmtime_context_consume_fuel.restype = POINTER(wasmtime_error_t)
+_wasmtime_context_consume_fuel.argtypes = [POINTER(wasmtime_context_t), c_uint64, POINTER(c_uint64)]
+def wasmtime_context_consume_fuel(context: Any, fuel: Any, remaining: Any) -> pointer:
+    return _wasmtime_context_consume_fuel(context, fuel, remaining)  # type: ignore
+
 _wasmtime_context_set_wasi = dll.wasmtime_context_set_wasi
 _wasmtime_context_set_wasi.restype = POINTER(wasmtime_error_t)
 _wasmtime_context_set_wasi.argtypes = [POINTER(wasmtime_context_t), POINTER(wasi_config_t)]

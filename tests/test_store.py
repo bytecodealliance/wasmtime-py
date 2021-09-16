@@ -52,3 +52,8 @@ class TestStore(unittest.TestCase):
         store = Store(Engine(config))
         store.add_fuel(1)
         assert(store.fuel_consumed() == 0)
+        assert(store.consume_fuel(0) == 1)
+        store.add_fuel(1)
+        assert(store.consume_fuel(1) == 1)
+        with self.assertRaises(WasmtimeError):
+            store.consume_fuel(2)
