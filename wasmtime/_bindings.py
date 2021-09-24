@@ -2397,6 +2397,18 @@ _wasmtime_externref_delete.argtypes = [POINTER(wasmtime_externref_t)]
 def wasmtime_externref_delete(ref: Any) -> None:
     return _wasmtime_externref_delete(ref)  # type: ignore
 
+_wasmtime_externref_from_raw = dll.wasmtime_externref_from_raw
+_wasmtime_externref_from_raw.restype = POINTER(wasmtime_externref_t)
+_wasmtime_externref_from_raw.argtypes = [POINTER(wasmtime_context_t), c_size_t]
+def wasmtime_externref_from_raw(context: Any, raw: Any) -> pointer:
+    return _wasmtime_externref_from_raw(context, raw)  # type: ignore
+
+_wasmtime_externref_to_raw = dll.wasmtime_externref_to_raw
+_wasmtime_externref_to_raw.restype = c_size_t
+_wasmtime_externref_to_raw.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_externref_t)]
+def wasmtime_externref_to_raw(context: Any, ref: Any) -> int:
+    return _wasmtime_externref_to_raw(context, ref)  # type: ignore
+
 wasmtime_valkind_t = c_uint8
 
 wasmtime_v128 = c_uint8 * 16
@@ -2420,6 +2432,26 @@ class wasmtime_valunion(Union):
     v128: wasmtime_v128  # type: ignore
 
 wasmtime_valunion_t = wasmtime_valunion
+
+class wasmtime_val_raw(Union):
+    _fields_ = [
+        ("i32", c_int32),
+        ("i64", c_int64),
+        ("f32", c_float),
+        ("f64", c_double),
+        ("v128", wasmtime_v128),
+        ("funcref", c_size_t),
+        ("externref", c_size_t),
+    ]
+    i32: int
+    i64: int
+    f32: float
+    f64: float
+    v128: wasmtime_v128  # type: ignore
+    funcref: int
+    externref: int
+
+wasmtime_val_raw_t = wasmtime_val_raw
 
 class wasmtime_val(Structure):
     _fields_ = [
@@ -2456,6 +2488,14 @@ _wasmtime_func_new.argtypes = [POINTER(wasmtime_context_t), POINTER(wasm_functyp
 def wasmtime_func_new(store: Any, type: Any, callback: Any, env: Any, finalizer: Any, ret: Any) -> None:
     return _wasmtime_func_new(store, type, callback, env, finalizer, ret)  # type: ignore
 
+wasmtime_func_unchecked_callback_t = CFUNCTYPE(c_size_t, c_void_p, POINTER(wasmtime_caller_t), POINTER(wasmtime_val_raw_t))
+
+_wasmtime_func_new_unchecked = dll.wasmtime_func_new_unchecked
+_wasmtime_func_new_unchecked.restype = None
+_wasmtime_func_new_unchecked.argtypes = [POINTER(wasmtime_context_t), POINTER(wasm_functype_t), wasmtime_func_unchecked_callback_t, c_void_p, CFUNCTYPE(None, c_void_p), POINTER(wasmtime_func_t)]
+def wasmtime_func_new_unchecked(store: Any, type: Any, callback: Any, env: Any, finalizer: Any, ret: Any) -> None:
+    return _wasmtime_func_new_unchecked(store, type, callback, env, finalizer, ret)  # type: ignore
+
 _wasmtime_func_type = dll.wasmtime_func_type
 _wasmtime_func_type.restype = POINTER(wasm_functype_t)
 _wasmtime_func_type.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_func_t)]
@@ -2468,6 +2508,12 @@ _wasmtime_func_call.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_fu
 def wasmtime_func_call(store: Any, func: Any, args: Any, nargs: Any, results: Any, nresults: Any, trap: Any) -> pointer:
     return _wasmtime_func_call(store, func, args, nargs, results, nresults, trap)  # type: ignore
 
+_wasmtime_func_call_unchecked = dll.wasmtime_func_call_unchecked
+_wasmtime_func_call_unchecked.restype = POINTER(wasm_trap_t)
+_wasmtime_func_call_unchecked.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_func_t), POINTER(wasmtime_val_raw_t)]
+def wasmtime_func_call_unchecked(store: Any, func: Any, args_and_results: Any) -> pointer:
+    return _wasmtime_func_call_unchecked(store, func, args_and_results)  # type: ignore
+
 _wasmtime_caller_export_get = dll.wasmtime_caller_export_get
 _wasmtime_caller_export_get.restype = c_bool
 _wasmtime_caller_export_get.argtypes = [POINTER(wasmtime_caller_t), POINTER(c_char), c_size_t, POINTER(wasmtime_extern_t)]
@@ -2479,6 +2525,18 @@ _wasmtime_caller_context.restype = POINTER(wasmtime_context_t)
 _wasmtime_caller_context.argtypes = [POINTER(wasmtime_caller_t)]
 def wasmtime_caller_context(caller: Any) -> pointer:
     return _wasmtime_caller_context(caller)  # type: ignore
+
+_wasmtime_func_from_raw = dll.wasmtime_func_from_raw
+_wasmtime_func_from_raw.restype = None
+_wasmtime_func_from_raw.argtypes = [POINTER(wasmtime_context_t), c_size_t, POINTER(wasmtime_func_t)]
+def wasmtime_func_from_raw(context: Any, raw: Any, ret: Any) -> None:
+    return _wasmtime_func_from_raw(context, raw, ret)  # type: ignore
+
+_wasmtime_func_to_raw = dll.wasmtime_func_to_raw
+_wasmtime_func_to_raw.restype = c_size_t
+_wasmtime_func_to_raw.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_func_t)]
+def wasmtime_func_to_raw(context: Any, func: Any) -> int:
+    return _wasmtime_func_to_raw(context, func)  # type: ignore
 
 _wasmtime_global_new = dll.wasmtime_global_new
 _wasmtime_global_new.restype = POINTER(wasmtime_error_t)
@@ -2591,6 +2649,12 @@ _wasmtime_linker_define_func.restype = POINTER(wasmtime_error_t)
 _wasmtime_linker_define_func.argtypes = [POINTER(wasmtime_linker_t), POINTER(c_char), c_size_t, POINTER(c_char), c_size_t, POINTER(wasm_functype_t), wasmtime_func_callback_t, c_void_p, CFUNCTYPE(None, c_void_p)]
 def wasmtime_linker_define_func(linker: Any, module: Any, module_len: Any, name: Any, name_len: Any, ty: Any, cb: Any, data: Any, finalizer: Any) -> pointer:
     return _wasmtime_linker_define_func(linker, module, module_len, name, name_len, ty, cb, data, finalizer)  # type: ignore
+
+_wasmtime_linker_define_func_unchecked = dll.wasmtime_linker_define_func_unchecked
+_wasmtime_linker_define_func_unchecked.restype = POINTER(wasmtime_error_t)
+_wasmtime_linker_define_func_unchecked.argtypes = [POINTER(wasmtime_linker_t), POINTER(c_char), c_size_t, POINTER(c_char), c_size_t, POINTER(wasm_functype_t), wasmtime_func_unchecked_callback_t, c_void_p, CFUNCTYPE(None, c_void_p)]
+def wasmtime_linker_define_func_unchecked(linker: Any, module: Any, module_len: Any, name: Any, name_len: Any, ty: Any, cb: Any, data: Any, finalizer: Any) -> pointer:
+    return _wasmtime_linker_define_func_unchecked(linker, module, module_len, name, name_len, ty, cb, data, finalizer)  # type: ignore
 
 _wasmtime_linker_define_wasi = dll.wasmtime_linker_define_wasi
 _wasmtime_linker_define_wasi.restype = POINTER(wasmtime_error_t)
