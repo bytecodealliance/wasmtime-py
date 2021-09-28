@@ -139,15 +139,12 @@ class Config:
 
         * `"auto"`
         * `"cranelift"`
-        * `"lightbeam"`
         """
 
         if strategy == "auto":
             error = ffi.wasmtime_config_strategy_set(self._ptr, 0)
         elif strategy == "cranelift":
             error = ffi.wasmtime_config_strategy_set(self._ptr, 1)
-        elif strategy == "lightbeam":
-            error = ffi.wasmtime_config_strategy_set(self._ptr, 2)
         else:
             raise WasmtimeError("unknown strategy: " + str(strategy))
         if error:
