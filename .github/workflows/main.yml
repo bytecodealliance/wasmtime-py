@@ -54,6 +54,10 @@ jobs:
         python setup.py bdist_wheel --plat-name manylinux1-x86_64
     - run: |
         git clean -fdx wasmtime build
+        python download-wasmtime.py linux aarch64
+        python setup.py bdist_wheel --plat-name manylinux_2_17_aarch64.manylinux2014_aarch64
+    - run: |
+        git clean -fdx wasmtime build
         python download-wasmtime.py darwin x86_64
         python setup.py bdist_wheel --plat-name macosx-10-13-x86_64
     - run: |
@@ -64,7 +68,6 @@ jobs:
     # Build an "any" wheel with:
     #
     #   * MinGW
-    #   * Linux AArch64
     #
     # because at this time I don't know what the `--plat-name` tags supported on
     # PyPI are for these platforms. Our hope is that any platform not matching
@@ -74,7 +77,6 @@ jobs:
     - run: |
         git clean -fdx wasmtime build
         python download-wasmtime.py win32 x86_64
-        python download-wasmtime.py linux aarch64
         python setup.py bdist_wheel
 
     - uses: actions/upload-artifact@v1
