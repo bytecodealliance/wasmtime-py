@@ -55,7 +55,7 @@ jobs:
     - run: |
         git clean -fdx wasmtime build
         python download-wasmtime.py linux aarch64
-        python setup.py bdist_wheel --plat-name manylinux_2_17_aarch64.manylinux2014_aarch64
+        python setup.py bdist_wheel --plat-name manylinux2014_aarch64
     - run: |
         git clean -fdx wasmtime build
         python download-wasmtime.py darwin x86_64
