@@ -128,13 +128,12 @@ jobs:
         name: generated-docs
     - run: find .
     - run: mv coverage generated-docs
-    - name: Push to gh-pages
-      run: curl -LsSf https://git.io/fhJ8n | rustc - && (cd generated-docs && ../rust_out)
+    - uses: JamesIves/github-pages-deploy-action@4.1.4
+      with:
+        branch: gh-pages
+        folder: generated-docs
+        single-commit: true
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      env:
-        GITHUB_DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
-        BUILD_REPOSITORY_ID: ${{ github.repository }}
-        BUILD_SOURCEVERSION: ${{ github.sha }}
 
   upload_wheels:
     needs: build
