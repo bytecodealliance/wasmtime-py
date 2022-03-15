@@ -15,6 +15,9 @@ class Engine:
             delattr(config, '_ptr')
             self._ptr = ffi.wasm_engine_new_with_config(ptr)
 
+    def increment_epoch(self) -> None:
+        ffi.wasmtime_engine_increment_epoch(self._ptr)
+
     def __del__(self) -> None:
         if hasattr(self, '_ptr'):
             ffi.wasm_engine_delete(self._ptr)

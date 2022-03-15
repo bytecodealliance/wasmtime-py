@@ -37,20 +37,6 @@ class Store:
         else:
             return None
 
-    def interrupt_handle(self) -> "InterruptHandle":
-        """
-        Creates a new interrupt handle through which execution of wasm can be
-        interrupted.
-
-        Raises a `WasmtimeError` if this store's configuration has not been
-        configured to enable interruption.
-
-        For more information about this be sure to consult the Rust documentation:
-        https://bytecodealliance.github.io/wasmtime/api/wasmtime/struct.Store.html#method.interrupt_handle
-        """
-
-        return InterruptHandle(self)
-
     def gc(self) -> None:
         """
         Runs a GC over `externref` values that have been passed into this Store,
@@ -117,38 +103,16 @@ class Store:
         if error:
             raise WasmtimeError._from_ptr(error)
 
+    def set_epoch_deadline(self, ticks_after_current: int) -> None:
+        """
+        Configures the relative epoch deadline, after the current engine's
+        epoch, after which WebAssembly code will trap.
+        """
+        ffi.wasmtime_context_set_epoch_deadline(self._context, ticks_after_current)
+
     def __del__(self) -> None:
         if hasattr(self, '_ptr'):
             ffi.wasmtime_store_delete(self._ptr)
-
-
-class InterruptHandle:
-    """
-    A handle which can be used to interrupt executing WebAssembly code, forcing
-    it to trap.
-
-    For more information about this be sure to consult the Rust documentation:
-    https://bytecodealliance.github.io/wasmtime/api/wasmtime/struct.Store.html#method.interrupt_handle
-    """
-
-    def __init__(self, store: Store):
-        if not isinstance(store, Store):
-            raise TypeError("expected a Store")
-        ptr = ffi.wasmtime_interrupt_handle_new(store._context)
-        if not ptr:
-            raise WasmtimeError("interrupts not enabled on Store")
-        self._ptr = ptr
-
-    def interrupt(self) -> None:
-        """
-        Schedules an interrupt to be sent to interrupt this handle's store's
-        next (or current) execution of wasm code.
-        """
-        ffi.wasmtime_interrupt_handle_interrupt(self._ptr)
-
-    def __del__(self) -> None:
-        if hasattr(self, '_ptr'):
-            ffi.wasmtime_interrupt_handle_delete(self._ptr)
 
 
 if typing.TYPE_CHECKING:
