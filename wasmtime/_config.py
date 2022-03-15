@@ -204,17 +204,17 @@ class Config:
             raise WasmtimeError._from_ptr(error)
 
     @setter_property
-    def interruptable(self, enabled: bool) -> None:
+    def epoch_interruption(self, enabled: bool) -> None:
         """
-        Configures whether wasm execution can be interrupted via interrupt
-        handles.
+        Configures whether wasm execution can be interrupted via epoch
+        increments.
         """
 
         if enabled:
             val = 1
         else:
             val = 0
-        ffi.wasmtime_config_interruptable_set(self._ptr, val)
+        ffi.wasmtime_config_epoch_interruption_set(self._ptr, val)
 
     @setter_property
     def consume_fuel(self, instances: bool) -> None:

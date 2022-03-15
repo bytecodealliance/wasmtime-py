@@ -1981,17 +1981,17 @@ _wasmtime_config_debug_info_set.argtypes = [POINTER(wasm_config_t), c_bool]
 def wasmtime_config_debug_info_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_debug_info_set(arg0, arg1)  # type: ignore
 
-_wasmtime_config_interruptable_set = dll.wasmtime_config_interruptable_set
-_wasmtime_config_interruptable_set.restype = None
-_wasmtime_config_interruptable_set.argtypes = [POINTER(wasm_config_t), c_bool]
-def wasmtime_config_interruptable_set(arg0: Any, arg1: Any) -> None:
-    return _wasmtime_config_interruptable_set(arg0, arg1)  # type: ignore
-
 _wasmtime_config_consume_fuel_set = dll.wasmtime_config_consume_fuel_set
 _wasmtime_config_consume_fuel_set.restype = None
 _wasmtime_config_consume_fuel_set.argtypes = [POINTER(wasm_config_t), c_bool]
 def wasmtime_config_consume_fuel_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_consume_fuel_set(arg0, arg1)  # type: ignore
+
+_wasmtime_config_epoch_interruption_set = dll.wasmtime_config_epoch_interruption_set
+_wasmtime_config_epoch_interruption_set.restype = None
+_wasmtime_config_epoch_interruption_set.argtypes = [POINTER(wasm_config_t), c_bool]
+def wasmtime_config_epoch_interruption_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_epoch_interruption_set(arg0, arg1)  # type: ignore
 
 _wasmtime_config_max_wasm_stack_set = dll.wasmtime_config_max_wasm_stack_set
 _wasmtime_config_max_wasm_stack_set.restype = None
@@ -2094,6 +2094,12 @@ _wasmtime_config_cache_config_load.restype = POINTER(wasmtime_error_t)
 _wasmtime_config_cache_config_load.argtypes = [POINTER(wasm_config_t), POINTER(c_char)]
 def wasmtime_config_cache_config_load(arg0: Any, arg1: Any) -> pointer:
     return _wasmtime_config_cache_config_load(arg0, arg1)  # type: ignore
+
+_wasmtime_engine_increment_epoch = dll.wasmtime_engine_increment_epoch
+_wasmtime_engine_increment_epoch.restype = None
+_wasmtime_engine_increment_epoch.argtypes = [POINTER(wasm_engine_t)]
+def wasmtime_engine_increment_epoch(engine: Any) -> None:
+    return _wasmtime_engine_increment_epoch(engine)  # type: ignore
 
 class wasmtime_moduletype(Structure):
     pass
@@ -2253,28 +2259,11 @@ _wasmtime_context_set_wasi.argtypes = [POINTER(wasmtime_context_t), POINTER(wasi
 def wasmtime_context_set_wasi(context: Any, wasi: Any) -> pointer:
     return _wasmtime_context_set_wasi(context, wasi)  # type: ignore
 
-class wasmtime_interrupt_handle(Structure):
-    pass
-
-wasmtime_interrupt_handle_t = wasmtime_interrupt_handle
-
-_wasmtime_interrupt_handle_new = dll.wasmtime_interrupt_handle_new
-_wasmtime_interrupt_handle_new.restype = POINTER(wasmtime_interrupt_handle_t)
-_wasmtime_interrupt_handle_new.argtypes = [POINTER(wasmtime_context_t)]
-def wasmtime_interrupt_handle_new(context: Any) -> pointer:
-    return _wasmtime_interrupt_handle_new(context)  # type: ignore
-
-_wasmtime_interrupt_handle_interrupt = dll.wasmtime_interrupt_handle_interrupt
-_wasmtime_interrupt_handle_interrupt.restype = None
-_wasmtime_interrupt_handle_interrupt.argtypes = [POINTER(wasmtime_interrupt_handle_t)]
-def wasmtime_interrupt_handle_interrupt(handle: Any) -> None:
-    return _wasmtime_interrupt_handle_interrupt(handle)  # type: ignore
-
-_wasmtime_interrupt_handle_delete = dll.wasmtime_interrupt_handle_delete
-_wasmtime_interrupt_handle_delete.restype = None
-_wasmtime_interrupt_handle_delete.argtypes = [POINTER(wasmtime_interrupt_handle_t)]
-def wasmtime_interrupt_handle_delete(handle: Any) -> None:
-    return _wasmtime_interrupt_handle_delete(handle)  # type: ignore
+_wasmtime_context_set_epoch_deadline = dll.wasmtime_context_set_epoch_deadline
+_wasmtime_context_set_epoch_deadline.restype = None
+_wasmtime_context_set_epoch_deadline.argtypes = [POINTER(wasmtime_context_t), c_uint64]
+def wasmtime_context_set_epoch_deadline(context: Any, ticks_beyond_current: Any) -> None:
+    return _wasmtime_context_set_epoch_deadline(context, ticks_beyond_current)  # type: ignore
 
 class wasmtime_func(Structure):
     _fields_ = [
