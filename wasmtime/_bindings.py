@@ -2035,12 +2035,6 @@ _wasmtime_config_wasm_multi_memory_set.argtypes = [POINTER(wasm_config_t), c_boo
 def wasmtime_config_wasm_multi_memory_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_wasm_multi_memory_set(arg0, arg1)  # type: ignore
 
-_wasmtime_config_wasm_module_linking_set = dll.wasmtime_config_wasm_module_linking_set
-_wasmtime_config_wasm_module_linking_set.restype = None
-_wasmtime_config_wasm_module_linking_set.argtypes = [POINTER(wasm_config_t), c_bool]
-def wasmtime_config_wasm_module_linking_set(arg0: Any, arg1: Any) -> None:
-    return _wasmtime_config_wasm_module_linking_set(arg0, arg1)  # type: ignore
-
 _wasmtime_config_wasm_memory64_set = dll.wasmtime_config_wasm_memory64_set
 _wasmtime_config_wasm_memory64_set.restype = None
 _wasmtime_config_wasm_memory64_set.argtypes = [POINTER(wasm_config_t), c_bool]
@@ -2101,41 +2095,6 @@ _wasmtime_engine_increment_epoch.argtypes = [POINTER(wasm_engine_t)]
 def wasmtime_engine_increment_epoch(engine: Any) -> None:
     return _wasmtime_engine_increment_epoch(engine)  # type: ignore
 
-class wasmtime_moduletype(Structure):
-    pass
-
-wasmtime_moduletype_t = wasmtime_moduletype
-
-_wasmtime_moduletype_delete = dll.wasmtime_moduletype_delete
-_wasmtime_moduletype_delete.restype = None
-_wasmtime_moduletype_delete.argtypes = [POINTER(wasmtime_moduletype_t)]
-def wasmtime_moduletype_delete(ty: Any) -> None:
-    return _wasmtime_moduletype_delete(ty)  # type: ignore
-
-_wasmtime_moduletype_imports = dll.wasmtime_moduletype_imports
-_wasmtime_moduletype_imports.restype = None
-_wasmtime_moduletype_imports.argtypes = [POINTER(wasmtime_moduletype_t), POINTER(wasm_importtype_vec_t)]
-def wasmtime_moduletype_imports(arg0: Any, out: Any) -> None:
-    return _wasmtime_moduletype_imports(arg0, out)  # type: ignore
-
-_wasmtime_moduletype_exports = dll.wasmtime_moduletype_exports
-_wasmtime_moduletype_exports.restype = None
-_wasmtime_moduletype_exports.argtypes = [POINTER(wasmtime_moduletype_t), POINTER(wasm_exporttype_vec_t)]
-def wasmtime_moduletype_exports(arg0: Any, out: Any) -> None:
-    return _wasmtime_moduletype_exports(arg0, out)  # type: ignore
-
-_wasmtime_moduletype_as_externtype = dll.wasmtime_moduletype_as_externtype
-_wasmtime_moduletype_as_externtype.restype = POINTER(wasm_externtype_t)
-_wasmtime_moduletype_as_externtype.argtypes = [POINTER(wasmtime_moduletype_t)]
-def wasmtime_moduletype_as_externtype(arg0: Any) -> pointer:
-    return _wasmtime_moduletype_as_externtype(arg0)  # type: ignore
-
-_wasmtime_externtype_as_moduletype = dll.wasmtime_externtype_as_moduletype
-_wasmtime_externtype_as_moduletype.restype = POINTER(wasmtime_moduletype_t)
-_wasmtime_externtype_as_moduletype.argtypes = [POINTER(wasm_externtype_t)]
-def wasmtime_externtype_as_moduletype(arg0: Any) -> pointer:
-    return _wasmtime_externtype_as_moduletype(arg0)  # type: ignore
-
 class wasmtime_module(Structure):
     pass
 
@@ -2159,17 +2118,23 @@ _wasmtime_module_clone.argtypes = [POINTER(wasmtime_module_t)]
 def wasmtime_module_clone(m: Any) -> pointer:
     return _wasmtime_module_clone(m)  # type: ignore
 
+_wasmtime_module_imports = dll.wasmtime_module_imports
+_wasmtime_module_imports.restype = None
+_wasmtime_module_imports.argtypes = [POINTER(wasmtime_module_t), POINTER(wasm_importtype_vec_t)]
+def wasmtime_module_imports(module: Any, out: Any) -> None:
+    return _wasmtime_module_imports(module, out)  # type: ignore
+
+_wasmtime_module_exports = dll.wasmtime_module_exports
+_wasmtime_module_exports.restype = None
+_wasmtime_module_exports.argtypes = [POINTER(wasmtime_module_t), POINTER(wasm_exporttype_vec_t)]
+def wasmtime_module_exports(module: Any, out: Any) -> None:
+    return _wasmtime_module_exports(module, out)  # type: ignore
+
 _wasmtime_module_validate = dll.wasmtime_module_validate
 _wasmtime_module_validate.restype = POINTER(wasmtime_error_t)
 _wasmtime_module_validate.argtypes = [POINTER(wasm_engine_t), POINTER(c_uint8), c_size_t]
 def wasmtime_module_validate(engine: Any, wasm: Any, wasm_len: Any) -> pointer:
     return _wasmtime_module_validate(engine, wasm, wasm_len)  # type: ignore
-
-_wasmtime_module_type = dll.wasmtime_module_type
-_wasmtime_module_type.restype = POINTER(wasmtime_moduletype_t)
-_wasmtime_module_type.argtypes = [POINTER(wasmtime_module_t)]
-def wasmtime_module_type(arg0: Any) -> pointer:
-    return _wasmtime_module_type(arg0)  # type: ignore
 
 _wasmtime_module_serialize = dll.wasmtime_module_serialize
 _wasmtime_module_serialize.restype = POINTER(wasmtime_error_t)
@@ -2295,16 +2260,6 @@ class wasmtime_memory(Structure):
 
 wasmtime_memory_t = wasmtime_memory
 
-class wasmtime_instance(Structure):
-    _fields_ = [
-        ("store_id", c_uint64),
-        ("index", c_size_t),
-    ]
-    store_id: int
-    index: int
-
-wasmtime_instance_t = wasmtime_instance
-
 class wasmtime_global(Structure):
     _fields_ = [
         ("store_id", c_uint64),
@@ -2323,15 +2278,11 @@ class wasmtime_extern_union(Union):
         ("global_", wasmtime_global_t),
         ("table", wasmtime_table_t),
         ("memory", wasmtime_memory_t),
-        ("instance", wasmtime_instance_t),
-        ("module", POINTER(wasmtime_module_t)),
     ]
     func: wasmtime_func_t
     global_: wasmtime_global_t
     table: wasmtime_table_t
     memory: wasmtime_memory_t
-    instance: wasmtime_instance_t
-    module: pointer
 
 wasmtime_extern_union_t = wasmtime_extern_union
 
@@ -2551,46 +2502,21 @@ _wasmtime_global_set.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_g
 def wasmtime_global_set(store: Any, arg1: Any, val: Any) -> pointer:
     return _wasmtime_global_set(store, arg1, val)  # type: ignore
 
-class wasmtime_instancetype(Structure):
-    pass
+class wasmtime_instance(Structure):
+    _fields_ = [
+        ("store_id", c_uint64),
+        ("index", c_size_t),
+    ]
+    store_id: int
+    index: int
 
-wasmtime_instancetype_t = wasmtime_instancetype
-
-_wasmtime_instancetype_delete = dll.wasmtime_instancetype_delete
-_wasmtime_instancetype_delete.restype = None
-_wasmtime_instancetype_delete.argtypes = [POINTER(wasmtime_instancetype_t)]
-def wasmtime_instancetype_delete(ty: Any) -> None:
-    return _wasmtime_instancetype_delete(ty)  # type: ignore
-
-_wasmtime_instancetype_exports = dll.wasmtime_instancetype_exports
-_wasmtime_instancetype_exports.restype = None
-_wasmtime_instancetype_exports.argtypes = [POINTER(wasmtime_instancetype_t), POINTER(wasm_exporttype_vec_t)]
-def wasmtime_instancetype_exports(arg0: Any, out: Any) -> None:
-    return _wasmtime_instancetype_exports(arg0, out)  # type: ignore
-
-_wasmtime_instancetype_as_externtype = dll.wasmtime_instancetype_as_externtype
-_wasmtime_instancetype_as_externtype.restype = POINTER(wasm_externtype_t)
-_wasmtime_instancetype_as_externtype.argtypes = [POINTER(wasmtime_instancetype_t)]
-def wasmtime_instancetype_as_externtype(arg0: Any) -> pointer:
-    return _wasmtime_instancetype_as_externtype(arg0)  # type: ignore
-
-_wasmtime_externtype_as_instancetype = dll.wasmtime_externtype_as_instancetype
-_wasmtime_externtype_as_instancetype.restype = POINTER(wasmtime_instancetype_t)
-_wasmtime_externtype_as_instancetype.argtypes = [POINTER(wasm_externtype_t)]
-def wasmtime_externtype_as_instancetype(arg0: Any) -> pointer:
-    return _wasmtime_externtype_as_instancetype(arg0)  # type: ignore
+wasmtime_instance_t = wasmtime_instance
 
 _wasmtime_instance_new = dll.wasmtime_instance_new
 _wasmtime_instance_new.restype = POINTER(wasmtime_error_t)
 _wasmtime_instance_new.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_module_t), POINTER(wasmtime_extern_t), c_size_t, POINTER(wasmtime_instance_t), POINTER(POINTER(wasm_trap_t))]
 def wasmtime_instance_new(store: Any, module: Any, imports: Any, nimports: Any, instance: Any, trap: Any) -> pointer:
     return _wasmtime_instance_new(store, module, imports, nimports, instance, trap)  # type: ignore
-
-_wasmtime_instance_type = dll.wasmtime_instance_type
-_wasmtime_instance_type.restype = POINTER(wasmtime_instancetype_t)
-_wasmtime_instance_type.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_instance_t)]
-def wasmtime_instance_type(store: Any, instance: Any) -> pointer:
-    return _wasmtime_instance_type(store, instance)  # type: ignore
 
 _wasmtime_instance_export_get = dll.wasmtime_instance_export_get
 _wasmtime_instance_export_get.restype = c_bool

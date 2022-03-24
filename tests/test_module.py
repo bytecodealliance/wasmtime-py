@@ -111,43 +111,6 @@ class TestModule(unittest.TestCase):
         self.assertEqual(ty.limits, Limits(1, None))
         self.assertEqual(ty.element, ValType.funcref())
 
-    def test_type(self):
-        store = Store()
-        module = Module(store.engine, """
-            (module
-                (import "" "" (func))
-                (import "a" "bcd" (global i32))
-                (import "" "x" (table 1 funcref))
-
-                (func (export "a") (param i32 f32) (result f64)
-                    f64.const 0)
-                (global (export "") (mut i32) (i32.const 1))
-                (memory (export "mem") 1)
-                (table (export "table") 1 funcref)
-            )
-        """)
-        ty = module.type
-        imports = ty.imports
-        exports = ty.exports
-        assert(imports[0].module == '')
-        assert(imports[0].name == '')
-        assert(isinstance(imports[0].type, FuncType))
-        assert(imports[1].module == 'a')
-        assert(imports[1].name == 'bcd')
-        assert(isinstance(imports[1].type, GlobalType))
-        assert(imports[2].module == '')
-        assert(imports[2].name == 'x')
-        assert(isinstance(imports[2].type, TableType))
-
-        assert(exports[0].name == 'a')
-        assert(isinstance(exports[0].type, FuncType))
-        assert(exports[1].name == '')
-        assert(isinstance(exports[1].type, GlobalType))
-        assert(exports[2].name == 'mem')
-        assert(isinstance(exports[2].type, MemoryType))
-        assert(exports[3].name == 'table')
-        assert(isinstance(exports[3].type, TableType))
-
     def test_serialize(self):
         engine = Engine()
         module = Module(engine, '(module)')
