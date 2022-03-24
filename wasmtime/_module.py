@@ -1,6 +1,6 @@
 from . import _ffi as ffi
 from ctypes import *
-from wasmtime import Engine, wat2wasm, ImportType, ExportType, WasmtimeError, ModuleType
+from wasmtime import Engine, wat2wasm, ImportType, ExportType, WasmtimeError
 import typing
 
 
@@ -119,14 +119,14 @@ class Module:
         if error:
             raise WasmtimeError._from_ptr(error)
 
-    @property
-    def type(self) -> ModuleType:
-        """
-        Gets the type of this module as a `ModuleType`
-        """
+#     @property
+#     def type(self) -> ModuleType:
+#         """
+#         Gets the type of this module as a `ModuleType`
+#         """
 
-        ptr = ffi.wasmtime_module_type(self._ptr)
-        return ModuleType._from_ptr(ptr, None)
+#         ptr = ffi.wasmtime_module_type(self._ptr)
+#         return ModuleType._from_ptr(ptr, None)
 
     @property
     def imports(self) -> typing.List[ImportType]:
@@ -134,14 +134,25 @@ class Module:
         Returns the types of imports that this module has
         """
 
-        return self.type.imports
+        imports = ImportTypeList()
+        ffi.wasmtime_module_imports(self._ptr, byref(imports.vec))
+        ret = []
+        for i in range(0, imports.vec.size):
+            ret.append(ImportType._from_ptr(imports.vec.data[i], imports))
+        return ret
 
     @property
     def exports(self) -> typing.List[ExportType]:
         """
         Returns the types of the exports that this module has
         """
-        return self.type.exports
+
+        exports = ExportTypeList()
+        ffi.wasmtime_module_exports(self._ptr, byref(exports.vec))
+        ret = []
+        for i in range(0, exports.vec.size):
+            ret.append(ExportType._from_ptr(exports.vec.data[i], exports))
+        return ret
 
     def serialize(self) -> bytearray:
         """
@@ -166,3 +177,19 @@ class Module:
     def __del__(self) -> None:
         if hasattr(self, '_ptr'):
             ffi.wasmtime_module_delete(self._ptr)
+
+
+class ImportTypeList:
+    def __init__(self) -> None:
+        self.vec = ffi.wasm_importtype_vec_t(0, None)
+
+    def __del__(self) -> None:
+        ffi.wasm_importtype_vec_delete(byref(self.vec))
+
+
+class ExportTypeList:
+    def __init__(self) -> None:
+        self.vec = ffi.wasm_exporttype_vec_t(0, None)
+
+    def __del__(self) -> None:
+        ffi.wasm_exporttype_vec_delete(byref(self.vec))

@@ -71,25 +71,6 @@ class TestInstance(unittest.TestCase):
         assert(isinstance(instance.exports(store)[1], Func))
         assert(isinstance(instance.exports(store)[2], Global))
 
-    def test_instance_type(self):
-        store = Store()
-        module = Module(store.engine, """
-            (module
-                (func (export "a"))
-                (func (export "b"))
-                (global (export "c") i32 (i32.const 0))
-            )
-        """)
-        ty = Instance(store, module, []).type(store)
-        exports = ty.exports
-        self.assertEqual(len(exports), 3)
-        assert(isinstance(exports[0].type, FuncType))
-        assert(exports[0].name == 'a')
-        assert(isinstance(exports[1].type, FuncType))
-        assert(exports[1].name == 'b')
-        assert(isinstance(exports[2].type, GlobalType))
-        assert(exports[2].name == 'c')
-
     def test_import_func(self):
         store = Store()
         module = Module(store.engine, """

@@ -341,93 +341,6 @@ class MemoryType:
             ffi.wasm_memorytype_delete(self._ptr)
 
 
-class ModuleType:
-    _ptr: "pointer[ffi.wasmtime_moduletype_t]"
-    _owner: Optional[Any]
-
-    def __init__(self) -> None:
-        raise WasmtimeError("cannot create a `ModuleType` currently")
-
-    @classmethod
-    def _from_ptr(cls, ptr: "pointer[ffi.wasmtime_moduletype_t]", owner: Optional[Any]) -> "ModuleType":
-        ty: "ModuleType" = cls.__new__(cls)
-        if not isinstance(ptr, POINTER(ffi.wasmtime_moduletype_t)):
-            raise TypeError("wrong pointer type")
-        ty._ptr = ptr
-        ty._owner = owner
-        return ty
-
-    @property
-    def exports(self) -> List['ExportType']:
-        """
-        Returns the types of the exports that this module has
-        """
-
-        exports = ExportTypeList()
-        ffi.wasmtime_moduletype_exports(self._ptr, byref(exports.vec))
-        ret = []
-        for i in range(0, exports.vec.size):
-            ret.append(ExportType._from_ptr(exports.vec.data[i], exports))
-        return ret
-
-    @property
-    def imports(self) -> List['ImportType']:
-        """
-        Returns the types of the imports that this module has
-        """
-
-        imports = ImportTypeList()
-        ffi.wasmtime_moduletype_imports(self._ptr, byref(imports.vec))
-        ret = []
-        for i in range(0, imports.vec.size):
-            ret.append(ImportType._from_ptr(imports.vec.data[i], imports))
-        return ret
-
-    def _as_extern(self) -> "pointer[ffi.wasm_externtype_t]":
-        return ffi.wasmtime_moduletype_as_externtype(self._ptr)
-
-    def __del__(self) -> None:
-        if hasattr(self, '_owner') and self._owner is None:
-            ffi.wasmtime_moduletype_delete(self._ptr)
-
-
-class InstanceType:
-    _ptr: "pointer[ffi.wasmtime_instancetype_t]"
-    _owner: Optional[Any]
-
-    def __init__(self) -> None:
-        raise WasmtimeError("cannot create an `InstanceType` currently")
-
-    @classmethod
-    def _from_ptr(cls, ptr: "pointer[ffi.wasmtime_instancetype_t]", owner: Optional[Any]) -> "InstanceType":
-        ty: "InstanceType" = cls.__new__(cls)
-        if not isinstance(ptr, POINTER(ffi.wasmtime_instancetype_t)):
-            raise TypeError("wrong pointer type")
-        ty._ptr = ptr
-        ty._owner = owner
-        return ty
-
-    @property
-    def exports(self) -> List['ExportType']:
-        """
-        Returns the types of the exports that this instance has
-        """
-
-        exports = ExportTypeList()
-        ffi.wasmtime_instancetype_exports(self._ptr, byref(exports.vec))
-        ret = []
-        for i in range(0, exports.vec.size):
-            ret.append(ExportType._from_ptr(exports.vec.data[i], exports))
-        return ret
-
-    def _as_extern(self) -> "pointer[ffi.wasm_externtype_t]":
-        return ffi.wasmtime_instancetype_as_externtype(self._ptr)
-
-    def __del__(self) -> None:
-        if hasattr(self, '_owner') and self._owner is None:
-            ffi.wasmtime_instancetype_delete(self._ptr)
-
-
 def wrap_externtype(ptr: "pointer[ffi.wasm_externtype_t]", owner: Optional[Any]) -> "AsExternType":
     if not isinstance(ptr, POINTER(ffi.wasm_externtype_t)):
         raise TypeError("wrong pointer type")
@@ -443,12 +356,6 @@ def wrap_externtype(ptr: "pointer[ffi.wasm_externtype_t]", owner: Optional[Any])
     val = ffi.wasm_externtype_as_memorytype(ptr)
     if val:
         return MemoryType._from_ptr(val, owner)
-    val = ffi.wasmtime_externtype_as_moduletype(ptr)
-    if val:
-        return ModuleType._from_ptr(val, owner)
-    val = ffi.wasmtime_externtype_as_instancetype(ptr)
-    if val:
-        return InstanceType._from_ptr(val, owner)
     raise WasmtimeError("unknown extern type")
 
 
@@ -532,20 +439,4 @@ class ExportType:
             ffi.wasm_exporttype_delete(self._ptr)
 
 
-class ImportTypeList:
-    def __init__(self) -> None:
-        self.vec = ffi.wasm_importtype_vec_t(0, None)
-
-    def __del__(self) -> None:
-        ffi.wasm_importtype_vec_delete(byref(self.vec))
-
-
-class ExportTypeList:
-    def __init__(self) -> None:
-        self.vec = ffi.wasm_exporttype_vec_t(0, None)
-
-    def __del__(self) -> None:
-        ffi.wasm_exporttype_vec_delete(byref(self.vec))
-
-
-AsExternType = Union[FuncType, TableType, MemoryType, GlobalType, InstanceType, ModuleType]
+AsExternType = Union[FuncType, TableType, MemoryType, GlobalType]

@@ -1,6 +1,6 @@
 from . import _ffi as ffi
 from ctypes import POINTER, byref
-from wasmtime import Module, WasmtimeError, Store, InstanceType
+from wasmtime import Module, WasmtimeError
 from ._extern import wrap_extern, get_extern_ptr
 from ._exportable import AsExtern
 from typing import Sequence, Union, Optional, Mapping, Iterable
@@ -50,14 +50,6 @@ class Instance:
         ty._exports = None
         ty._instance = instance
         return ty
-
-    def type(self, store: Store) -> InstanceType:
-        """
-        Gets the type of this instance as an `InstanceType`
-        """
-
-        ptr = ffi.wasmtime_instance_type(store._context, byref(self._instance))
-        return InstanceType._from_ptr(ptr, None)
 
     def exports(self, store: Storelike) -> "InstanceExports":
         """
