@@ -13,22 +13,24 @@ import zipfile
 
 def main(platform, arch):
     is_zip = False
+    with open("VERSION", "r") as fh:
+        version = fh.read().strip()
     if arch == 'AMD64':
         arch = 'x86_64'
     if platform == 'linux':
-        filename = 'wasmtime-dev-{}-linux-c-api.tar.xz'.format(arch)
+        filename = 'wasmtime-v{}-{}-linux-c-api.tar.xz'.format(version, arch)
         libname = '_libwasmtime.so'
     elif platform == 'win32':
-        filename = 'wasmtime-dev-{}-windows-c-api.zip'.format(arch)
+        filename = 'wasmtime-v{}-{}-windows-c-api.zip'.format(version, arch)
         is_zip = True
         libname = '_wasmtime.dll'
     elif platform == 'darwin':
-        filename = 'wasmtime-dev-{}-macos-c-api.tar.xz'.format(arch)
+        filename = 'wasmtime-v{}-{}-macos-c-api.tar.xz'.format(version, arch)
         libname = '_libwasmtime.dylib'
     else:
         raise RuntimeError("unknown platform: " + sys.platform)
 
-    url = 'https://github.com/bytecodealliance/wasmtime/releases/download/dev/'
+    url = 'https://github.com/bytecodealliance/wasmtime/releases/download/v{}/'.format(version)
     url += filename
     print('Download', url)
     dirname = '{}-{}'.format(platform, arch)
