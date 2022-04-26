@@ -6,7 +6,8 @@ import os
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-version = "0.35.0"
+with open("VERSION", "r") as fh:
+    version = fh.read().strip()
 
 # Give unique version numbers to all commits so our publication-on-each commit
 # works on main
