@@ -18,3 +18,8 @@ assert(loader_load_wasm.call_dependency() == 4)
 # This imports our `loader_load_python.wat` file which then imports its own
 # python file.
 assert(loader_load_python.call_python() == 42)
+
+# This imports our `loader_load_wasi.wat`, which in turn imports
+# the random_get functionality from the wasi runtime environment
+random_value = loader_load_wasi.wasi_random()
+assert(random_value >= 0 and random_value < 256)
