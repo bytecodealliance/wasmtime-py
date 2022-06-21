@@ -2053,6 +2053,12 @@ _wasmtime_config_cranelift_debug_verifier_set.argtypes = [POINTER(wasm_config_t)
 def wasmtime_config_cranelift_debug_verifier_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_cranelift_debug_verifier_set(arg0, arg1)  # type: ignore
 
+_wasmtime_config_cranelift_nan_canonicalization_set = dll.wasmtime_config_cranelift_nan_canonicalization_set
+_wasmtime_config_cranelift_nan_canonicalization_set.restype = None
+_wasmtime_config_cranelift_nan_canonicalization_set.argtypes = [POINTER(wasm_config_t), c_bool]
+def wasmtime_config_cranelift_nan_canonicalization_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_cranelift_nan_canonicalization_set(arg0, arg1)  # type: ignore
+
 _wasmtime_config_cranelift_opt_level_set = dll.wasmtime_config_cranelift_opt_level_set
 _wasmtime_config_cranelift_opt_level_set.restype = None
 _wasmtime_config_cranelift_opt_level_set.argtypes = [POINTER(wasm_config_t), wasmtime_opt_level_t]
@@ -2428,7 +2434,7 @@ _wasmtime_func_new.argtypes = [POINTER(wasmtime_context_t), POINTER(wasm_functyp
 def wasmtime_func_new(store: Any, type: Any, callback: Any, env: Any, finalizer: Any, ret: Any) -> None:
     return _wasmtime_func_new(store, type, callback, env, finalizer, ret)  # type: ignore
 
-wasmtime_func_unchecked_callback_t = CFUNCTYPE(c_size_t, c_void_p, POINTER(wasmtime_caller_t), POINTER(wasmtime_val_raw_t))
+wasmtime_func_unchecked_callback_t = CFUNCTYPE(c_size_t, c_void_p, POINTER(wasmtime_caller_t), POINTER(wasmtime_val_raw_t), c_size_t)
 
 _wasmtime_func_new_unchecked = dll.wasmtime_func_new_unchecked
 _wasmtime_func_new_unchecked.restype = None
