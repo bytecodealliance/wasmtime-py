@@ -2042,9 +2042,9 @@ def wasmtime_config_wasm_memory64_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_wasm_memory64_set(arg0, arg1)  # type: ignore
 
 _wasmtime_config_strategy_set = dll.wasmtime_config_strategy_set
-_wasmtime_config_strategy_set.restype = POINTER(wasmtime_error_t)
+_wasmtime_config_strategy_set.restype = None
 _wasmtime_config_strategy_set.argtypes = [POINTER(wasm_config_t), wasmtime_strategy_t]
-def wasmtime_config_strategy_set(arg0: Any, arg1: Any) -> pointer:
+def wasmtime_config_strategy_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_strategy_set(arg0, arg1)  # type: ignore
 
 _wasmtime_config_cranelift_debug_verifier_set = dll.wasmtime_config_cranelift_debug_verifier_set
@@ -2066,9 +2066,9 @@ def wasmtime_config_cranelift_opt_level_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_cranelift_opt_level_set(arg0, arg1)  # type: ignore
 
 _wasmtime_config_profiler_set = dll.wasmtime_config_profiler_set
-_wasmtime_config_profiler_set.restype = POINTER(wasmtime_error_t)
+_wasmtime_config_profiler_set.restype = None
 _wasmtime_config_profiler_set.argtypes = [POINTER(wasm_config_t), wasmtime_profiling_strategy_t]
-def wasmtime_config_profiler_set(arg0: Any, arg1: Any) -> pointer:
+def wasmtime_config_profiler_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_profiler_set(arg0, arg1)  # type: ignore
 
 _wasmtime_config_static_memory_maximum_size_set = dll.wasmtime_config_static_memory_maximum_size_set

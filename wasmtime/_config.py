@@ -130,13 +130,11 @@ class Config:
         """
 
         if strategy == "auto":
-            error = ffi.wasmtime_config_strategy_set(self._ptr, 0)
+            ffi.wasmtime_config_strategy_set(self._ptr, 0)
         elif strategy == "cranelift":
-            error = ffi.wasmtime_config_strategy_set(self._ptr, 1)
+            ffi.wasmtime_config_strategy_set(self._ptr, 1)
         else:
             raise WasmtimeError("unknown strategy: " + str(strategy))
-        if error:
-            raise WasmtimeError._from_ptr(error)
 
     @setter_property
     def cranelift_debug_verifier(self, enable: bool) -> None:
@@ -158,13 +156,11 @@ class Config:
     @setter_property
     def profiler(self, profiler: str) -> None:
         if profiler == "none":
-            error = ffi.wasmtime_config_profiler_set(self._ptr, 0)
+            ffi.wasmtime_config_profiler_set(self._ptr, 0)
         elif profiler == "jitdump":
-            error = ffi.wasmtime_config_profiler_set(self._ptr, 1)
+            ffi.wasmtime_config_profiler_set(self._ptr, 1)
         else:
             raise WasmtimeError("unknown profiler: " + str(profiler))
-        if error:
-            raise WasmtimeError._from_ptr(error)
 
     @setter_property
     def cache(self, enabled: typing.Union[bool, str]) -> None:
