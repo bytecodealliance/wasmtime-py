@@ -255,7 +255,7 @@ FUNCTIONS = Slab()
 @contextmanager
 def enter_wasm(store: Storelike):  # type: ignore
     try:
-        trap = POINTER(ffi.wasm_trap_t)()
+        trap = POINTER(ffi.wasm_trap_t)()  # type: ignore
         yield byref(trap)
         if trap:
             trap_obj = Trap._from_ptr(trap)

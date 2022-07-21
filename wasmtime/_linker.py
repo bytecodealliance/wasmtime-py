@@ -156,7 +156,7 @@ class Linker:
         Raises an error if an import of `module` hasn't been defined in this
         linker or if a trap happens while instantiating the instance.
         """
-        trap = POINTER(ffi.wasm_trap_t)()
+        trap = POINTER(ffi.wasm_trap_t)()  # type: ignore
         instance = ffi.wasmtime_instance_t()
         with enter_wasm(store) as trap:
             error = ffi.wasmtime_linker_instantiate(

@@ -35,7 +35,7 @@ class Module:
         # TODO: can the copy be avoided here? I can't for the life of me
         # figure this out.
         binary = (c_uint8 * len(wasm)).from_buffer_copy(wasm)
-        ptr = POINTER(ffi.wasmtime_module_t)()
+        ptr = POINTER(ffi.wasmtime_module_t)()  # type: ignore
         error = ffi.wasmtime_module_new(engine._ptr, binary, len(wasm), byref(ptr))
         if error:
             raise WasmtimeError._from_ptr(error)
@@ -63,7 +63,7 @@ class Module:
         if not isinstance(encoded, (bytes, bytearray)):
             raise TypeError("expected bytes")
 
-        ptr = POINTER(ffi.wasmtime_module_t)()
+        ptr = POINTER(ffi.wasmtime_module_t)()  # type: ignore
 
         # TODO: can the copy be avoided here? I can't for the life of me
         # figure this out.
@@ -87,7 +87,7 @@ class Module:
         Otherwise this function is the same as `Module.deserialize`.
         """
 
-        ptr = POINTER(ffi.wasmtime_module_t)()
+        ptr = POINTER(ffi.wasmtime_module_t)()  # type: ignore
         path_bytes = path.encode('utf-8')
         error = ffi.wasmtime_module_deserialize_file(
             engine._ptr,
