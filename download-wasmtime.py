@@ -17,6 +17,8 @@ def main(platform, arch):
         version = fh.read().strip()
     if arch == 'AMD64':
         arch = 'x86_64'
+    if arch == 'arm64':
+        arch = 'aarch64'
     if platform == 'linux':
         filename = 'wasmtime-v{}-{}-linux-c-api.tar.xz'.format(version, arch)
         libname = '_libwasmtime.so'
