@@ -12,6 +12,7 @@ import zipfile
 
 WASMTIME_VERSION = "1.0.0"
 
+
 def main(platform, arch):
     is_zip = False
     version = WASMTIME_VERSION
