@@ -30,7 +30,7 @@ class Instance:
             imports_ptr[i] = get_extern_ptr(val)
 
         instance = ffi.wasmtime_instance_t()
-        trap = POINTER(ffi.wasm_trap_t)()  # type: ignore
+        trap = POINTER(ffi.wasm_trap_t)()
         with enter_wasm(store) as trap:
             error = ffi.wasmtime_instance_new(
                 store._context,
@@ -77,7 +77,7 @@ class InstanceExports:
 
         i = 0
         item = ffi.wasmtime_extern_t()
-        name_ptr = POINTER(ffi.c_char)()  # type: ignore
+        name_ptr = POINTER(ffi.c_char)()
         name_len = ffi.c_size_t(0)
         while ffi.wasmtime_instance_export_nth(
                 store._context,

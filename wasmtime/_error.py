@@ -1,4 +1,5 @@
-from ctypes import byref, POINTER, pointer
+from ctypes import byref, POINTER
+import ctypes
 
 
 class WasmtimeError(Exception):
@@ -6,7 +7,7 @@ class WasmtimeError(Exception):
         self.message = message
 
     @classmethod
-    def _from_ptr(cls, ptr: pointer) -> 'WasmtimeError':
+    def _from_ptr(cls, ptr: "ctypes._Pointer") -> 'WasmtimeError':
         from . import _ffi as ffi
         if not isinstance(ptr, POINTER(ffi.wasmtime_error_t)):
             raise TypeError("wrong pointer type")

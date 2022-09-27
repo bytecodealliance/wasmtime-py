@@ -4,6 +4,7 @@
 # instead edit `./bindgen.py` at the root of the repo
 
 from ctypes import *
+import ctypes
 from typing import Any
 from ._ffi import dll, wasm_val_t, wasm_ref_t
 
@@ -15,7 +16,7 @@ class wasm_byte_vec_t(Structure):
         ("data", POINTER(wasm_byte_t)),
     ]
     size: int
-    data: pointer
+    data: ctypes._Pointer
 
 _wasm_byte_vec_new_empty = dll.wasm_byte_vec_new_empty
 _wasm_byte_vec_new_empty.restype = None
@@ -61,7 +62,7 @@ def wasm_config_delete(arg0: Any) -> None:
 _wasm_config_new = dll.wasm_config_new
 _wasm_config_new.restype = POINTER(wasm_config_t)
 _wasm_config_new.argtypes = []
-def wasm_config_new() -> pointer:
+def wasm_config_new() -> ctypes._Pointer:
     return _wasm_config_new()  # type: ignore
 
 class wasm_engine_t(Structure):
@@ -76,13 +77,13 @@ def wasm_engine_delete(arg0: Any) -> None:
 _wasm_engine_new = dll.wasm_engine_new
 _wasm_engine_new.restype = POINTER(wasm_engine_t)
 _wasm_engine_new.argtypes = []
-def wasm_engine_new() -> pointer:
+def wasm_engine_new() -> ctypes._Pointer:
     return _wasm_engine_new()  # type: ignore
 
 _wasm_engine_new_with_config = dll.wasm_engine_new_with_config
 _wasm_engine_new_with_config.restype = POINTER(wasm_engine_t)
 _wasm_engine_new_with_config.argtypes = [POINTER(wasm_config_t)]
-def wasm_engine_new_with_config(arg0: Any) -> pointer:
+def wasm_engine_new_with_config(arg0: Any) -> ctypes._Pointer:
     return _wasm_engine_new_with_config(arg0)  # type: ignore
 
 class wasm_store_t(Structure):
@@ -97,7 +98,7 @@ def wasm_store_delete(arg0: Any) -> None:
 _wasm_store_new = dll.wasm_store_new
 _wasm_store_new.restype = POINTER(wasm_store_t)
 _wasm_store_new.argtypes = [POINTER(wasm_engine_t)]
-def wasm_store_new(arg0: Any) -> pointer:
+def wasm_store_new(arg0: Any) -> ctypes._Pointer:
     return _wasm_store_new(arg0)  # type: ignore
 
 wasm_mutability_t = c_uint8
@@ -125,7 +126,7 @@ class wasm_valtype_vec_t(Structure):
         ("data", POINTER(POINTER(wasm_valtype_t))),
     ]
     size: int
-    data: pointer
+    data: ctypes._Pointer
 
 _wasm_valtype_vec_new_empty = dll.wasm_valtype_vec_new_empty
 _wasm_valtype_vec_new_empty.restype = None
@@ -160,7 +161,7 @@ def wasm_valtype_vec_delete(arg0: Any) -> None:
 _wasm_valtype_copy = dll.wasm_valtype_copy
 _wasm_valtype_copy.restype = POINTER(wasm_valtype_t)
 _wasm_valtype_copy.argtypes = [POINTER(wasm_valtype_t)]
-def wasm_valtype_copy(arg0: Any) -> pointer:
+def wasm_valtype_copy(arg0: Any) -> ctypes._Pointer:
     return _wasm_valtype_copy(arg0)  # type: ignore
 
 wasm_valkind_t = c_uint8
@@ -168,7 +169,7 @@ wasm_valkind_t = c_uint8
 _wasm_valtype_new = dll.wasm_valtype_new
 _wasm_valtype_new.restype = POINTER(wasm_valtype_t)
 _wasm_valtype_new.argtypes = [wasm_valkind_t]
-def wasm_valtype_new(arg0: Any) -> pointer:
+def wasm_valtype_new(arg0: Any) -> ctypes._Pointer:
     return _wasm_valtype_new(arg0)  # type: ignore
 
 _wasm_valtype_kind = dll.wasm_valtype_kind
@@ -192,7 +193,7 @@ class wasm_functype_vec_t(Structure):
         ("data", POINTER(POINTER(wasm_functype_t))),
     ]
     size: int
-    data: pointer
+    data: ctypes._Pointer
 
 _wasm_functype_vec_new_empty = dll.wasm_functype_vec_new_empty
 _wasm_functype_vec_new_empty.restype = None
@@ -227,25 +228,25 @@ def wasm_functype_vec_delete(arg0: Any) -> None:
 _wasm_functype_copy = dll.wasm_functype_copy
 _wasm_functype_copy.restype = POINTER(wasm_functype_t)
 _wasm_functype_copy.argtypes = [POINTER(wasm_functype_t)]
-def wasm_functype_copy(arg0: Any) -> pointer:
+def wasm_functype_copy(arg0: Any) -> ctypes._Pointer:
     return _wasm_functype_copy(arg0)  # type: ignore
 
 _wasm_functype_new = dll.wasm_functype_new
 _wasm_functype_new.restype = POINTER(wasm_functype_t)
 _wasm_functype_new.argtypes = [POINTER(wasm_valtype_vec_t), POINTER(wasm_valtype_vec_t)]
-def wasm_functype_new(params: Any, results: Any) -> pointer:
+def wasm_functype_new(params: Any, results: Any) -> ctypes._Pointer:
     return _wasm_functype_new(params, results)  # type: ignore
 
 _wasm_functype_params = dll.wasm_functype_params
 _wasm_functype_params.restype = POINTER(wasm_valtype_vec_t)
 _wasm_functype_params.argtypes = [POINTER(wasm_functype_t)]
-def wasm_functype_params(arg0: Any) -> pointer:
+def wasm_functype_params(arg0: Any) -> ctypes._Pointer:
     return _wasm_functype_params(arg0)  # type: ignore
 
 _wasm_functype_results = dll.wasm_functype_results
 _wasm_functype_results.restype = POINTER(wasm_valtype_vec_t)
 _wasm_functype_results.argtypes = [POINTER(wasm_functype_t)]
-def wasm_functype_results(arg0: Any) -> pointer:
+def wasm_functype_results(arg0: Any) -> ctypes._Pointer:
     return _wasm_functype_results(arg0)  # type: ignore
 
 class wasm_globaltype_t(Structure):
@@ -263,7 +264,7 @@ class wasm_globaltype_vec_t(Structure):
         ("data", POINTER(POINTER(wasm_globaltype_t))),
     ]
     size: int
-    data: pointer
+    data: ctypes._Pointer
 
 _wasm_globaltype_vec_new_empty = dll.wasm_globaltype_vec_new_empty
 _wasm_globaltype_vec_new_empty.restype = None
@@ -298,19 +299,19 @@ def wasm_globaltype_vec_delete(arg0: Any) -> None:
 _wasm_globaltype_copy = dll.wasm_globaltype_copy
 _wasm_globaltype_copy.restype = POINTER(wasm_globaltype_t)
 _wasm_globaltype_copy.argtypes = [POINTER(wasm_globaltype_t)]
-def wasm_globaltype_copy(arg0: Any) -> pointer:
+def wasm_globaltype_copy(arg0: Any) -> ctypes._Pointer:
     return _wasm_globaltype_copy(arg0)  # type: ignore
 
 _wasm_globaltype_new = dll.wasm_globaltype_new
 _wasm_globaltype_new.restype = POINTER(wasm_globaltype_t)
 _wasm_globaltype_new.argtypes = [POINTER(wasm_valtype_t), wasm_mutability_t]
-def wasm_globaltype_new(arg0: Any, arg1: Any) -> pointer:
+def wasm_globaltype_new(arg0: Any, arg1: Any) -> ctypes._Pointer:
     return _wasm_globaltype_new(arg0, arg1)  # type: ignore
 
 _wasm_globaltype_content = dll.wasm_globaltype_content
 _wasm_globaltype_content.restype = POINTER(wasm_valtype_t)
 _wasm_globaltype_content.argtypes = [POINTER(wasm_globaltype_t)]
-def wasm_globaltype_content(arg0: Any) -> pointer:
+def wasm_globaltype_content(arg0: Any) -> ctypes._Pointer:
     return _wasm_globaltype_content(arg0)  # type: ignore
 
 _wasm_globaltype_mutability = dll.wasm_globaltype_mutability
@@ -334,7 +335,7 @@ class wasm_tabletype_vec_t(Structure):
         ("data", POINTER(POINTER(wasm_tabletype_t))),
     ]
     size: int
-    data: pointer
+    data: ctypes._Pointer
 
 _wasm_tabletype_vec_new_empty = dll.wasm_tabletype_vec_new_empty
 _wasm_tabletype_vec_new_empty.restype = None
@@ -369,25 +370,25 @@ def wasm_tabletype_vec_delete(arg0: Any) -> None:
 _wasm_tabletype_copy = dll.wasm_tabletype_copy
 _wasm_tabletype_copy.restype = POINTER(wasm_tabletype_t)
 _wasm_tabletype_copy.argtypes = [POINTER(wasm_tabletype_t)]
-def wasm_tabletype_copy(arg0: Any) -> pointer:
+def wasm_tabletype_copy(arg0: Any) -> ctypes._Pointer:
     return _wasm_tabletype_copy(arg0)  # type: ignore
 
 _wasm_tabletype_new = dll.wasm_tabletype_new
 _wasm_tabletype_new.restype = POINTER(wasm_tabletype_t)
 _wasm_tabletype_new.argtypes = [POINTER(wasm_valtype_t), POINTER(wasm_limits_t)]
-def wasm_tabletype_new(arg0: Any, arg1: Any) -> pointer:
+def wasm_tabletype_new(arg0: Any, arg1: Any) -> ctypes._Pointer:
     return _wasm_tabletype_new(arg0, arg1)  # type: ignore
 
 _wasm_tabletype_element = dll.wasm_tabletype_element
 _wasm_tabletype_element.restype = POINTER(wasm_valtype_t)
 _wasm_tabletype_element.argtypes = [POINTER(wasm_tabletype_t)]
-def wasm_tabletype_element(arg0: Any) -> pointer:
+def wasm_tabletype_element(arg0: Any) -> ctypes._Pointer:
     return _wasm_tabletype_element(arg0)  # type: ignore
 
 _wasm_tabletype_limits = dll.wasm_tabletype_limits
 _wasm_tabletype_limits.restype = POINTER(wasm_limits_t)
 _wasm_tabletype_limits.argtypes = [POINTER(wasm_tabletype_t)]
-def wasm_tabletype_limits(arg0: Any) -> pointer:
+def wasm_tabletype_limits(arg0: Any) -> ctypes._Pointer:
     return _wasm_tabletype_limits(arg0)  # type: ignore
 
 class wasm_memorytype_t(Structure):
@@ -405,7 +406,7 @@ class wasm_memorytype_vec_t(Structure):
         ("data", POINTER(POINTER(wasm_memorytype_t))),
     ]
     size: int
-    data: pointer
+    data: ctypes._Pointer
 
 _wasm_memorytype_vec_new_empty = dll.wasm_memorytype_vec_new_empty
 _wasm_memorytype_vec_new_empty.restype = None
@@ -440,19 +441,19 @@ def wasm_memorytype_vec_delete(arg0: Any) -> None:
 _wasm_memorytype_copy = dll.wasm_memorytype_copy
 _wasm_memorytype_copy.restype = POINTER(wasm_memorytype_t)
 _wasm_memorytype_copy.argtypes = [POINTER(wasm_memorytype_t)]
-def wasm_memorytype_copy(arg0: Any) -> pointer:
+def wasm_memorytype_copy(arg0: Any) -> ctypes._Pointer:
     return _wasm_memorytype_copy(arg0)  # type: ignore
 
 _wasm_memorytype_new = dll.wasm_memorytype_new
 _wasm_memorytype_new.restype = POINTER(wasm_memorytype_t)
 _wasm_memorytype_new.argtypes = [POINTER(wasm_limits_t)]
-def wasm_memorytype_new(arg0: Any) -> pointer:
+def wasm_memorytype_new(arg0: Any) -> ctypes._Pointer:
     return _wasm_memorytype_new(arg0)  # type: ignore
 
 _wasm_memorytype_limits = dll.wasm_memorytype_limits
 _wasm_memorytype_limits.restype = POINTER(wasm_limits_t)
 _wasm_memorytype_limits.argtypes = [POINTER(wasm_memorytype_t)]
-def wasm_memorytype_limits(arg0: Any) -> pointer:
+def wasm_memorytype_limits(arg0: Any) -> ctypes._Pointer:
     return _wasm_memorytype_limits(arg0)  # type: ignore
 
 class wasm_externtype_t(Structure):
@@ -470,7 +471,7 @@ class wasm_externtype_vec_t(Structure):
         ("data", POINTER(POINTER(wasm_externtype_t))),
     ]
     size: int
-    data: pointer
+    data: ctypes._Pointer
 
 _wasm_externtype_vec_new_empty = dll.wasm_externtype_vec_new_empty
 _wasm_externtype_vec_new_empty.restype = None
@@ -505,7 +506,7 @@ def wasm_externtype_vec_delete(arg0: Any) -> None:
 _wasm_externtype_copy = dll.wasm_externtype_copy
 _wasm_externtype_copy.restype = POINTER(wasm_externtype_t)
 _wasm_externtype_copy.argtypes = [POINTER(wasm_externtype_t)]
-def wasm_externtype_copy(arg0: Any) -> pointer:
+def wasm_externtype_copy(arg0: Any) -> ctypes._Pointer:
     return _wasm_externtype_copy(arg0)  # type: ignore
 
 wasm_externkind_t = c_uint8
@@ -519,97 +520,97 @@ def wasm_externtype_kind(arg0: Any) -> wasm_externkind_t:
 _wasm_functype_as_externtype = dll.wasm_functype_as_externtype
 _wasm_functype_as_externtype.restype = POINTER(wasm_externtype_t)
 _wasm_functype_as_externtype.argtypes = [POINTER(wasm_functype_t)]
-def wasm_functype_as_externtype(arg0: Any) -> pointer:
+def wasm_functype_as_externtype(arg0: Any) -> ctypes._Pointer:
     return _wasm_functype_as_externtype(arg0)  # type: ignore
 
 _wasm_globaltype_as_externtype = dll.wasm_globaltype_as_externtype
 _wasm_globaltype_as_externtype.restype = POINTER(wasm_externtype_t)
 _wasm_globaltype_as_externtype.argtypes = [POINTER(wasm_globaltype_t)]
-def wasm_globaltype_as_externtype(arg0: Any) -> pointer:
+def wasm_globaltype_as_externtype(arg0: Any) -> ctypes._Pointer:
     return _wasm_globaltype_as_externtype(arg0)  # type: ignore
 
 _wasm_tabletype_as_externtype = dll.wasm_tabletype_as_externtype
 _wasm_tabletype_as_externtype.restype = POINTER(wasm_externtype_t)
 _wasm_tabletype_as_externtype.argtypes = [POINTER(wasm_tabletype_t)]
-def wasm_tabletype_as_externtype(arg0: Any) -> pointer:
+def wasm_tabletype_as_externtype(arg0: Any) -> ctypes._Pointer:
     return _wasm_tabletype_as_externtype(arg0)  # type: ignore
 
 _wasm_memorytype_as_externtype = dll.wasm_memorytype_as_externtype
 _wasm_memorytype_as_externtype.restype = POINTER(wasm_externtype_t)
 _wasm_memorytype_as_externtype.argtypes = [POINTER(wasm_memorytype_t)]
-def wasm_memorytype_as_externtype(arg0: Any) -> pointer:
+def wasm_memorytype_as_externtype(arg0: Any) -> ctypes._Pointer:
     return _wasm_memorytype_as_externtype(arg0)  # type: ignore
 
 _wasm_externtype_as_functype = dll.wasm_externtype_as_functype
 _wasm_externtype_as_functype.restype = POINTER(wasm_functype_t)
 _wasm_externtype_as_functype.argtypes = [POINTER(wasm_externtype_t)]
-def wasm_externtype_as_functype(arg0: Any) -> pointer:
+def wasm_externtype_as_functype(arg0: Any) -> ctypes._Pointer:
     return _wasm_externtype_as_functype(arg0)  # type: ignore
 
 _wasm_externtype_as_globaltype = dll.wasm_externtype_as_globaltype
 _wasm_externtype_as_globaltype.restype = POINTER(wasm_globaltype_t)
 _wasm_externtype_as_globaltype.argtypes = [POINTER(wasm_externtype_t)]
-def wasm_externtype_as_globaltype(arg0: Any) -> pointer:
+def wasm_externtype_as_globaltype(arg0: Any) -> ctypes._Pointer:
     return _wasm_externtype_as_globaltype(arg0)  # type: ignore
 
 _wasm_externtype_as_tabletype = dll.wasm_externtype_as_tabletype
 _wasm_externtype_as_tabletype.restype = POINTER(wasm_tabletype_t)
 _wasm_externtype_as_tabletype.argtypes = [POINTER(wasm_externtype_t)]
-def wasm_externtype_as_tabletype(arg0: Any) -> pointer:
+def wasm_externtype_as_tabletype(arg0: Any) -> ctypes._Pointer:
     return _wasm_externtype_as_tabletype(arg0)  # type: ignore
 
 _wasm_externtype_as_memorytype = dll.wasm_externtype_as_memorytype
 _wasm_externtype_as_memorytype.restype = POINTER(wasm_memorytype_t)
 _wasm_externtype_as_memorytype.argtypes = [POINTER(wasm_externtype_t)]
-def wasm_externtype_as_memorytype(arg0: Any) -> pointer:
+def wasm_externtype_as_memorytype(arg0: Any) -> ctypes._Pointer:
     return _wasm_externtype_as_memorytype(arg0)  # type: ignore
 
 _wasm_functype_as_externtype_const = dll.wasm_functype_as_externtype_const
 _wasm_functype_as_externtype_const.restype = POINTER(wasm_externtype_t)
 _wasm_functype_as_externtype_const.argtypes = [POINTER(wasm_functype_t)]
-def wasm_functype_as_externtype_const(arg0: Any) -> pointer:
+def wasm_functype_as_externtype_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_functype_as_externtype_const(arg0)  # type: ignore
 
 _wasm_globaltype_as_externtype_const = dll.wasm_globaltype_as_externtype_const
 _wasm_globaltype_as_externtype_const.restype = POINTER(wasm_externtype_t)
 _wasm_globaltype_as_externtype_const.argtypes = [POINTER(wasm_globaltype_t)]
-def wasm_globaltype_as_externtype_const(arg0: Any) -> pointer:
+def wasm_globaltype_as_externtype_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_globaltype_as_externtype_const(arg0)  # type: ignore
 
 _wasm_tabletype_as_externtype_const = dll.wasm_tabletype_as_externtype_const
 _wasm_tabletype_as_externtype_const.restype = POINTER(wasm_externtype_t)
 _wasm_tabletype_as_externtype_const.argtypes = [POINTER(wasm_tabletype_t)]
-def wasm_tabletype_as_externtype_const(arg0: Any) -> pointer:
+def wasm_tabletype_as_externtype_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_tabletype_as_externtype_const(arg0)  # type: ignore
 
 _wasm_memorytype_as_externtype_const = dll.wasm_memorytype_as_externtype_const
 _wasm_memorytype_as_externtype_const.restype = POINTER(wasm_externtype_t)
 _wasm_memorytype_as_externtype_const.argtypes = [POINTER(wasm_memorytype_t)]
-def wasm_memorytype_as_externtype_const(arg0: Any) -> pointer:
+def wasm_memorytype_as_externtype_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_memorytype_as_externtype_const(arg0)  # type: ignore
 
 _wasm_externtype_as_functype_const = dll.wasm_externtype_as_functype_const
 _wasm_externtype_as_functype_const.restype = POINTER(wasm_functype_t)
 _wasm_externtype_as_functype_const.argtypes = [POINTER(wasm_externtype_t)]
-def wasm_externtype_as_functype_const(arg0: Any) -> pointer:
+def wasm_externtype_as_functype_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_externtype_as_functype_const(arg0)  # type: ignore
 
 _wasm_externtype_as_globaltype_const = dll.wasm_externtype_as_globaltype_const
 _wasm_externtype_as_globaltype_const.restype = POINTER(wasm_globaltype_t)
 _wasm_externtype_as_globaltype_const.argtypes = [POINTER(wasm_externtype_t)]
-def wasm_externtype_as_globaltype_const(arg0: Any) -> pointer:
+def wasm_externtype_as_globaltype_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_externtype_as_globaltype_const(arg0)  # type: ignore
 
 _wasm_externtype_as_tabletype_const = dll.wasm_externtype_as_tabletype_const
 _wasm_externtype_as_tabletype_const.restype = POINTER(wasm_tabletype_t)
 _wasm_externtype_as_tabletype_const.argtypes = [POINTER(wasm_externtype_t)]
-def wasm_externtype_as_tabletype_const(arg0: Any) -> pointer:
+def wasm_externtype_as_tabletype_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_externtype_as_tabletype_const(arg0)  # type: ignore
 
 _wasm_externtype_as_memorytype_const = dll.wasm_externtype_as_memorytype_const
 _wasm_externtype_as_memorytype_const.restype = POINTER(wasm_memorytype_t)
 _wasm_externtype_as_memorytype_const.argtypes = [POINTER(wasm_externtype_t)]
-def wasm_externtype_as_memorytype_const(arg0: Any) -> pointer:
+def wasm_externtype_as_memorytype_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_externtype_as_memorytype_const(arg0)  # type: ignore
 
 class wasm_importtype_t(Structure):
@@ -627,7 +628,7 @@ class wasm_importtype_vec_t(Structure):
         ("data", POINTER(POINTER(wasm_importtype_t))),
     ]
     size: int
-    data: pointer
+    data: ctypes._Pointer
 
 _wasm_importtype_vec_new_empty = dll.wasm_importtype_vec_new_empty
 _wasm_importtype_vec_new_empty.restype = None
@@ -662,31 +663,31 @@ def wasm_importtype_vec_delete(arg0: Any) -> None:
 _wasm_importtype_copy = dll.wasm_importtype_copy
 _wasm_importtype_copy.restype = POINTER(wasm_importtype_t)
 _wasm_importtype_copy.argtypes = [POINTER(wasm_importtype_t)]
-def wasm_importtype_copy(arg0: Any) -> pointer:
+def wasm_importtype_copy(arg0: Any) -> ctypes._Pointer:
     return _wasm_importtype_copy(arg0)  # type: ignore
 
 _wasm_importtype_new = dll.wasm_importtype_new
 _wasm_importtype_new.restype = POINTER(wasm_importtype_t)
 _wasm_importtype_new.argtypes = [POINTER(wasm_name_t), POINTER(wasm_name_t), POINTER(wasm_externtype_t)]
-def wasm_importtype_new(module: Any, name: Any, arg2: Any) -> pointer:
+def wasm_importtype_new(module: Any, name: Any, arg2: Any) -> ctypes._Pointer:
     return _wasm_importtype_new(module, name, arg2)  # type: ignore
 
 _wasm_importtype_module = dll.wasm_importtype_module
 _wasm_importtype_module.restype = POINTER(wasm_name_t)
 _wasm_importtype_module.argtypes = [POINTER(wasm_importtype_t)]
-def wasm_importtype_module(arg0: Any) -> pointer:
+def wasm_importtype_module(arg0: Any) -> ctypes._Pointer:
     return _wasm_importtype_module(arg0)  # type: ignore
 
 _wasm_importtype_name = dll.wasm_importtype_name
 _wasm_importtype_name.restype = POINTER(wasm_name_t)
 _wasm_importtype_name.argtypes = [POINTER(wasm_importtype_t)]
-def wasm_importtype_name(arg0: Any) -> pointer:
+def wasm_importtype_name(arg0: Any) -> ctypes._Pointer:
     return _wasm_importtype_name(arg0)  # type: ignore
 
 _wasm_importtype_type = dll.wasm_importtype_type
 _wasm_importtype_type.restype = POINTER(wasm_externtype_t)
 _wasm_importtype_type.argtypes = [POINTER(wasm_importtype_t)]
-def wasm_importtype_type(arg0: Any) -> pointer:
+def wasm_importtype_type(arg0: Any) -> ctypes._Pointer:
     return _wasm_importtype_type(arg0)  # type: ignore
 
 class wasm_exporttype_t(Structure):
@@ -704,7 +705,7 @@ class wasm_exporttype_vec_t(Structure):
         ("data", POINTER(POINTER(wasm_exporttype_t))),
     ]
     size: int
-    data: pointer
+    data: ctypes._Pointer
 
 _wasm_exporttype_vec_new_empty = dll.wasm_exporttype_vec_new_empty
 _wasm_exporttype_vec_new_empty.restype = None
@@ -739,25 +740,25 @@ def wasm_exporttype_vec_delete(arg0: Any) -> None:
 _wasm_exporttype_copy = dll.wasm_exporttype_copy
 _wasm_exporttype_copy.restype = POINTER(wasm_exporttype_t)
 _wasm_exporttype_copy.argtypes = [POINTER(wasm_exporttype_t)]
-def wasm_exporttype_copy(arg0: Any) -> pointer:
+def wasm_exporttype_copy(arg0: Any) -> ctypes._Pointer:
     return _wasm_exporttype_copy(arg0)  # type: ignore
 
 _wasm_exporttype_new = dll.wasm_exporttype_new
 _wasm_exporttype_new.restype = POINTER(wasm_exporttype_t)
 _wasm_exporttype_new.argtypes = [POINTER(wasm_name_t), POINTER(wasm_externtype_t)]
-def wasm_exporttype_new(arg0: Any, arg1: Any) -> pointer:
+def wasm_exporttype_new(arg0: Any, arg1: Any) -> ctypes._Pointer:
     return _wasm_exporttype_new(arg0, arg1)  # type: ignore
 
 _wasm_exporttype_name = dll.wasm_exporttype_name
 _wasm_exporttype_name.restype = POINTER(wasm_name_t)
 _wasm_exporttype_name.argtypes = [POINTER(wasm_exporttype_t)]
-def wasm_exporttype_name(arg0: Any) -> pointer:
+def wasm_exporttype_name(arg0: Any) -> ctypes._Pointer:
     return _wasm_exporttype_name(arg0)  # type: ignore
 
 _wasm_exporttype_type = dll.wasm_exporttype_type
 _wasm_exporttype_type.restype = POINTER(wasm_externtype_t)
 _wasm_exporttype_type.argtypes = [POINTER(wasm_exporttype_t)]
-def wasm_exporttype_type(arg0: Any) -> pointer:
+def wasm_exporttype_type(arg0: Any) -> ctypes._Pointer:
     return _wasm_exporttype_type(arg0)  # type: ignore
 
 _wasm_val_delete = dll.wasm_val_delete
@@ -778,7 +779,7 @@ class wasm_val_vec_t(Structure):
         ("data", POINTER(wasm_val_t)),
     ]
     size: int
-    data: pointer
+    data: ctypes._Pointer
 
 _wasm_val_vec_new_empty = dll.wasm_val_vec_new_empty
 _wasm_val_vec_new_empty.restype = None
@@ -819,7 +820,7 @@ def wasm_ref_delete(arg0: Any) -> None:
 _wasm_ref_copy = dll.wasm_ref_copy
 _wasm_ref_copy.restype = POINTER(wasm_ref_t)
 _wasm_ref_copy.argtypes = [POINTER(wasm_ref_t)]
-def wasm_ref_copy(arg0: Any) -> pointer:
+def wasm_ref_copy(arg0: Any) -> ctypes._Pointer:
     return _wasm_ref_copy(arg0)  # type: ignore
 
 _wasm_ref_same = dll.wasm_ref_same
@@ -861,7 +862,7 @@ class wasm_frame_vec_t(Structure):
         ("data", POINTER(POINTER(wasm_frame_t))),
     ]
     size: int
-    data: pointer
+    data: ctypes._Pointer
 
 _wasm_frame_vec_new_empty = dll.wasm_frame_vec_new_empty
 _wasm_frame_vec_new_empty.restype = None
@@ -896,7 +897,7 @@ def wasm_frame_vec_delete(arg0: Any) -> None:
 _wasm_frame_copy = dll.wasm_frame_copy
 _wasm_frame_copy.restype = POINTER(wasm_frame_t)
 _wasm_frame_copy.argtypes = [POINTER(wasm_frame_t)]
-def wasm_frame_copy(arg0: Any) -> pointer:
+def wasm_frame_copy(arg0: Any) -> ctypes._Pointer:
     return _wasm_frame_copy(arg0)  # type: ignore
 
 _wasm_frame_func_index = dll.wasm_frame_func_index
@@ -931,7 +932,7 @@ def wasm_trap_delete(arg0: Any) -> None:
 _wasm_trap_copy = dll.wasm_trap_copy
 _wasm_trap_copy.restype = POINTER(wasm_trap_t)
 _wasm_trap_copy.argtypes = [POINTER(wasm_trap_t)]
-def wasm_trap_copy(arg0: Any) -> pointer:
+def wasm_trap_copy(arg0: Any) -> ctypes._Pointer:
     return _wasm_trap_copy(arg0)  # type: ignore
 
 _wasm_trap_same = dll.wasm_trap_same
@@ -961,31 +962,31 @@ def wasm_trap_set_host_info_with_finalizer(arg0: Any, arg1: Any, arg2: Any) -> N
 _wasm_trap_as_ref = dll.wasm_trap_as_ref
 _wasm_trap_as_ref.restype = POINTER(wasm_ref_t)
 _wasm_trap_as_ref.argtypes = [POINTER(wasm_trap_t)]
-def wasm_trap_as_ref(arg0: Any) -> pointer:
+def wasm_trap_as_ref(arg0: Any) -> ctypes._Pointer:
     return _wasm_trap_as_ref(arg0)  # type: ignore
 
 _wasm_ref_as_trap = dll.wasm_ref_as_trap
 _wasm_ref_as_trap.restype = POINTER(wasm_trap_t)
 _wasm_ref_as_trap.argtypes = [POINTER(wasm_ref_t)]
-def wasm_ref_as_trap(arg0: Any) -> pointer:
+def wasm_ref_as_trap(arg0: Any) -> ctypes._Pointer:
     return _wasm_ref_as_trap(arg0)  # type: ignore
 
 _wasm_trap_as_ref_const = dll.wasm_trap_as_ref_const
 _wasm_trap_as_ref_const.restype = POINTER(wasm_ref_t)
 _wasm_trap_as_ref_const.argtypes = [POINTER(wasm_trap_t)]
-def wasm_trap_as_ref_const(arg0: Any) -> pointer:
+def wasm_trap_as_ref_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_trap_as_ref_const(arg0)  # type: ignore
 
 _wasm_ref_as_trap_const = dll.wasm_ref_as_trap_const
 _wasm_ref_as_trap_const.restype = POINTER(wasm_trap_t)
 _wasm_ref_as_trap_const.argtypes = [POINTER(wasm_ref_t)]
-def wasm_ref_as_trap_const(arg0: Any) -> pointer:
+def wasm_ref_as_trap_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_ref_as_trap_const(arg0)  # type: ignore
 
 _wasm_trap_new = dll.wasm_trap_new
 _wasm_trap_new.restype = POINTER(wasm_trap_t)
 _wasm_trap_new.argtypes = [POINTER(wasm_store_t), POINTER(wasm_message_t)]
-def wasm_trap_new(store: Any, arg1: Any) -> pointer:
+def wasm_trap_new(store: Any, arg1: Any) -> ctypes._Pointer:
     return _wasm_trap_new(store, arg1)  # type: ignore
 
 _wasm_trap_message = dll.wasm_trap_message
@@ -997,7 +998,7 @@ def wasm_trap_message(arg0: Any, out: Any) -> None:
 _wasm_trap_origin = dll.wasm_trap_origin
 _wasm_trap_origin.restype = POINTER(wasm_frame_t)
 _wasm_trap_origin.argtypes = [POINTER(wasm_trap_t)]
-def wasm_trap_origin(arg0: Any) -> pointer:
+def wasm_trap_origin(arg0: Any) -> ctypes._Pointer:
     return _wasm_trap_origin(arg0)  # type: ignore
 
 _wasm_trap_trace = dll.wasm_trap_trace
@@ -1018,7 +1019,7 @@ def wasm_foreign_delete(arg0: Any) -> None:
 _wasm_foreign_copy = dll.wasm_foreign_copy
 _wasm_foreign_copy.restype = POINTER(wasm_foreign_t)
 _wasm_foreign_copy.argtypes = [POINTER(wasm_foreign_t)]
-def wasm_foreign_copy(arg0: Any) -> pointer:
+def wasm_foreign_copy(arg0: Any) -> ctypes._Pointer:
     return _wasm_foreign_copy(arg0)  # type: ignore
 
 _wasm_foreign_same = dll.wasm_foreign_same
@@ -1048,31 +1049,31 @@ def wasm_foreign_set_host_info_with_finalizer(arg0: Any, arg1: Any, arg2: Any) -
 _wasm_foreign_as_ref = dll.wasm_foreign_as_ref
 _wasm_foreign_as_ref.restype = POINTER(wasm_ref_t)
 _wasm_foreign_as_ref.argtypes = [POINTER(wasm_foreign_t)]
-def wasm_foreign_as_ref(arg0: Any) -> pointer:
+def wasm_foreign_as_ref(arg0: Any) -> ctypes._Pointer:
     return _wasm_foreign_as_ref(arg0)  # type: ignore
 
 _wasm_ref_as_foreign = dll.wasm_ref_as_foreign
 _wasm_ref_as_foreign.restype = POINTER(wasm_foreign_t)
 _wasm_ref_as_foreign.argtypes = [POINTER(wasm_ref_t)]
-def wasm_ref_as_foreign(arg0: Any) -> pointer:
+def wasm_ref_as_foreign(arg0: Any) -> ctypes._Pointer:
     return _wasm_ref_as_foreign(arg0)  # type: ignore
 
 _wasm_foreign_as_ref_const = dll.wasm_foreign_as_ref_const
 _wasm_foreign_as_ref_const.restype = POINTER(wasm_ref_t)
 _wasm_foreign_as_ref_const.argtypes = [POINTER(wasm_foreign_t)]
-def wasm_foreign_as_ref_const(arg0: Any) -> pointer:
+def wasm_foreign_as_ref_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_foreign_as_ref_const(arg0)  # type: ignore
 
 _wasm_ref_as_foreign_const = dll.wasm_ref_as_foreign_const
 _wasm_ref_as_foreign_const.restype = POINTER(wasm_foreign_t)
 _wasm_ref_as_foreign_const.argtypes = [POINTER(wasm_ref_t)]
-def wasm_ref_as_foreign_const(arg0: Any) -> pointer:
+def wasm_ref_as_foreign_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_ref_as_foreign_const(arg0)  # type: ignore
 
 _wasm_foreign_new = dll.wasm_foreign_new
 _wasm_foreign_new.restype = POINTER(wasm_foreign_t)
 _wasm_foreign_new.argtypes = [POINTER(wasm_store_t)]
-def wasm_foreign_new(arg0: Any) -> pointer:
+def wasm_foreign_new(arg0: Any) -> ctypes._Pointer:
     return _wasm_foreign_new(arg0)  # type: ignore
 
 class wasm_module_t(Structure):
@@ -1087,7 +1088,7 @@ def wasm_module_delete(arg0: Any) -> None:
 _wasm_module_copy = dll.wasm_module_copy
 _wasm_module_copy.restype = POINTER(wasm_module_t)
 _wasm_module_copy.argtypes = [POINTER(wasm_module_t)]
-def wasm_module_copy(arg0: Any) -> pointer:
+def wasm_module_copy(arg0: Any) -> ctypes._Pointer:
     return _wasm_module_copy(arg0)  # type: ignore
 
 _wasm_module_same = dll.wasm_module_same
@@ -1117,25 +1118,25 @@ def wasm_module_set_host_info_with_finalizer(arg0: Any, arg1: Any, arg2: Any) ->
 _wasm_module_as_ref = dll.wasm_module_as_ref
 _wasm_module_as_ref.restype = POINTER(wasm_ref_t)
 _wasm_module_as_ref.argtypes = [POINTER(wasm_module_t)]
-def wasm_module_as_ref(arg0: Any) -> pointer:
+def wasm_module_as_ref(arg0: Any) -> ctypes._Pointer:
     return _wasm_module_as_ref(arg0)  # type: ignore
 
 _wasm_ref_as_module = dll.wasm_ref_as_module
 _wasm_ref_as_module.restype = POINTER(wasm_module_t)
 _wasm_ref_as_module.argtypes = [POINTER(wasm_ref_t)]
-def wasm_ref_as_module(arg0: Any) -> pointer:
+def wasm_ref_as_module(arg0: Any) -> ctypes._Pointer:
     return _wasm_ref_as_module(arg0)  # type: ignore
 
 _wasm_module_as_ref_const = dll.wasm_module_as_ref_const
 _wasm_module_as_ref_const.restype = POINTER(wasm_ref_t)
 _wasm_module_as_ref_const.argtypes = [POINTER(wasm_module_t)]
-def wasm_module_as_ref_const(arg0: Any) -> pointer:
+def wasm_module_as_ref_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_module_as_ref_const(arg0)  # type: ignore
 
 _wasm_ref_as_module_const = dll.wasm_ref_as_module_const
 _wasm_ref_as_module_const.restype = POINTER(wasm_module_t)
 _wasm_ref_as_module_const.argtypes = [POINTER(wasm_ref_t)]
-def wasm_ref_as_module_const(arg0: Any) -> pointer:
+def wasm_ref_as_module_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_ref_as_module_const(arg0)  # type: ignore
 
 class wasm_shared_module_t(Structure):
@@ -1150,19 +1151,19 @@ def wasm_shared_module_delete(arg0: Any) -> None:
 _wasm_module_share = dll.wasm_module_share
 _wasm_module_share.restype = POINTER(wasm_shared_module_t)
 _wasm_module_share.argtypes = [POINTER(wasm_module_t)]
-def wasm_module_share(arg0: Any) -> pointer:
+def wasm_module_share(arg0: Any) -> ctypes._Pointer:
     return _wasm_module_share(arg0)  # type: ignore
 
 _wasm_module_obtain = dll.wasm_module_obtain
 _wasm_module_obtain.restype = POINTER(wasm_module_t)
 _wasm_module_obtain.argtypes = [POINTER(wasm_store_t), POINTER(wasm_shared_module_t)]
-def wasm_module_obtain(arg0: Any, arg1: Any) -> pointer:
+def wasm_module_obtain(arg0: Any, arg1: Any) -> ctypes._Pointer:
     return _wasm_module_obtain(arg0, arg1)  # type: ignore
 
 _wasm_module_new = dll.wasm_module_new
 _wasm_module_new.restype = POINTER(wasm_module_t)
 _wasm_module_new.argtypes = [POINTER(wasm_store_t), POINTER(wasm_byte_vec_t)]
-def wasm_module_new(arg0: Any, binary: Any) -> pointer:
+def wasm_module_new(arg0: Any, binary: Any) -> ctypes._Pointer:
     return _wasm_module_new(arg0, binary)  # type: ignore
 
 _wasm_module_validate = dll.wasm_module_validate
@@ -1192,7 +1193,7 @@ def wasm_module_serialize(arg0: Any, out: Any) -> None:
 _wasm_module_deserialize = dll.wasm_module_deserialize
 _wasm_module_deserialize.restype = POINTER(wasm_module_t)
 _wasm_module_deserialize.argtypes = [POINTER(wasm_store_t), POINTER(wasm_byte_vec_t)]
-def wasm_module_deserialize(arg0: Any, arg1: Any) -> pointer:
+def wasm_module_deserialize(arg0: Any, arg1: Any) -> ctypes._Pointer:
     return _wasm_module_deserialize(arg0, arg1)  # type: ignore
 
 class wasm_func_t(Structure):
@@ -1207,7 +1208,7 @@ def wasm_func_delete(arg0: Any) -> None:
 _wasm_func_copy = dll.wasm_func_copy
 _wasm_func_copy.restype = POINTER(wasm_func_t)
 _wasm_func_copy.argtypes = [POINTER(wasm_func_t)]
-def wasm_func_copy(arg0: Any) -> pointer:
+def wasm_func_copy(arg0: Any) -> ctypes._Pointer:
     return _wasm_func_copy(arg0)  # type: ignore
 
 _wasm_func_same = dll.wasm_func_same
@@ -1237,25 +1238,25 @@ def wasm_func_set_host_info_with_finalizer(arg0: Any, arg1: Any, arg2: Any) -> N
 _wasm_func_as_ref = dll.wasm_func_as_ref
 _wasm_func_as_ref.restype = POINTER(wasm_ref_t)
 _wasm_func_as_ref.argtypes = [POINTER(wasm_func_t)]
-def wasm_func_as_ref(arg0: Any) -> pointer:
+def wasm_func_as_ref(arg0: Any) -> ctypes._Pointer:
     return _wasm_func_as_ref(arg0)  # type: ignore
 
 _wasm_ref_as_func = dll.wasm_ref_as_func
 _wasm_ref_as_func.restype = POINTER(wasm_func_t)
 _wasm_ref_as_func.argtypes = [POINTER(wasm_ref_t)]
-def wasm_ref_as_func(arg0: Any) -> pointer:
+def wasm_ref_as_func(arg0: Any) -> ctypes._Pointer:
     return _wasm_ref_as_func(arg0)  # type: ignore
 
 _wasm_func_as_ref_const = dll.wasm_func_as_ref_const
 _wasm_func_as_ref_const.restype = POINTER(wasm_ref_t)
 _wasm_func_as_ref_const.argtypes = [POINTER(wasm_func_t)]
-def wasm_func_as_ref_const(arg0: Any) -> pointer:
+def wasm_func_as_ref_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_func_as_ref_const(arg0)  # type: ignore
 
 _wasm_ref_as_func_const = dll.wasm_ref_as_func_const
 _wasm_ref_as_func_const.restype = POINTER(wasm_func_t)
 _wasm_ref_as_func_const.argtypes = [POINTER(wasm_ref_t)]
-def wasm_ref_as_func_const(arg0: Any) -> pointer:
+def wasm_ref_as_func_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_ref_as_func_const(arg0)  # type: ignore
 
 wasm_func_callback_t = CFUNCTYPE(c_size_t, POINTER(wasm_val_vec_t), POINTER(wasm_val_vec_t))
@@ -1265,19 +1266,19 @@ wasm_func_callback_with_env_t = CFUNCTYPE(c_size_t, c_void_p, POINTER(wasm_val_v
 _wasm_func_new = dll.wasm_func_new
 _wasm_func_new.restype = POINTER(wasm_func_t)
 _wasm_func_new.argtypes = [POINTER(wasm_store_t), POINTER(wasm_functype_t), wasm_func_callback_t]
-def wasm_func_new(arg0: Any, arg1: Any, arg2: Any) -> pointer:
+def wasm_func_new(arg0: Any, arg1: Any, arg2: Any) -> ctypes._Pointer:
     return _wasm_func_new(arg0, arg1, arg2)  # type: ignore
 
 _wasm_func_new_with_env = dll.wasm_func_new_with_env
 _wasm_func_new_with_env.restype = POINTER(wasm_func_t)
 _wasm_func_new_with_env.argtypes = [POINTER(wasm_store_t), POINTER(wasm_functype_t), wasm_func_callback_with_env_t, c_void_p, CFUNCTYPE(None, c_void_p)]
-def wasm_func_new_with_env(arg0: Any, type: Any, arg2: Any, env: Any, finalizer: Any) -> pointer:
+def wasm_func_new_with_env(arg0: Any, type: Any, arg2: Any, env: Any, finalizer: Any) -> ctypes._Pointer:
     return _wasm_func_new_with_env(arg0, type, arg2, env, finalizer)  # type: ignore
 
 _wasm_func_type = dll.wasm_func_type
 _wasm_func_type.restype = POINTER(wasm_functype_t)
 _wasm_func_type.argtypes = [POINTER(wasm_func_t)]
-def wasm_func_type(arg0: Any) -> pointer:
+def wasm_func_type(arg0: Any) -> ctypes._Pointer:
     return _wasm_func_type(arg0)  # type: ignore
 
 _wasm_func_param_arity = dll.wasm_func_param_arity
@@ -1295,7 +1296,7 @@ def wasm_func_result_arity(arg0: Any) -> int:
 _wasm_func_call = dll.wasm_func_call
 _wasm_func_call.restype = POINTER(wasm_trap_t)
 _wasm_func_call.argtypes = [POINTER(wasm_func_t), POINTER(wasm_val_vec_t), POINTER(wasm_val_vec_t)]
-def wasm_func_call(arg0: Any, args: Any, results: Any) -> pointer:
+def wasm_func_call(arg0: Any, args: Any, results: Any) -> ctypes._Pointer:
     return _wasm_func_call(arg0, args, results)  # type: ignore
 
 class wasm_global_t(Structure):
@@ -1310,7 +1311,7 @@ def wasm_global_delete(arg0: Any) -> None:
 _wasm_global_copy = dll.wasm_global_copy
 _wasm_global_copy.restype = POINTER(wasm_global_t)
 _wasm_global_copy.argtypes = [POINTER(wasm_global_t)]
-def wasm_global_copy(arg0: Any) -> pointer:
+def wasm_global_copy(arg0: Any) -> ctypes._Pointer:
     return _wasm_global_copy(arg0)  # type: ignore
 
 _wasm_global_same = dll.wasm_global_same
@@ -1340,37 +1341,37 @@ def wasm_global_set_host_info_with_finalizer(arg0: Any, arg1: Any, arg2: Any) ->
 _wasm_global_as_ref = dll.wasm_global_as_ref
 _wasm_global_as_ref.restype = POINTER(wasm_ref_t)
 _wasm_global_as_ref.argtypes = [POINTER(wasm_global_t)]
-def wasm_global_as_ref(arg0: Any) -> pointer:
+def wasm_global_as_ref(arg0: Any) -> ctypes._Pointer:
     return _wasm_global_as_ref(arg0)  # type: ignore
 
 _wasm_ref_as_global = dll.wasm_ref_as_global
 _wasm_ref_as_global.restype = POINTER(wasm_global_t)
 _wasm_ref_as_global.argtypes = [POINTER(wasm_ref_t)]
-def wasm_ref_as_global(arg0: Any) -> pointer:
+def wasm_ref_as_global(arg0: Any) -> ctypes._Pointer:
     return _wasm_ref_as_global(arg0)  # type: ignore
 
 _wasm_global_as_ref_const = dll.wasm_global_as_ref_const
 _wasm_global_as_ref_const.restype = POINTER(wasm_ref_t)
 _wasm_global_as_ref_const.argtypes = [POINTER(wasm_global_t)]
-def wasm_global_as_ref_const(arg0: Any) -> pointer:
+def wasm_global_as_ref_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_global_as_ref_const(arg0)  # type: ignore
 
 _wasm_ref_as_global_const = dll.wasm_ref_as_global_const
 _wasm_ref_as_global_const.restype = POINTER(wasm_global_t)
 _wasm_ref_as_global_const.argtypes = [POINTER(wasm_ref_t)]
-def wasm_ref_as_global_const(arg0: Any) -> pointer:
+def wasm_ref_as_global_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_ref_as_global_const(arg0)  # type: ignore
 
 _wasm_global_new = dll.wasm_global_new
 _wasm_global_new.restype = POINTER(wasm_global_t)
 _wasm_global_new.argtypes = [POINTER(wasm_store_t), POINTER(wasm_globaltype_t), POINTER(wasm_val_t)]
-def wasm_global_new(arg0: Any, arg1: Any, arg2: Any) -> pointer:
+def wasm_global_new(arg0: Any, arg1: Any, arg2: Any) -> ctypes._Pointer:
     return _wasm_global_new(arg0, arg1, arg2)  # type: ignore
 
 _wasm_global_type = dll.wasm_global_type
 _wasm_global_type.restype = POINTER(wasm_globaltype_t)
 _wasm_global_type.argtypes = [POINTER(wasm_global_t)]
-def wasm_global_type(arg0: Any) -> pointer:
+def wasm_global_type(arg0: Any) -> ctypes._Pointer:
     return _wasm_global_type(arg0)  # type: ignore
 
 _wasm_global_get = dll.wasm_global_get
@@ -1397,7 +1398,7 @@ def wasm_table_delete(arg0: Any) -> None:
 _wasm_table_copy = dll.wasm_table_copy
 _wasm_table_copy.restype = POINTER(wasm_table_t)
 _wasm_table_copy.argtypes = [POINTER(wasm_table_t)]
-def wasm_table_copy(arg0: Any) -> pointer:
+def wasm_table_copy(arg0: Any) -> ctypes._Pointer:
     return _wasm_table_copy(arg0)  # type: ignore
 
 _wasm_table_same = dll.wasm_table_same
@@ -1427,25 +1428,25 @@ def wasm_table_set_host_info_with_finalizer(arg0: Any, arg1: Any, arg2: Any) -> 
 _wasm_table_as_ref = dll.wasm_table_as_ref
 _wasm_table_as_ref.restype = POINTER(wasm_ref_t)
 _wasm_table_as_ref.argtypes = [POINTER(wasm_table_t)]
-def wasm_table_as_ref(arg0: Any) -> pointer:
+def wasm_table_as_ref(arg0: Any) -> ctypes._Pointer:
     return _wasm_table_as_ref(arg0)  # type: ignore
 
 _wasm_ref_as_table = dll.wasm_ref_as_table
 _wasm_ref_as_table.restype = POINTER(wasm_table_t)
 _wasm_ref_as_table.argtypes = [POINTER(wasm_ref_t)]
-def wasm_ref_as_table(arg0: Any) -> pointer:
+def wasm_ref_as_table(arg0: Any) -> ctypes._Pointer:
     return _wasm_ref_as_table(arg0)  # type: ignore
 
 _wasm_table_as_ref_const = dll.wasm_table_as_ref_const
 _wasm_table_as_ref_const.restype = POINTER(wasm_ref_t)
 _wasm_table_as_ref_const.argtypes = [POINTER(wasm_table_t)]
-def wasm_table_as_ref_const(arg0: Any) -> pointer:
+def wasm_table_as_ref_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_table_as_ref_const(arg0)  # type: ignore
 
 _wasm_ref_as_table_const = dll.wasm_ref_as_table_const
 _wasm_ref_as_table_const.restype = POINTER(wasm_table_t)
 _wasm_ref_as_table_const.argtypes = [POINTER(wasm_ref_t)]
-def wasm_ref_as_table_const(arg0: Any) -> pointer:
+def wasm_ref_as_table_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_ref_as_table_const(arg0)  # type: ignore
 
 wasm_table_size_t = c_uint32
@@ -1453,19 +1454,19 @@ wasm_table_size_t = c_uint32
 _wasm_table_new = dll.wasm_table_new
 _wasm_table_new.restype = POINTER(wasm_table_t)
 _wasm_table_new.argtypes = [POINTER(wasm_store_t), POINTER(wasm_tabletype_t), POINTER(wasm_ref_t)]
-def wasm_table_new(arg0: Any, arg1: Any, init: Any) -> pointer:
+def wasm_table_new(arg0: Any, arg1: Any, init: Any) -> ctypes._Pointer:
     return _wasm_table_new(arg0, arg1, init)  # type: ignore
 
 _wasm_table_type = dll.wasm_table_type
 _wasm_table_type.restype = POINTER(wasm_tabletype_t)
 _wasm_table_type.argtypes = [POINTER(wasm_table_t)]
-def wasm_table_type(arg0: Any) -> pointer:
+def wasm_table_type(arg0: Any) -> ctypes._Pointer:
     return _wasm_table_type(arg0)  # type: ignore
 
 _wasm_table_get = dll.wasm_table_get
 _wasm_table_get.restype = POINTER(wasm_ref_t)
 _wasm_table_get.argtypes = [POINTER(wasm_table_t), wasm_table_size_t]
-def wasm_table_get(arg0: Any, index: Any) -> pointer:
+def wasm_table_get(arg0: Any, index: Any) -> ctypes._Pointer:
     return _wasm_table_get(arg0, index)  # type: ignore
 
 _wasm_table_set = dll.wasm_table_set
@@ -1498,7 +1499,7 @@ def wasm_memory_delete(arg0: Any) -> None:
 _wasm_memory_copy = dll.wasm_memory_copy
 _wasm_memory_copy.restype = POINTER(wasm_memory_t)
 _wasm_memory_copy.argtypes = [POINTER(wasm_memory_t)]
-def wasm_memory_copy(arg0: Any) -> pointer:
+def wasm_memory_copy(arg0: Any) -> ctypes._Pointer:
     return _wasm_memory_copy(arg0)  # type: ignore
 
 _wasm_memory_same = dll.wasm_memory_same
@@ -1528,25 +1529,25 @@ def wasm_memory_set_host_info_with_finalizer(arg0: Any, arg1: Any, arg2: Any) ->
 _wasm_memory_as_ref = dll.wasm_memory_as_ref
 _wasm_memory_as_ref.restype = POINTER(wasm_ref_t)
 _wasm_memory_as_ref.argtypes = [POINTER(wasm_memory_t)]
-def wasm_memory_as_ref(arg0: Any) -> pointer:
+def wasm_memory_as_ref(arg0: Any) -> ctypes._Pointer:
     return _wasm_memory_as_ref(arg0)  # type: ignore
 
 _wasm_ref_as_memory = dll.wasm_ref_as_memory
 _wasm_ref_as_memory.restype = POINTER(wasm_memory_t)
 _wasm_ref_as_memory.argtypes = [POINTER(wasm_ref_t)]
-def wasm_ref_as_memory(arg0: Any) -> pointer:
+def wasm_ref_as_memory(arg0: Any) -> ctypes._Pointer:
     return _wasm_ref_as_memory(arg0)  # type: ignore
 
 _wasm_memory_as_ref_const = dll.wasm_memory_as_ref_const
 _wasm_memory_as_ref_const.restype = POINTER(wasm_ref_t)
 _wasm_memory_as_ref_const.argtypes = [POINTER(wasm_memory_t)]
-def wasm_memory_as_ref_const(arg0: Any) -> pointer:
+def wasm_memory_as_ref_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_memory_as_ref_const(arg0)  # type: ignore
 
 _wasm_ref_as_memory_const = dll.wasm_ref_as_memory_const
 _wasm_ref_as_memory_const.restype = POINTER(wasm_memory_t)
 _wasm_ref_as_memory_const.argtypes = [POINTER(wasm_ref_t)]
-def wasm_ref_as_memory_const(arg0: Any) -> pointer:
+def wasm_ref_as_memory_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_ref_as_memory_const(arg0)  # type: ignore
 
 wasm_memory_pages_t = c_uint32
@@ -1554,19 +1555,19 @@ wasm_memory_pages_t = c_uint32
 _wasm_memory_new = dll.wasm_memory_new
 _wasm_memory_new.restype = POINTER(wasm_memory_t)
 _wasm_memory_new.argtypes = [POINTER(wasm_store_t), POINTER(wasm_memorytype_t)]
-def wasm_memory_new(arg0: Any, arg1: Any) -> pointer:
+def wasm_memory_new(arg0: Any, arg1: Any) -> ctypes._Pointer:
     return _wasm_memory_new(arg0, arg1)  # type: ignore
 
 _wasm_memory_type = dll.wasm_memory_type
 _wasm_memory_type.restype = POINTER(wasm_memorytype_t)
 _wasm_memory_type.argtypes = [POINTER(wasm_memory_t)]
-def wasm_memory_type(arg0: Any) -> pointer:
+def wasm_memory_type(arg0: Any) -> ctypes._Pointer:
     return _wasm_memory_type(arg0)  # type: ignore
 
 _wasm_memory_data = dll.wasm_memory_data
 _wasm_memory_data.restype = POINTER(c_ubyte)
 _wasm_memory_data.argtypes = [POINTER(wasm_memory_t)]
-def wasm_memory_data(arg0: Any) -> pointer:
+def wasm_memory_data(arg0: Any) -> ctypes._Pointer:
     return _wasm_memory_data(arg0)  # type: ignore
 
 _wasm_memory_data_size = dll.wasm_memory_data_size
@@ -1599,7 +1600,7 @@ def wasm_extern_delete(arg0: Any) -> None:
 _wasm_extern_copy = dll.wasm_extern_copy
 _wasm_extern_copy.restype = POINTER(wasm_extern_t)
 _wasm_extern_copy.argtypes = [POINTER(wasm_extern_t)]
-def wasm_extern_copy(arg0: Any) -> pointer:
+def wasm_extern_copy(arg0: Any) -> ctypes._Pointer:
     return _wasm_extern_copy(arg0)  # type: ignore
 
 _wasm_extern_same = dll.wasm_extern_same
@@ -1629,25 +1630,25 @@ def wasm_extern_set_host_info_with_finalizer(arg0: Any, arg1: Any, arg2: Any) ->
 _wasm_extern_as_ref = dll.wasm_extern_as_ref
 _wasm_extern_as_ref.restype = POINTER(wasm_ref_t)
 _wasm_extern_as_ref.argtypes = [POINTER(wasm_extern_t)]
-def wasm_extern_as_ref(arg0: Any) -> pointer:
+def wasm_extern_as_ref(arg0: Any) -> ctypes._Pointer:
     return _wasm_extern_as_ref(arg0)  # type: ignore
 
 _wasm_ref_as_extern = dll.wasm_ref_as_extern
 _wasm_ref_as_extern.restype = POINTER(wasm_extern_t)
 _wasm_ref_as_extern.argtypes = [POINTER(wasm_ref_t)]
-def wasm_ref_as_extern(arg0: Any) -> pointer:
+def wasm_ref_as_extern(arg0: Any) -> ctypes._Pointer:
     return _wasm_ref_as_extern(arg0)  # type: ignore
 
 _wasm_extern_as_ref_const = dll.wasm_extern_as_ref_const
 _wasm_extern_as_ref_const.restype = POINTER(wasm_ref_t)
 _wasm_extern_as_ref_const.argtypes = [POINTER(wasm_extern_t)]
-def wasm_extern_as_ref_const(arg0: Any) -> pointer:
+def wasm_extern_as_ref_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_extern_as_ref_const(arg0)  # type: ignore
 
 _wasm_ref_as_extern_const = dll.wasm_ref_as_extern_const
 _wasm_ref_as_extern_const.restype = POINTER(wasm_extern_t)
 _wasm_ref_as_extern_const.argtypes = [POINTER(wasm_ref_t)]
-def wasm_ref_as_extern_const(arg0: Any) -> pointer:
+def wasm_ref_as_extern_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_ref_as_extern_const(arg0)  # type: ignore
 
 class wasm_extern_vec_t(Structure):
@@ -1656,7 +1657,7 @@ class wasm_extern_vec_t(Structure):
         ("data", POINTER(POINTER(wasm_extern_t))),
     ]
     size: int
-    data: pointer
+    data: ctypes._Pointer
 
 _wasm_extern_vec_new_empty = dll.wasm_extern_vec_new_empty
 _wasm_extern_vec_new_empty.restype = None
@@ -1697,103 +1698,103 @@ def wasm_extern_kind(arg0: Any) -> wasm_externkind_t:
 _wasm_extern_type = dll.wasm_extern_type
 _wasm_extern_type.restype = POINTER(wasm_externtype_t)
 _wasm_extern_type.argtypes = [POINTER(wasm_extern_t)]
-def wasm_extern_type(arg0: Any) -> pointer:
+def wasm_extern_type(arg0: Any) -> ctypes._Pointer:
     return _wasm_extern_type(arg0)  # type: ignore
 
 _wasm_func_as_extern = dll.wasm_func_as_extern
 _wasm_func_as_extern.restype = POINTER(wasm_extern_t)
 _wasm_func_as_extern.argtypes = [POINTER(wasm_func_t)]
-def wasm_func_as_extern(arg0: Any) -> pointer:
+def wasm_func_as_extern(arg0: Any) -> ctypes._Pointer:
     return _wasm_func_as_extern(arg0)  # type: ignore
 
 _wasm_global_as_extern = dll.wasm_global_as_extern
 _wasm_global_as_extern.restype = POINTER(wasm_extern_t)
 _wasm_global_as_extern.argtypes = [POINTER(wasm_global_t)]
-def wasm_global_as_extern(arg0: Any) -> pointer:
+def wasm_global_as_extern(arg0: Any) -> ctypes._Pointer:
     return _wasm_global_as_extern(arg0)  # type: ignore
 
 _wasm_table_as_extern = dll.wasm_table_as_extern
 _wasm_table_as_extern.restype = POINTER(wasm_extern_t)
 _wasm_table_as_extern.argtypes = [POINTER(wasm_table_t)]
-def wasm_table_as_extern(arg0: Any) -> pointer:
+def wasm_table_as_extern(arg0: Any) -> ctypes._Pointer:
     return _wasm_table_as_extern(arg0)  # type: ignore
 
 _wasm_memory_as_extern = dll.wasm_memory_as_extern
 _wasm_memory_as_extern.restype = POINTER(wasm_extern_t)
 _wasm_memory_as_extern.argtypes = [POINTER(wasm_memory_t)]
-def wasm_memory_as_extern(arg0: Any) -> pointer:
+def wasm_memory_as_extern(arg0: Any) -> ctypes._Pointer:
     return _wasm_memory_as_extern(arg0)  # type: ignore
 
 _wasm_extern_as_func = dll.wasm_extern_as_func
 _wasm_extern_as_func.restype = POINTER(wasm_func_t)
 _wasm_extern_as_func.argtypes = [POINTER(wasm_extern_t)]
-def wasm_extern_as_func(arg0: Any) -> pointer:
+def wasm_extern_as_func(arg0: Any) -> ctypes._Pointer:
     return _wasm_extern_as_func(arg0)  # type: ignore
 
 _wasm_extern_as_global = dll.wasm_extern_as_global
 _wasm_extern_as_global.restype = POINTER(wasm_global_t)
 _wasm_extern_as_global.argtypes = [POINTER(wasm_extern_t)]
-def wasm_extern_as_global(arg0: Any) -> pointer:
+def wasm_extern_as_global(arg0: Any) -> ctypes._Pointer:
     return _wasm_extern_as_global(arg0)  # type: ignore
 
 _wasm_extern_as_table = dll.wasm_extern_as_table
 _wasm_extern_as_table.restype = POINTER(wasm_table_t)
 _wasm_extern_as_table.argtypes = [POINTER(wasm_extern_t)]
-def wasm_extern_as_table(arg0: Any) -> pointer:
+def wasm_extern_as_table(arg0: Any) -> ctypes._Pointer:
     return _wasm_extern_as_table(arg0)  # type: ignore
 
 _wasm_extern_as_memory = dll.wasm_extern_as_memory
 _wasm_extern_as_memory.restype = POINTER(wasm_memory_t)
 _wasm_extern_as_memory.argtypes = [POINTER(wasm_extern_t)]
-def wasm_extern_as_memory(arg0: Any) -> pointer:
+def wasm_extern_as_memory(arg0: Any) -> ctypes._Pointer:
     return _wasm_extern_as_memory(arg0)  # type: ignore
 
 _wasm_func_as_extern_const = dll.wasm_func_as_extern_const
 _wasm_func_as_extern_const.restype = POINTER(wasm_extern_t)
 _wasm_func_as_extern_const.argtypes = [POINTER(wasm_func_t)]
-def wasm_func_as_extern_const(arg0: Any) -> pointer:
+def wasm_func_as_extern_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_func_as_extern_const(arg0)  # type: ignore
 
 _wasm_global_as_extern_const = dll.wasm_global_as_extern_const
 _wasm_global_as_extern_const.restype = POINTER(wasm_extern_t)
 _wasm_global_as_extern_const.argtypes = [POINTER(wasm_global_t)]
-def wasm_global_as_extern_const(arg0: Any) -> pointer:
+def wasm_global_as_extern_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_global_as_extern_const(arg0)  # type: ignore
 
 _wasm_table_as_extern_const = dll.wasm_table_as_extern_const
 _wasm_table_as_extern_const.restype = POINTER(wasm_extern_t)
 _wasm_table_as_extern_const.argtypes = [POINTER(wasm_table_t)]
-def wasm_table_as_extern_const(arg0: Any) -> pointer:
+def wasm_table_as_extern_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_table_as_extern_const(arg0)  # type: ignore
 
 _wasm_memory_as_extern_const = dll.wasm_memory_as_extern_const
 _wasm_memory_as_extern_const.restype = POINTER(wasm_extern_t)
 _wasm_memory_as_extern_const.argtypes = [POINTER(wasm_memory_t)]
-def wasm_memory_as_extern_const(arg0: Any) -> pointer:
+def wasm_memory_as_extern_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_memory_as_extern_const(arg0)  # type: ignore
 
 _wasm_extern_as_func_const = dll.wasm_extern_as_func_const
 _wasm_extern_as_func_const.restype = POINTER(wasm_func_t)
 _wasm_extern_as_func_const.argtypes = [POINTER(wasm_extern_t)]
-def wasm_extern_as_func_const(arg0: Any) -> pointer:
+def wasm_extern_as_func_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_extern_as_func_const(arg0)  # type: ignore
 
 _wasm_extern_as_global_const = dll.wasm_extern_as_global_const
 _wasm_extern_as_global_const.restype = POINTER(wasm_global_t)
 _wasm_extern_as_global_const.argtypes = [POINTER(wasm_extern_t)]
-def wasm_extern_as_global_const(arg0: Any) -> pointer:
+def wasm_extern_as_global_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_extern_as_global_const(arg0)  # type: ignore
 
 _wasm_extern_as_table_const = dll.wasm_extern_as_table_const
 _wasm_extern_as_table_const.restype = POINTER(wasm_table_t)
 _wasm_extern_as_table_const.argtypes = [POINTER(wasm_extern_t)]
-def wasm_extern_as_table_const(arg0: Any) -> pointer:
+def wasm_extern_as_table_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_extern_as_table_const(arg0)  # type: ignore
 
 _wasm_extern_as_memory_const = dll.wasm_extern_as_memory_const
 _wasm_extern_as_memory_const.restype = POINTER(wasm_memory_t)
 _wasm_extern_as_memory_const.argtypes = [POINTER(wasm_extern_t)]
-def wasm_extern_as_memory_const(arg0: Any) -> pointer:
+def wasm_extern_as_memory_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_extern_as_memory_const(arg0)  # type: ignore
 
 class wasm_instance_t(Structure):
@@ -1808,7 +1809,7 @@ def wasm_instance_delete(arg0: Any) -> None:
 _wasm_instance_copy = dll.wasm_instance_copy
 _wasm_instance_copy.restype = POINTER(wasm_instance_t)
 _wasm_instance_copy.argtypes = [POINTER(wasm_instance_t)]
-def wasm_instance_copy(arg0: Any) -> pointer:
+def wasm_instance_copy(arg0: Any) -> ctypes._Pointer:
     return _wasm_instance_copy(arg0)  # type: ignore
 
 _wasm_instance_same = dll.wasm_instance_same
@@ -1838,31 +1839,31 @@ def wasm_instance_set_host_info_with_finalizer(arg0: Any, arg1: Any, arg2: Any) 
 _wasm_instance_as_ref = dll.wasm_instance_as_ref
 _wasm_instance_as_ref.restype = POINTER(wasm_ref_t)
 _wasm_instance_as_ref.argtypes = [POINTER(wasm_instance_t)]
-def wasm_instance_as_ref(arg0: Any) -> pointer:
+def wasm_instance_as_ref(arg0: Any) -> ctypes._Pointer:
     return _wasm_instance_as_ref(arg0)  # type: ignore
 
 _wasm_ref_as_instance = dll.wasm_ref_as_instance
 _wasm_ref_as_instance.restype = POINTER(wasm_instance_t)
 _wasm_ref_as_instance.argtypes = [POINTER(wasm_ref_t)]
-def wasm_ref_as_instance(arg0: Any) -> pointer:
+def wasm_ref_as_instance(arg0: Any) -> ctypes._Pointer:
     return _wasm_ref_as_instance(arg0)  # type: ignore
 
 _wasm_instance_as_ref_const = dll.wasm_instance_as_ref_const
 _wasm_instance_as_ref_const.restype = POINTER(wasm_ref_t)
 _wasm_instance_as_ref_const.argtypes = [POINTER(wasm_instance_t)]
-def wasm_instance_as_ref_const(arg0: Any) -> pointer:
+def wasm_instance_as_ref_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_instance_as_ref_const(arg0)  # type: ignore
 
 _wasm_ref_as_instance_const = dll.wasm_ref_as_instance_const
 _wasm_ref_as_instance_const.restype = POINTER(wasm_instance_t)
 _wasm_ref_as_instance_const.argtypes = [POINTER(wasm_ref_t)]
-def wasm_ref_as_instance_const(arg0: Any) -> pointer:
+def wasm_ref_as_instance_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_ref_as_instance_const(arg0)  # type: ignore
 
 _wasm_instance_new = dll.wasm_instance_new
 _wasm_instance_new.restype = POINTER(wasm_instance_t)
 _wasm_instance_new.argtypes = [POINTER(wasm_store_t), POINTER(wasm_module_t), POINTER(wasm_extern_vec_t), POINTER(POINTER(wasm_trap_t))]
-def wasm_instance_new(arg0: Any, arg1: Any, imports: Any, arg3: Any) -> pointer:
+def wasm_instance_new(arg0: Any, arg1: Any, imports: Any, arg3: Any) -> ctypes._Pointer:
     return _wasm_instance_new(arg0, arg1, imports, arg3)  # type: ignore
 
 _wasm_instance_exports = dll.wasm_instance_exports
@@ -1883,7 +1884,7 @@ def wasi_config_delete(arg0: Any) -> None:
 _wasi_config_new = dll.wasi_config_new
 _wasi_config_new.restype = POINTER(wasi_config_t)
 _wasi_config_new.argtypes = []
-def wasi_config_new() -> pointer:
+def wasi_config_new() -> ctypes._Pointer:
     return _wasi_config_new()  # type: ignore
 
 _wasi_config_set_argv = dll.wasi_config_set_argv
@@ -2092,7 +2093,7 @@ def wasmtime_config_dynamic_memory_guard_size_set(arg0: Any, arg1: Any) -> None:
 _wasmtime_config_cache_config_load = dll.wasmtime_config_cache_config_load
 _wasmtime_config_cache_config_load.restype = POINTER(wasmtime_error_t)
 _wasmtime_config_cache_config_load.argtypes = [POINTER(wasm_config_t), POINTER(c_char)]
-def wasmtime_config_cache_config_load(arg0: Any, arg1: Any) -> pointer:
+def wasmtime_config_cache_config_load(arg0: Any, arg1: Any) -> ctypes._Pointer:
     return _wasmtime_config_cache_config_load(arg0, arg1)  # type: ignore
 
 _wasmtime_engine_increment_epoch = dll.wasmtime_engine_increment_epoch
@@ -2109,7 +2110,7 @@ wasmtime_module_t = wasmtime_module
 _wasmtime_module_new = dll.wasmtime_module_new
 _wasmtime_module_new.restype = POINTER(wasmtime_error_t)
 _wasmtime_module_new.argtypes = [POINTER(wasm_engine_t), POINTER(c_uint8), c_size_t, POINTER(POINTER(wasmtime_module_t))]
-def wasmtime_module_new(engine: Any, wasm: Any, wasm_len: Any, ret: Any) -> pointer:
+def wasmtime_module_new(engine: Any, wasm: Any, wasm_len: Any, ret: Any) -> ctypes._Pointer:
     return _wasmtime_module_new(engine, wasm, wasm_len, ret)  # type: ignore
 
 _wasmtime_module_delete = dll.wasmtime_module_delete
@@ -2121,7 +2122,7 @@ def wasmtime_module_delete(m: Any) -> None:
 _wasmtime_module_clone = dll.wasmtime_module_clone
 _wasmtime_module_clone.restype = POINTER(wasmtime_module_t)
 _wasmtime_module_clone.argtypes = [POINTER(wasmtime_module_t)]
-def wasmtime_module_clone(m: Any) -> pointer:
+def wasmtime_module_clone(m: Any) -> ctypes._Pointer:
     return _wasmtime_module_clone(m)  # type: ignore
 
 _wasmtime_module_imports = dll.wasmtime_module_imports
@@ -2139,25 +2140,25 @@ def wasmtime_module_exports(module: Any, out: Any) -> None:
 _wasmtime_module_validate = dll.wasmtime_module_validate
 _wasmtime_module_validate.restype = POINTER(wasmtime_error_t)
 _wasmtime_module_validate.argtypes = [POINTER(wasm_engine_t), POINTER(c_uint8), c_size_t]
-def wasmtime_module_validate(engine: Any, wasm: Any, wasm_len: Any) -> pointer:
+def wasmtime_module_validate(engine: Any, wasm: Any, wasm_len: Any) -> ctypes._Pointer:
     return _wasmtime_module_validate(engine, wasm, wasm_len)  # type: ignore
 
 _wasmtime_module_serialize = dll.wasmtime_module_serialize
 _wasmtime_module_serialize.restype = POINTER(wasmtime_error_t)
 _wasmtime_module_serialize.argtypes = [POINTER(wasmtime_module_t), POINTER(wasm_byte_vec_t)]
-def wasmtime_module_serialize(module: Any, ret: Any) -> pointer:
+def wasmtime_module_serialize(module: Any, ret: Any) -> ctypes._Pointer:
     return _wasmtime_module_serialize(module, ret)  # type: ignore
 
 _wasmtime_module_deserialize = dll.wasmtime_module_deserialize
 _wasmtime_module_deserialize.restype = POINTER(wasmtime_error_t)
 _wasmtime_module_deserialize.argtypes = [POINTER(wasm_engine_t), POINTER(c_uint8), c_size_t, POINTER(POINTER(wasmtime_module_t))]
-def wasmtime_module_deserialize(engine: Any, bytes: Any, bytes_len: Any, ret: Any) -> pointer:
+def wasmtime_module_deserialize(engine: Any, bytes: Any, bytes_len: Any, ret: Any) -> ctypes._Pointer:
     return _wasmtime_module_deserialize(engine, bytes, bytes_len, ret)  # type: ignore
 
 _wasmtime_module_deserialize_file = dll.wasmtime_module_deserialize_file
 _wasmtime_module_deserialize_file.restype = POINTER(wasmtime_error_t)
 _wasmtime_module_deserialize_file.argtypes = [POINTER(wasm_engine_t), POINTER(c_char), POINTER(POINTER(wasmtime_module_t))]
-def wasmtime_module_deserialize_file(engine: Any, path: Any, ret: Any) -> pointer:
+def wasmtime_module_deserialize_file(engine: Any, path: Any, ret: Any) -> ctypes._Pointer:
     return _wasmtime_module_deserialize_file(engine, path, ret)  # type: ignore
 
 class wasmtime_store(Structure):
@@ -2173,13 +2174,13 @@ wasmtime_context_t = wasmtime_context
 _wasmtime_store_new = dll.wasmtime_store_new
 _wasmtime_store_new.restype = POINTER(wasmtime_store_t)
 _wasmtime_store_new.argtypes = [POINTER(wasm_engine_t), c_void_p, CFUNCTYPE(None, c_void_p)]
-def wasmtime_store_new(engine: Any, data: Any, finalizer: Any) -> pointer:
+def wasmtime_store_new(engine: Any, data: Any, finalizer: Any) -> ctypes._Pointer:
     return _wasmtime_store_new(engine, data, finalizer)  # type: ignore
 
 _wasmtime_store_context = dll.wasmtime_store_context
 _wasmtime_store_context.restype = POINTER(wasmtime_context_t)
 _wasmtime_store_context.argtypes = [POINTER(wasmtime_store_t)]
-def wasmtime_store_context(store: Any) -> pointer:
+def wasmtime_store_context(store: Any) -> ctypes._Pointer:
     return _wasmtime_store_context(store)  # type: ignore
 
 _wasmtime_store_delete = dll.wasmtime_store_delete
@@ -2209,7 +2210,7 @@ def wasmtime_context_gc(context: Any) -> None:
 _wasmtime_context_add_fuel = dll.wasmtime_context_add_fuel
 _wasmtime_context_add_fuel.restype = POINTER(wasmtime_error_t)
 _wasmtime_context_add_fuel.argtypes = [POINTER(wasmtime_context_t), c_uint64]
-def wasmtime_context_add_fuel(store: Any, fuel: Any) -> pointer:
+def wasmtime_context_add_fuel(store: Any, fuel: Any) -> ctypes._Pointer:
     return _wasmtime_context_add_fuel(store, fuel)  # type: ignore
 
 _wasmtime_context_fuel_consumed = dll.wasmtime_context_fuel_consumed
@@ -2221,13 +2222,13 @@ def wasmtime_context_fuel_consumed(context: Any, fuel: Any) -> bool:
 _wasmtime_context_consume_fuel = dll.wasmtime_context_consume_fuel
 _wasmtime_context_consume_fuel.restype = POINTER(wasmtime_error_t)
 _wasmtime_context_consume_fuel.argtypes = [POINTER(wasmtime_context_t), c_uint64, POINTER(c_uint64)]
-def wasmtime_context_consume_fuel(context: Any, fuel: Any, remaining: Any) -> pointer:
+def wasmtime_context_consume_fuel(context: Any, fuel: Any, remaining: Any) -> ctypes._Pointer:
     return _wasmtime_context_consume_fuel(context, fuel, remaining)  # type: ignore
 
 _wasmtime_context_set_wasi = dll.wasmtime_context_set_wasi
 _wasmtime_context_set_wasi.restype = POINTER(wasmtime_error_t)
 _wasmtime_context_set_wasi.argtypes = [POINTER(wasmtime_context_t), POINTER(wasi_config_t)]
-def wasmtime_context_set_wasi(context: Any, wasi: Any) -> pointer:
+def wasmtime_context_set_wasi(context: Any, wasi: Any) -> ctypes._Pointer:
     return _wasmtime_context_set_wasi(context, wasi)  # type: ignore
 
 _wasmtime_context_set_epoch_deadline = dll.wasmtime_context_set_epoch_deadline
@@ -2311,7 +2312,7 @@ def wasmtime_extern_delete(val: Any) -> None:
 _wasmtime_extern_type = dll.wasmtime_extern_type
 _wasmtime_extern_type.restype = POINTER(wasm_externtype_t)
 _wasmtime_extern_type.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_extern_t)]
-def wasmtime_extern_type(context: Any, val: Any) -> pointer:
+def wasmtime_extern_type(context: Any, val: Any) -> ctypes._Pointer:
     return _wasmtime_extern_type(context, val)  # type: ignore
 
 class wasmtime_externref(Structure):
@@ -2322,7 +2323,7 @@ wasmtime_externref_t = wasmtime_externref
 _wasmtime_externref_new = dll.wasmtime_externref_new
 _wasmtime_externref_new.restype = POINTER(wasmtime_externref_t)
 _wasmtime_externref_new.argtypes = [c_void_p, CFUNCTYPE(None, c_void_p)]
-def wasmtime_externref_new(data: Any, finalizer: Any) -> pointer:
+def wasmtime_externref_new(data: Any, finalizer: Any) -> ctypes._Pointer:
     return _wasmtime_externref_new(data, finalizer)  # type: ignore
 
 _wasmtime_externref_data = dll.wasmtime_externref_data
@@ -2334,7 +2335,7 @@ def wasmtime_externref_data(data: Any) -> int:
 _wasmtime_externref_clone = dll.wasmtime_externref_clone
 _wasmtime_externref_clone.restype = POINTER(wasmtime_externref_t)
 _wasmtime_externref_clone.argtypes = [POINTER(wasmtime_externref_t)]
-def wasmtime_externref_clone(ref: Any) -> pointer:
+def wasmtime_externref_clone(ref: Any) -> ctypes._Pointer:
     return _wasmtime_externref_clone(ref)  # type: ignore
 
 _wasmtime_externref_delete = dll.wasmtime_externref_delete
@@ -2346,7 +2347,7 @@ def wasmtime_externref_delete(ref: Any) -> None:
 _wasmtime_externref_from_raw = dll.wasmtime_externref_from_raw
 _wasmtime_externref_from_raw.restype = POINTER(wasmtime_externref_t)
 _wasmtime_externref_from_raw.argtypes = [POINTER(wasmtime_context_t), c_size_t]
-def wasmtime_externref_from_raw(context: Any, raw: Any) -> pointer:
+def wasmtime_externref_from_raw(context: Any, raw: Any) -> ctypes._Pointer:
     return _wasmtime_externref_from_raw(context, raw)  # type: ignore
 
 _wasmtime_externref_to_raw = dll.wasmtime_externref_to_raw
@@ -2374,7 +2375,7 @@ class wasmtime_valunion(Union):
     f32: float
     f64: float
     funcref: wasmtime_func_t
-    externref: pointer
+    externref: ctypes._Pointer
     v128: wasmtime_v128  # type: ignore
 
 wasmtime_valunion_t = wasmtime_valunion
@@ -2445,19 +2446,19 @@ def wasmtime_func_new_unchecked(store: Any, type: Any, callback: Any, env: Any, 
 _wasmtime_func_type = dll.wasmtime_func_type
 _wasmtime_func_type.restype = POINTER(wasm_functype_t)
 _wasmtime_func_type.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_func_t)]
-def wasmtime_func_type(store: Any, func: Any) -> pointer:
+def wasmtime_func_type(store: Any, func: Any) -> ctypes._Pointer:
     return _wasmtime_func_type(store, func)  # type: ignore
 
 _wasmtime_func_call = dll.wasmtime_func_call
 _wasmtime_func_call.restype = POINTER(wasmtime_error_t)
 _wasmtime_func_call.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_func_t), POINTER(wasmtime_val_t), c_size_t, POINTER(wasmtime_val_t), c_size_t, POINTER(POINTER(wasm_trap_t))]
-def wasmtime_func_call(store: Any, func: Any, args: Any, nargs: Any, results: Any, nresults: Any, trap: Any) -> pointer:
+def wasmtime_func_call(store: Any, func: Any, args: Any, nargs: Any, results: Any, nresults: Any, trap: Any) -> ctypes._Pointer:
     return _wasmtime_func_call(store, func, args, nargs, results, nresults, trap)  # type: ignore
 
 _wasmtime_func_call_unchecked = dll.wasmtime_func_call_unchecked
 _wasmtime_func_call_unchecked.restype = POINTER(wasm_trap_t)
 _wasmtime_func_call_unchecked.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_func_t), POINTER(wasmtime_val_raw_t)]
-def wasmtime_func_call_unchecked(store: Any, func: Any, args_and_results: Any) -> pointer:
+def wasmtime_func_call_unchecked(store: Any, func: Any, args_and_results: Any) -> ctypes._Pointer:
     return _wasmtime_func_call_unchecked(store, func, args_and_results)  # type: ignore
 
 _wasmtime_caller_export_get = dll.wasmtime_caller_export_get
@@ -2469,7 +2470,7 @@ def wasmtime_caller_export_get(caller: Any, name: Any, name_len: Any, item: Any)
 _wasmtime_caller_context = dll.wasmtime_caller_context
 _wasmtime_caller_context.restype = POINTER(wasmtime_context_t)
 _wasmtime_caller_context.argtypes = [POINTER(wasmtime_caller_t)]
-def wasmtime_caller_context(caller: Any) -> pointer:
+def wasmtime_caller_context(caller: Any) -> ctypes._Pointer:
     return _wasmtime_caller_context(caller)  # type: ignore
 
 _wasmtime_func_from_raw = dll.wasmtime_func_from_raw
@@ -2487,13 +2488,13 @@ def wasmtime_func_to_raw(context: Any, func: Any) -> int:
 _wasmtime_global_new = dll.wasmtime_global_new
 _wasmtime_global_new.restype = POINTER(wasmtime_error_t)
 _wasmtime_global_new.argtypes = [POINTER(wasmtime_context_t), POINTER(wasm_globaltype_t), POINTER(wasmtime_val_t), POINTER(wasmtime_global_t)]
-def wasmtime_global_new(store: Any, type: Any, val: Any, ret: Any) -> pointer:
+def wasmtime_global_new(store: Any, type: Any, val: Any, ret: Any) -> ctypes._Pointer:
     return _wasmtime_global_new(store, type, val, ret)  # type: ignore
 
 _wasmtime_global_type = dll.wasmtime_global_type
 _wasmtime_global_type.restype = POINTER(wasm_globaltype_t)
 _wasmtime_global_type.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_global_t)]
-def wasmtime_global_type(store: Any, arg1: Any) -> pointer:
+def wasmtime_global_type(store: Any, arg1: Any) -> ctypes._Pointer:
     return _wasmtime_global_type(store, arg1)  # type: ignore
 
 _wasmtime_global_get = dll.wasmtime_global_get
@@ -2505,7 +2506,7 @@ def wasmtime_global_get(store: Any, arg1: Any, out: Any) -> None:
 _wasmtime_global_set = dll.wasmtime_global_set
 _wasmtime_global_set.restype = POINTER(wasmtime_error_t)
 _wasmtime_global_set.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_global_t), POINTER(wasmtime_val_t)]
-def wasmtime_global_set(store: Any, arg1: Any, val: Any) -> pointer:
+def wasmtime_global_set(store: Any, arg1: Any, val: Any) -> ctypes._Pointer:
     return _wasmtime_global_set(store, arg1, val)  # type: ignore
 
 class wasmtime_instance(Structure):
@@ -2521,7 +2522,7 @@ wasmtime_instance_t = wasmtime_instance
 _wasmtime_instance_new = dll.wasmtime_instance_new
 _wasmtime_instance_new.restype = POINTER(wasmtime_error_t)
 _wasmtime_instance_new.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_module_t), POINTER(wasmtime_extern_t), c_size_t, POINTER(wasmtime_instance_t), POINTER(POINTER(wasm_trap_t))]
-def wasmtime_instance_new(store: Any, module: Any, imports: Any, nimports: Any, instance: Any, trap: Any) -> pointer:
+def wasmtime_instance_new(store: Any, module: Any, imports: Any, nimports: Any, instance: Any, trap: Any) -> ctypes._Pointer:
     return _wasmtime_instance_new(store, module, imports, nimports, instance, trap)  # type: ignore
 
 _wasmtime_instance_export_get = dll.wasmtime_instance_export_get
@@ -2544,7 +2545,7 @@ wasmtime_linker_t = wasmtime_linker
 _wasmtime_linker_new = dll.wasmtime_linker_new
 _wasmtime_linker_new.restype = POINTER(wasmtime_linker_t)
 _wasmtime_linker_new.argtypes = [POINTER(wasm_engine_t)]
-def wasmtime_linker_new(engine: Any) -> pointer:
+def wasmtime_linker_new(engine: Any) -> ctypes._Pointer:
     return _wasmtime_linker_new(engine)  # type: ignore
 
 _wasmtime_linker_delete = dll.wasmtime_linker_delete
@@ -2562,49 +2563,49 @@ def wasmtime_linker_allow_shadowing(linker: Any, allow_shadowing: Any) -> None:
 _wasmtime_linker_define = dll.wasmtime_linker_define
 _wasmtime_linker_define.restype = POINTER(wasmtime_error_t)
 _wasmtime_linker_define.argtypes = [POINTER(wasmtime_linker_t), POINTER(c_char), c_size_t, POINTER(c_char), c_size_t, POINTER(wasmtime_extern_t)]
-def wasmtime_linker_define(linker: Any, module: Any, module_len: Any, name: Any, name_len: Any, item: Any) -> pointer:
+def wasmtime_linker_define(linker: Any, module: Any, module_len: Any, name: Any, name_len: Any, item: Any) -> ctypes._Pointer:
     return _wasmtime_linker_define(linker, module, module_len, name, name_len, item)  # type: ignore
 
 _wasmtime_linker_define_func = dll.wasmtime_linker_define_func
 _wasmtime_linker_define_func.restype = POINTER(wasmtime_error_t)
 _wasmtime_linker_define_func.argtypes = [POINTER(wasmtime_linker_t), POINTER(c_char), c_size_t, POINTER(c_char), c_size_t, POINTER(wasm_functype_t), wasmtime_func_callback_t, c_void_p, CFUNCTYPE(None, c_void_p)]
-def wasmtime_linker_define_func(linker: Any, module: Any, module_len: Any, name: Any, name_len: Any, ty: Any, cb: Any, data: Any, finalizer: Any) -> pointer:
+def wasmtime_linker_define_func(linker: Any, module: Any, module_len: Any, name: Any, name_len: Any, ty: Any, cb: Any, data: Any, finalizer: Any) -> ctypes._Pointer:
     return _wasmtime_linker_define_func(linker, module, module_len, name, name_len, ty, cb, data, finalizer)  # type: ignore
 
 _wasmtime_linker_define_func_unchecked = dll.wasmtime_linker_define_func_unchecked
 _wasmtime_linker_define_func_unchecked.restype = POINTER(wasmtime_error_t)
 _wasmtime_linker_define_func_unchecked.argtypes = [POINTER(wasmtime_linker_t), POINTER(c_char), c_size_t, POINTER(c_char), c_size_t, POINTER(wasm_functype_t), wasmtime_func_unchecked_callback_t, c_void_p, CFUNCTYPE(None, c_void_p)]
-def wasmtime_linker_define_func_unchecked(linker: Any, module: Any, module_len: Any, name: Any, name_len: Any, ty: Any, cb: Any, data: Any, finalizer: Any) -> pointer:
+def wasmtime_linker_define_func_unchecked(linker: Any, module: Any, module_len: Any, name: Any, name_len: Any, ty: Any, cb: Any, data: Any, finalizer: Any) -> ctypes._Pointer:
     return _wasmtime_linker_define_func_unchecked(linker, module, module_len, name, name_len, ty, cb, data, finalizer)  # type: ignore
 
 _wasmtime_linker_define_wasi = dll.wasmtime_linker_define_wasi
 _wasmtime_linker_define_wasi.restype = POINTER(wasmtime_error_t)
 _wasmtime_linker_define_wasi.argtypes = [POINTER(wasmtime_linker_t)]
-def wasmtime_linker_define_wasi(linker: Any) -> pointer:
+def wasmtime_linker_define_wasi(linker: Any) -> ctypes._Pointer:
     return _wasmtime_linker_define_wasi(linker)  # type: ignore
 
 _wasmtime_linker_define_instance = dll.wasmtime_linker_define_instance
 _wasmtime_linker_define_instance.restype = POINTER(wasmtime_error_t)
 _wasmtime_linker_define_instance.argtypes = [POINTER(wasmtime_linker_t), POINTER(wasmtime_context_t), POINTER(c_char), c_size_t, POINTER(wasmtime_instance_t)]
-def wasmtime_linker_define_instance(linker: Any, store: Any, name: Any, name_len: Any, instance: Any) -> pointer:
+def wasmtime_linker_define_instance(linker: Any, store: Any, name: Any, name_len: Any, instance: Any) -> ctypes._Pointer:
     return _wasmtime_linker_define_instance(linker, store, name, name_len, instance)  # type: ignore
 
 _wasmtime_linker_instantiate = dll.wasmtime_linker_instantiate
 _wasmtime_linker_instantiate.restype = POINTER(wasmtime_error_t)
 _wasmtime_linker_instantiate.argtypes = [POINTER(wasmtime_linker_t), POINTER(wasmtime_context_t), POINTER(wasmtime_module_t), POINTER(wasmtime_instance_t), POINTER(POINTER(wasm_trap_t))]
-def wasmtime_linker_instantiate(linker: Any, store: Any, module: Any, instance: Any, trap: Any) -> pointer:
+def wasmtime_linker_instantiate(linker: Any, store: Any, module: Any, instance: Any, trap: Any) -> ctypes._Pointer:
     return _wasmtime_linker_instantiate(linker, store, module, instance, trap)  # type: ignore
 
 _wasmtime_linker_module = dll.wasmtime_linker_module
 _wasmtime_linker_module.restype = POINTER(wasmtime_error_t)
 _wasmtime_linker_module.argtypes = [POINTER(wasmtime_linker_t), POINTER(wasmtime_context_t), POINTER(c_char), c_size_t, POINTER(wasmtime_module_t)]
-def wasmtime_linker_module(linker: Any, store: Any, name: Any, name_len: Any, module: Any) -> pointer:
+def wasmtime_linker_module(linker: Any, store: Any, name: Any, name_len: Any, module: Any) -> ctypes._Pointer:
     return _wasmtime_linker_module(linker, store, name, name_len, module)  # type: ignore
 
 _wasmtime_linker_get_default = dll.wasmtime_linker_get_default
 _wasmtime_linker_get_default.restype = POINTER(wasmtime_error_t)
 _wasmtime_linker_get_default.argtypes = [POINTER(wasmtime_linker_t), POINTER(wasmtime_context_t), POINTER(c_char), c_size_t, POINTER(wasmtime_func_t)]
-def wasmtime_linker_get_default(linker: Any, store: Any, name: Any, name_len: Any, func: Any) -> pointer:
+def wasmtime_linker_get_default(linker: Any, store: Any, name: Any, name_len: Any, func: Any) -> ctypes._Pointer:
     return _wasmtime_linker_get_default(linker, store, name, name_len, func)  # type: ignore
 
 _wasmtime_linker_get = dll.wasmtime_linker_get
@@ -2616,7 +2617,7 @@ def wasmtime_linker_get(linker: Any, store: Any, module: Any, module_len: Any, n
 _wasmtime_memorytype_new = dll.wasmtime_memorytype_new
 _wasmtime_memorytype_new.restype = POINTER(wasm_memorytype_t)
 _wasmtime_memorytype_new.argtypes = [c_uint64, c_bool, c_uint64, c_bool]
-def wasmtime_memorytype_new(min: Any, max_present: Any, max: Any, is_64: Any) -> pointer:
+def wasmtime_memorytype_new(min: Any, max_present: Any, max: Any, is_64: Any) -> ctypes._Pointer:
     return _wasmtime_memorytype_new(min, max_present, max, is_64)  # type: ignore
 
 _wasmtime_memorytype_minimum = dll.wasmtime_memorytype_minimum
@@ -2640,19 +2641,19 @@ def wasmtime_memorytype_is64(ty: Any) -> bool:
 _wasmtime_memory_new = dll.wasmtime_memory_new
 _wasmtime_memory_new.restype = POINTER(wasmtime_error_t)
 _wasmtime_memory_new.argtypes = [POINTER(wasmtime_context_t), POINTER(wasm_memorytype_t), POINTER(wasmtime_memory_t)]
-def wasmtime_memory_new(store: Any, ty: Any, ret: Any) -> pointer:
+def wasmtime_memory_new(store: Any, ty: Any, ret: Any) -> ctypes._Pointer:
     return _wasmtime_memory_new(store, ty, ret)  # type: ignore
 
 _wasmtime_memory_type = dll.wasmtime_memory_type
 _wasmtime_memory_type.restype = POINTER(wasm_memorytype_t)
 _wasmtime_memory_type.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_memory_t)]
-def wasmtime_memory_type(store: Any, memory: Any) -> pointer:
+def wasmtime_memory_type(store: Any, memory: Any) -> ctypes._Pointer:
     return _wasmtime_memory_type(store, memory)  # type: ignore
 
 _wasmtime_memory_data = dll.wasmtime_memory_data
 _wasmtime_memory_data.restype = POINTER(c_uint8)
 _wasmtime_memory_data.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_memory_t)]
-def wasmtime_memory_data(store: Any, memory: Any) -> pointer:
+def wasmtime_memory_data(store: Any, memory: Any) -> ctypes._Pointer:
     return _wasmtime_memory_data(store, memory)  # type: ignore
 
 _wasmtime_memory_data_size = dll.wasmtime_memory_data_size
@@ -2670,19 +2671,19 @@ def wasmtime_memory_size(store: Any, memory: Any) -> int:
 _wasmtime_memory_grow = dll.wasmtime_memory_grow
 _wasmtime_memory_grow.restype = POINTER(wasmtime_error_t)
 _wasmtime_memory_grow.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_memory_t), c_uint64, POINTER(c_uint64)]
-def wasmtime_memory_grow(store: Any, memory: Any, delta: Any, prev_size: Any) -> pointer:
+def wasmtime_memory_grow(store: Any, memory: Any, delta: Any, prev_size: Any) -> ctypes._Pointer:
     return _wasmtime_memory_grow(store, memory, delta, prev_size)  # type: ignore
 
 _wasmtime_table_new = dll.wasmtime_table_new
 _wasmtime_table_new.restype = POINTER(wasmtime_error_t)
 _wasmtime_table_new.argtypes = [POINTER(wasmtime_context_t), POINTER(wasm_tabletype_t), POINTER(wasmtime_val_t), POINTER(wasmtime_table_t)]
-def wasmtime_table_new(store: Any, ty: Any, init: Any, table: Any) -> pointer:
+def wasmtime_table_new(store: Any, ty: Any, init: Any, table: Any) -> ctypes._Pointer:
     return _wasmtime_table_new(store, ty, init, table)  # type: ignore
 
 _wasmtime_table_type = dll.wasmtime_table_type
 _wasmtime_table_type.restype = POINTER(wasm_tabletype_t)
 _wasmtime_table_type.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_table_t)]
-def wasmtime_table_type(store: Any, table: Any) -> pointer:
+def wasmtime_table_type(store: Any, table: Any) -> ctypes._Pointer:
     return _wasmtime_table_type(store, table)  # type: ignore
 
 _wasmtime_table_get = dll.wasmtime_table_get
@@ -2694,7 +2695,7 @@ def wasmtime_table_get(store: Any, table: Any, index: Any, val: Any) -> bool:
 _wasmtime_table_set = dll.wasmtime_table_set
 _wasmtime_table_set.restype = POINTER(wasmtime_error_t)
 _wasmtime_table_set.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_table_t), c_uint32, POINTER(wasmtime_val_t)]
-def wasmtime_table_set(store: Any, table: Any, index: Any, value: Any) -> pointer:
+def wasmtime_table_set(store: Any, table: Any, index: Any, value: Any) -> ctypes._Pointer:
     return _wasmtime_table_set(store, table, index, value)  # type: ignore
 
 _wasmtime_table_size = dll.wasmtime_table_size
@@ -2706,7 +2707,7 @@ def wasmtime_table_size(store: Any, table: Any) -> int:
 _wasmtime_table_grow = dll.wasmtime_table_grow
 _wasmtime_table_grow.restype = POINTER(wasmtime_error_t)
 _wasmtime_table_grow.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_table_t), c_uint32, POINTER(wasmtime_val_t), POINTER(c_uint32)]
-def wasmtime_table_grow(store: Any, table: Any, delta: Any, init: Any, prev_size: Any) -> pointer:
+def wasmtime_table_grow(store: Any, table: Any, delta: Any, init: Any, prev_size: Any) -> ctypes._Pointer:
     return _wasmtime_table_grow(store, table, delta, init, prev_size)  # type: ignore
 
 wasmtime_trap_code_t = c_uint8
@@ -2714,7 +2715,7 @@ wasmtime_trap_code_t = c_uint8
 _wasmtime_trap_new = dll.wasmtime_trap_new
 _wasmtime_trap_new.restype = POINTER(wasm_trap_t)
 _wasmtime_trap_new.argtypes = [POINTER(c_char), c_size_t]
-def wasmtime_trap_new(msg: Any, msg_len: Any) -> pointer:
+def wasmtime_trap_new(msg: Any, msg_len: Any) -> ctypes._Pointer:
     return _wasmtime_trap_new(msg, msg_len)  # type: ignore
 
 _wasmtime_trap_code = dll.wasmtime_trap_code
@@ -2732,17 +2733,17 @@ def wasmtime_trap_exit_status(arg0: Any, status: Any) -> bool:
 _wasmtime_frame_func_name = dll.wasmtime_frame_func_name
 _wasmtime_frame_func_name.restype = POINTER(wasm_name_t)
 _wasmtime_frame_func_name.argtypes = [POINTER(wasm_frame_t)]
-def wasmtime_frame_func_name(arg0: Any) -> pointer:
+def wasmtime_frame_func_name(arg0: Any) -> ctypes._Pointer:
     return _wasmtime_frame_func_name(arg0)  # type: ignore
 
 _wasmtime_frame_module_name = dll.wasmtime_frame_module_name
 _wasmtime_frame_module_name.restype = POINTER(wasm_name_t)
 _wasmtime_frame_module_name.argtypes = [POINTER(wasm_frame_t)]
-def wasmtime_frame_module_name(arg0: Any) -> pointer:
+def wasmtime_frame_module_name(arg0: Any) -> ctypes._Pointer:
     return _wasmtime_frame_module_name(arg0)  # type: ignore
 
 _wasmtime_wat2wasm = dll.wasmtime_wat2wasm
 _wasmtime_wat2wasm.restype = POINTER(wasmtime_error_t)
 _wasmtime_wat2wasm.argtypes = [POINTER(c_char), c_size_t, POINTER(wasm_byte_vec_t)]
-def wasmtime_wat2wasm(wat: Any, wat_len: Any, ret: Any) -> pointer:
+def wasmtime_wat2wasm(wat: Any, wat_len: Any, ret: Any) -> ctypes._Pointer:
     return _wasmtime_wat2wasm(wat, wat_len, ret)  # type: ignore

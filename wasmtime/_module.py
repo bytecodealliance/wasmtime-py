@@ -1,5 +1,6 @@
 from . import _ffi as ffi
 from ctypes import *
+import ctypes
 from wasmtime import Engine, wat2wasm, ImportType, ExportType, WasmtimeError
 import typing
 
@@ -35,14 +36,14 @@ class Module:
         # TODO: can the copy be avoided here? I can't for the life of me
         # figure this out.
         binary = (c_uint8 * len(wasm)).from_buffer_copy(wasm)
-        ptr = POINTER(ffi.wasmtime_module_t)()  # type: ignore
+        ptr = POINTER(ffi.wasmtime_module_t)()
         error = ffi.wasmtime_module_new(engine._ptr, binary, len(wasm), byref(ptr))
         if error:
             raise WasmtimeError._from_ptr(error)
         self._ptr = ptr
 
     @classmethod
-    def _from_ptr(cls, ptr: "pointer[ffi.wasmtime_module_t]") -> "Module":
+    def _from_ptr(cls, ptr: "ctypes._Pointer[ffi.wasmtime_module_t]") -> "Module":
         ty: "Module" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasmtime_module_t)):
             raise TypeError("wrong pointer type")
@@ -63,7 +64,7 @@ class Module:
         if not isinstance(encoded, (bytes, bytearray)):
             raise TypeError("expected bytes")
 
-        ptr = POINTER(ffi.wasmtime_module_t)()  # type: ignore
+        ptr = POINTER(ffi.wasmtime_module_t)()
 
         # TODO: can the copy be avoided here? I can't for the life of me
         # figure this out.
@@ -87,7 +88,7 @@ class Module:
         Otherwise this function is the same as `Module.deserialize`.
         """
 
-        ptr = POINTER(ffi.wasmtime_module_t)()  # type: ignore
+        ptr = POINTER(ffi.wasmtime_module_t)()
         path_bytes = path.encode('utf-8')
         error = ffi.wasmtime_module_deserialize_file(
             engine._ptr,

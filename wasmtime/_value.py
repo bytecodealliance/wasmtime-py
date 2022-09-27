@@ -79,7 +79,7 @@ class Val:
     @classmethod
     def externref(cls, extern: typing.Optional[typing.Any]) -> "Val":
         ffi = wasmtime_val_t(WASMTIME_EXTERNREF)
-        ffi.of.externref = POINTER(wasmtime_externref_t)()  # type: ignore
+        ffi.of.externref = POINTER(wasmtime_externref_t)()
         if extern is not None:
             extern_id = _intern(extern)
             ptr = wasmtime_externref_new(extern_id, _externref_finalizer)

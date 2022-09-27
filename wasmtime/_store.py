@@ -1,5 +1,6 @@
 from . import _ffi as ffi
-from ctypes import pointer, byref, c_uint64, cast, c_void_p, CFUNCTYPE
+from ctypes import byref, c_uint64, cast, c_void_p, CFUNCTYPE
+import ctypes
 from wasmtime import Engine, WasmtimeError
 from . import _value as value
 import typing
@@ -9,8 +10,8 @@ if typing.TYPE_CHECKING:
 
 
 class Store:
-    _ptr: "pointer[ffi.wasmtime_store_t]"
-    _context: "pointer[ffi.wasmtime_context_t]"
+    _ptr: "ctypes._Pointer[ffi.wasmtime_store_t]"
+    _context: "ctypes._Pointer[ffi.wasmtime_context_t]"
 
     def __init__(self, engine: Engine = None, data: typing.Optional[typing.Any] = None):
 

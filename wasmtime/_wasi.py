@@ -1,4 +1,5 @@
 from ctypes import *
+import ctypes
 from wasmtime import WasmtimeError
 from . import _ffi as ffi
 from ._config import setter_property
@@ -134,7 +135,7 @@ class WasiConfig:
             ffi.wasi_config_delete(self._ptr)
 
 
-def to_char_array(strings: List[str]) -> "pointer[pointer[c_char]]":
+def to_char_array(strings: List[str]) -> "ctypes._Pointer[ctypes._Pointer[c_char]]":
     ptrs = (c_char_p * len(strings))()
     for i, s in enumerate(strings):
         ptrs[i] = c_char_p(s.encode('utf-8'))

@@ -1,5 +1,6 @@
 from contextlib import contextmanager
-from ctypes import POINTER, pointer, byref, CFUNCTYPE, c_void_p, cast
+from ctypes import POINTER, byref, CFUNCTYPE, c_void_p, cast
+import ctypes
 from wasmtime import Store, FuncType, Val, IntoVal, Trap, WasmtimeError
 from . import _ffi as ffi
 from ._extern import wrap_extern
@@ -115,9 +116,9 @@ class Func:
 
 
 class Caller:
-    _context: "pointer[ffi.wasmtime_context_t]"
+    _context: "ctypes._Pointer[ffi.wasmtime_context_t]"
 
-    def __init__(self, ptr: pointer):
+    def __init__(self, ptr: "ctypes._Pointer"):
         self._ptr = ptr
 
     def __getitem__(self, name: str) -> AsExtern:
@@ -169,7 +170,7 @@ def extract_val(val: Val) -> IntoVal:
 
 
 @ffi.wasmtime_func_callback_t  # type: ignore
-def trampoline(idx, caller, params, nparams, results, nresults):  # type: ignore
+def trampoline(idx, caller, params, nparams, results, nresults):
     caller = Caller(caller)
     try:
         func, result_tys, access_caller = FUNCTIONS.get(idx or 0)
@@ -255,7 +256,7 @@ FUNCTIONS = Slab()
 @contextmanager
 def enter_wasm(store: Storelike):  # type: ignore
     try:
-        trap = POINTER(ffi.wasm_trap_t)()  # type: ignore
+        trap = POINTER(ffi.wasm_trap_t)()
         yield byref(trap)
         if trap:
             trap_obj = Trap._from_ptr(trap)

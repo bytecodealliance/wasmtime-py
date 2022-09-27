@@ -1,6 +1,7 @@
 from . import _ffi as ffi
 from enum import Enum
-from ctypes import byref, POINTER, pointer, c_int
+from ctypes import byref, POINTER, c_int
+import ctypes
 from typing import Optional, Any, List
 
 
@@ -39,7 +40,7 @@ class Trap(Exception):
         self._ptr = ffi.wasmtime_trap_new(ffi.create_string_buffer(vec), len(vec))
 
     @classmethod
-    def _from_ptr(cls, ptr: "pointer[ffi.wasm_trap_t]") -> "Trap":
+    def _from_ptr(cls, ptr: "ctypes._Pointer[ffi.wasm_trap_t]") -> "Trap":
         if not isinstance(ptr, POINTER(ffi.wasm_trap_t)):
             raise TypeError("wrong pointer type")
         exit_code = c_int(0)
@@ -117,11 +118,11 @@ class ExitTrap(Trap):
 
 
 class Frame:
-    _ptr: "pointer[ffi.wasm_frame_t]"
+    _ptr: "ctypes._Pointer[ffi.wasm_frame_t]"
     _owner: Optional[Any]
 
     @classmethod
-    def _from_ptr(cls, ptr: "pointer[ffi.wasm_frame_t]", owner: Optional[Any]) -> "Frame":
+    def _from_ptr(cls, ptr: "ctypes._Pointer[ffi.wasm_frame_t]", owner: Optional[Any]) -> "Frame":
         ty: "Frame" = cls.__new__(cls)
         if not isinstance(ptr, POINTER(ffi.wasm_frame_t)):
             raise TypeError("wrong pointer type")

@@ -1,5 +1,5 @@
 from . import _ffi as ffi
-from ctypes import *
+import ctypes
 from ._exportable import AsExtern
 from wasmtime import WasmtimeError
 
@@ -42,7 +42,7 @@ def get_extern_ptr(item: AsExtern) -> ffi.wasmtime_extern_t:
 
 
 class Extern:
-    def __init__(self, ptr: "pointer[ffi.wasm_extern_t]"):
+    def __init__(self, ptr: "ctypes._Pointer[ffi.wasm_extern_t]"):
         self.ptr = ptr
 
     def __del__(self) -> None:
