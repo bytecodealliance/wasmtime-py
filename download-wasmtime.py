@@ -10,11 +10,12 @@ import tarfile
 import urllib.request
 import zipfile
 
+WASMTIME_VERSION = "1.0.0"
+
 
 def main(platform, arch):
     is_zip = False
-    with open("VERSION", "r") as fh:
-        version = fh.read().strip()
+    version = WASMTIME_VERSION
     if arch == 'AMD64':
         arch = 'x86_64'
     if arch == 'arm64':
