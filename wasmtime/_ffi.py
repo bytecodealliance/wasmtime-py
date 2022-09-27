@@ -1,5 +1,6 @@
 from ctypes import *
 import os
+import ctypes
 import sys
 import platform
 import typing
@@ -77,7 +78,7 @@ class wasm_val_union(Union):
     i64: int
     f32: float
     f64: float
-    ref: "typing.Union[pointer[wasm_ref_t], None]"
+    ref: "typing.Union[ctypes._Pointer[wasm_ref_t], None]"
 
 
 class wasm_val_t(Structure):
@@ -99,7 +100,7 @@ def to_str(vec: wasm_byte_vec_t) -> str:
     return to_bytes(vec).decode("utf-8")
 
 
-def to_str_raw(ptr: pointer, size: int) -> str:
+def to_str_raw(ptr: "ctypes._Pointer", size: int) -> str:
     return string_at(ptr, size).decode("utf-8")
 
 

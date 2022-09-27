@@ -1,5 +1,6 @@
 from . import _ffi as ffi
 from ctypes import *
+import ctypes
 from wasmtime import MemoryType, WasmtimeError
 from ._store import Storelike
 
@@ -52,7 +53,7 @@ class Memory:
 
         return ffi.wasmtime_memory_size(store._context, byref(self._memory))
 
-    def data_ptr(self, store: Storelike) -> "pointer[c_ubyte]":
+    def data_ptr(self, store: Storelike) -> "ctypes._Pointer[c_ubyte]":
         """
         Returns the raw pointer in memory where this wasm memory lives.
 

@@ -18,6 +18,7 @@ class Visitor(c_ast.NodeVisitor):
         self.ret += '# instead edit `./bindgen.py` at the root of the repo\n'
         self.ret += '\n'
         self.ret += 'from ctypes import *\n'
+        self.ret += 'import ctypes\n'
         self.ret += 'from typing import Any\n'
         self.ret += 'from ._ffi import dll, wasm_val_t, wasm_ref_t\n'
 
@@ -141,7 +142,7 @@ def type_name(ty, ptr=False, typing=False):
 
     if ptr:
         if typing:
-            return "pointer"
+            return "ctypes._Pointer"
         if isinstance(ty, c_ast.IdentifierType) and ty.names[0] == "void":
             return "c_void_p"
         elif not isinstance(ty, c_ast.FuncDecl):
@@ -177,7 +178,7 @@ def type_name(ty, ptr=False, typing=False):
             return "int" if typing else "c_int"
         # ctypes values can't stand as typedefs, so just use the pointer type here
         elif typing and 'func_callback' in ty.names[0]:
-            return "pointer"
+            return "ctypes._Pointer"
         elif typing and ('size' in ty.names[0] or 'pages' in ty.names[0]):
             return "int"
         return ty.names[0]
