@@ -13,7 +13,7 @@ free to consult that documentation as well. While not exactly the same the two
 libraries are intended to be quite similar.
 """
 
-from ._error import WasmtimeError
+from ._error import WasmtimeError, ExitTrap
 from ._config import Config
 from ._engine import Engine
 from ._store import Store, Storelike
@@ -22,7 +22,7 @@ from ._types import ValType, Limits, ImportType, ExportType
 from ._wat2wasm import wat2wasm
 from ._module import Module
 from ._value import Val, IntoVal
-from ._trap import Trap, Frame, ExitTrap, TrapCode
+from ._trap import Trap, Frame, TrapCode
 from ._func import Func, Caller
 from ._globals import Global
 from ._table import Table

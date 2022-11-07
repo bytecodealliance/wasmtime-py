@@ -1,6 +1,6 @@
 from . import _ffi as ffi
 from enum import Enum
-from ctypes import byref, POINTER, c_int
+from ctypes import byref, POINTER
 import ctypes
 from typing import Optional, Any, List
 
@@ -31,6 +31,8 @@ class TrapCode(Enum):
 
 
 class Trap(Exception):
+    _ptr: "ctypes._Pointer[ffi.wasm_trap_t]"
+
     def __init__(self, message: str):
         """
         Creates a new trap with the given `message`
@@ -43,16 +45,9 @@ class Trap(Exception):
     def _from_ptr(cls, ptr: "ctypes._Pointer[ffi.wasm_trap_t]") -> "Trap":
         if not isinstance(ptr, POINTER(ffi.wasm_trap_t)):
             raise TypeError("wrong pointer type")
-        exit_code = c_int(0)
-        if ffi.wasmtime_trap_exit_status(ptr, byref(exit_code)):
-            exit_trap: ExitTrap = ExitTrap.__new__(ExitTrap)
-            exit_trap._ptr = ptr
-            exit_trap.code = exit_code.value
-            return exit_trap
-        else:
-            trap: Trap = cls.__new__(cls)
-            trap._ptr = ptr
-            return trap
+        trap: Trap = cls.__new__(cls)
+        trap._ptr = ptr
+        return trap
 
     @property
     def message(self) -> str:
@@ -98,23 +93,6 @@ class Trap(Exception):
     def __del__(self) -> None:
         if hasattr(self, '_ptr'):
             ffi.wasm_trap_delete(self._ptr)
-
-
-class ExitTrap(Trap):
-    """
-    A special type of `Trap` which represents the process exiting via WASI's
-    `proc_exit` function call.
-
-    Whenever a WASI program exits via `proc_exit` a trap is raised, but the
-    trap will have this type instead of `Trap`, so you can catch just this
-    type instead of all traps (if desired). Exit traps have a `code` associated
-    with them which is the exit code provided at exit.
-
-    Note that `ExitTrap` is a subclass of `Trap`, so if you catch a trap you'll
-    also catch `ExitTrap`.
-    """
-    code: int
-    pass
 
 
 class Frame:

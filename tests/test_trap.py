@@ -43,11 +43,13 @@ class TestTrap(unittest.TestCase):
         self.assertEqual(frames[2].module_name, 'module')
 
         self.assertEqual(str(trap), """\
-wasm trap: wasm `unreachable` instruction executed
-wasm backtrace:
+error while executing at wasm backtrace:
     0:   0x2d - module!bar
     1:   0x28 - module!foo
     2:   0x23 - module!<wasm function 0>
+
+Caused by:
+    wasm trap: wasm `unreachable` instruction executed\
 """)
         self.assertEqual(trap.trap_code, TrapCode.UNREACHABLE)
 

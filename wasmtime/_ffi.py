@@ -5,10 +5,8 @@ import sys
 import platform
 import typing
 
-from wasmtime import WasmtimeError
-
 if sys.maxsize <= 2**32:
-    raise WasmtimeError("wasmtime only works on 64-bit platforms right now")
+    raise RuntimeError("wasmtime only works on 64-bit platforms right now")
 
 if sys.platform == 'linux':
     libname = '_libwasmtime.so'
