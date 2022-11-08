@@ -10,7 +10,7 @@ import tarfile
 import urllib.request
 import zipfile
 
-WASMTIME_VERSION = "2.0.0"
+WASMTIME_VERSION = "dev"
 
 
 def main(platform, arch):
@@ -21,19 +21,19 @@ def main(platform, arch):
     if arch == 'arm64':
         arch = 'aarch64'
     if platform == 'linux':
-        filename = 'wasmtime-v{}-{}-linux-c-api.tar.xz'.format(version, arch)
+        filename = 'wasmtime-{}-{}-linux-c-api.tar.xz'.format(version, arch)
         libname = '_libwasmtime.so'
     elif platform == 'win32':
-        filename = 'wasmtime-v{}-{}-windows-c-api.zip'.format(version, arch)
+        filename = 'wasmtime-{}-{}-windows-c-api.zip'.format(version, arch)
         is_zip = True
         libname = '_wasmtime.dll'
     elif platform == 'darwin':
-        filename = 'wasmtime-v{}-{}-macos-c-api.tar.xz'.format(version, arch)
+        filename = 'wasmtime-{}-{}-macos-c-api.tar.xz'.format(version, arch)
         libname = '_libwasmtime.dylib'
     else:
         raise RuntimeError("unknown platform: " + sys.platform)
 
-    url = 'https://github.com/bytecodealliance/wasmtime/releases/download/v{}/'.format(version)
+    url = 'https://github.com/bytecodealliance/wasmtime/releases/download/{}/'.format(version)
     url += filename
     print('Download', url)
     dirname = '{}-{}'.format(platform, arch)

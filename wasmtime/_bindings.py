@@ -1917,6 +1917,12 @@ _wasi_config_set_stdin_file.argtypes = [POINTER(wasi_config_t), POINTER(c_char)]
 def wasi_config_set_stdin_file(config: Any, path: Any) -> bool:
     return _wasi_config_set_stdin_file(config, path)  # type: ignore
 
+_wasi_config_set_stdin_bytes = dll.wasi_config_set_stdin_bytes
+_wasi_config_set_stdin_bytes.restype = None
+_wasi_config_set_stdin_bytes.argtypes = [POINTER(wasi_config_t), POINTER(wasm_byte_vec_t)]
+def wasi_config_set_stdin_bytes(config: Any, binary: Any) -> None:
+    return _wasi_config_set_stdin_bytes(config, binary)  # type: ignore
+
 _wasi_config_inherit_stdin = dll.wasi_config_inherit_stdin
 _wasi_config_inherit_stdin.restype = None
 _wasi_config_inherit_stdin.argtypes = [POINTER(wasi_config_t)]
@@ -1969,6 +1975,18 @@ _wasmtime_error_message.restype = None
 _wasmtime_error_message.argtypes = [POINTER(wasmtime_error_t), POINTER(wasm_name_t)]
 def wasmtime_error_message(error: Any, message: Any) -> None:
     return _wasmtime_error_message(error, message)  # type: ignore
+
+_wasmtime_error_exit_status = dll.wasmtime_error_exit_status
+_wasmtime_error_exit_status.restype = c_bool
+_wasmtime_error_exit_status.argtypes = [POINTER(wasmtime_error_t), POINTER(c_int)]
+def wasmtime_error_exit_status(arg0: Any, status: Any) -> bool:
+    return _wasmtime_error_exit_status(arg0, status)  # type: ignore
+
+_wasmtime_error_wasm_trace = dll.wasmtime_error_wasm_trace
+_wasmtime_error_wasm_trace.restype = None
+_wasmtime_error_wasm_trace.argtypes = [POINTER(wasmtime_error_t), POINTER(wasm_frame_vec_t)]
+def wasmtime_error_wasm_trace(arg0: Any, out: Any) -> None:
+    return _wasmtime_error_wasm_trace(arg0, out)  # type: ignore
 
 wasmtime_strategy_t = c_uint8
 
@@ -2723,12 +2741,6 @@ _wasmtime_trap_code.restype = c_bool
 _wasmtime_trap_code.argtypes = [POINTER(wasm_trap_t), POINTER(wasmtime_trap_code_t)]
 def wasmtime_trap_code(arg0: Any, code: Any) -> bool:
     return _wasmtime_trap_code(arg0, code)  # type: ignore
-
-_wasmtime_trap_exit_status = dll.wasmtime_trap_exit_status
-_wasmtime_trap_exit_status.restype = c_bool
-_wasmtime_trap_exit_status.argtypes = [POINTER(wasm_trap_t), POINTER(c_int)]
-def wasmtime_trap_exit_status(arg0: Any, status: Any) -> bool:
-    return _wasmtime_trap_exit_status(arg0, status)  # type: ignore
 
 _wasmtime_frame_func_name = dll.wasmtime_frame_func_name
 _wasmtime_frame_func_name.restype = POINTER(wasm_name_t)
