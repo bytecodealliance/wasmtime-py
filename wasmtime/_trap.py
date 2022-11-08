@@ -66,7 +66,7 @@ class Trap(Exception):
 
     @property
     def frames(self) -> List["Frame"]:
-        frames = FrameList()
+        frames = FrameList(self)
         ffi.wasm_trap_trace(self._ptr, byref(frames.vec))
         ret = []
         for i in range(0, frames.vec.size):
@@ -168,8 +168,11 @@ class Frame:
 
 
 class FrameList:
-    def __init__(self) -> None:
+    owner: Any
+
+    def __init__(self, owner: Any) -> None:
         self.vec = ffi.wasm_frame_vec_t(0, None)
+        self.owner = owner
 
     def __del__(self) -> None:
         ffi.wasm_frame_vec_delete(byref(self.vec))
