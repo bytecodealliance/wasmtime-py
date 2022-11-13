@@ -1,4 +1,5 @@
 from ctypes import *
+from typing import Any
 from wasmtime import Instance, Engine, FuncType
 from wasmtime import Module, WasmtimeError, Func
 from . import _ffi as ffi
@@ -57,7 +58,7 @@ class Linker:
         if error:
             raise WasmtimeError._from_ptr(error)
 
-    def define_func(self, module: str, name: str, ty: FuncType, func: Callable, access_caller: bool = False) -> None:
+    def define_func(self, module: str, name: str, ty: FuncType, func: Callable[..., Any], access_caller: bool = False) -> None:
         """
         Defines a new function, by name, in this linker.
 
