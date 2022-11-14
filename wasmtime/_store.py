@@ -13,7 +13,7 @@ class Store:
     _ptr: "ctypes._Pointer[ffi.wasmtime_store_t]"
     _context: "ctypes._Pointer[ffi.wasmtime_context_t]"
 
-    def __init__(self, engine: Engine = None, data: typing.Optional[typing.Any] = None):
+    def __init__(self, engine: typing.Optional[Engine] = None, data: typing.Optional[typing.Any] = None):
 
         if engine is None:
             engine = Engine()

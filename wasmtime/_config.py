@@ -1,5 +1,6 @@
 from . import _ffi as ffi
 from ctypes import *
+import ctypes
 from wasmtime import WasmtimeError
 import typing
 
@@ -19,6 +20,8 @@ class Config:
     A `Config` houses a number of configuration options which tweaks how wasm
     code is compiled or generated.
     """
+
+    _ptr: "ctypes._Pointer[ffi.wasm_config_t]"
 
     def __init__(self) -> None:
         self._ptr = ffi.wasm_config_new()
