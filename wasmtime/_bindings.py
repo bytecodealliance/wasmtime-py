@@ -2474,10 +2474,10 @@ def wasmtime_func_call(store: Any, func: Any, args: Any, nargs: Any, results: An
     return _wasmtime_func_call(store, func, args, nargs, results, nresults, trap)  # type: ignore
 
 _wasmtime_func_call_unchecked = dll.wasmtime_func_call_unchecked
-_wasmtime_func_call_unchecked.restype = POINTER(wasm_trap_t)
-_wasmtime_func_call_unchecked.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_func_t), POINTER(wasmtime_val_raw_t)]
-def wasmtime_func_call_unchecked(store: Any, func: Any, args_and_results: Any) -> ctypes._Pointer:
-    return _wasmtime_func_call_unchecked(store, func, args_and_results)  # type: ignore
+_wasmtime_func_call_unchecked.restype = POINTER(wasmtime_error_t)
+_wasmtime_func_call_unchecked.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_func_t), POINTER(wasmtime_val_raw_t), POINTER(POINTER(wasm_trap_t))]
+def wasmtime_func_call_unchecked(store: Any, func: Any, args_and_results: Any, trap: Any) -> ctypes._Pointer:
+    return _wasmtime_func_call_unchecked(store, func, args_and_results, trap)  # type: ignore
 
 _wasmtime_caller_export_get = dll.wasmtime_caller_export_get
 _wasmtime_caller_export_get.restype = c_bool
