@@ -1,7 +1,7 @@
 # flake8: noqa
 #
 # This is a procedurally generated file, DO NOT EDIT
-# instead edit `./bindgen.py` at the root of the repo
+# instead edit `./ci/cbindgen.py` at the root of the repo
 
 from ctypes import *
 import ctypes
