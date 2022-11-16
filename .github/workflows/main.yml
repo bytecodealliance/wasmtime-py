@@ -31,7 +31,7 @@ jobs:
       - uses: actions/setup-python@v1
         with:
           python-version: ${{ matrix.python-version }}
-      - run: python download-wasmtime.py
+      - run: python ci/download-wasmtime.py
       - run: pip install -e ".[testing]"
       - run: pytest
 
@@ -50,23 +50,23 @@ jobs:
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
     - run: |
         git clean -fdx wasmtime build
-        python download-wasmtime.py linux x86_64
+        python ci/download-wasmtime.py linux x86_64
         python setup.py bdist_wheel --plat-name manylinux1-x86_64
     - run: |
         git clean -fdx wasmtime build
-        python download-wasmtime.py linux aarch64
+        python ci/download-wasmtime.py linux aarch64
         python setup.py bdist_wheel --plat-name manylinux2014_aarch64
     - run: |
         git clean -fdx wasmtime build
-        python download-wasmtime.py darwin x86_64
+        python ci/download-wasmtime.py darwin x86_64
         python setup.py bdist_wheel --plat-name macosx-10-13-x86_64
     - run: |
         git clean -fdx wasmtime build
-        python download-wasmtime.py darwin arm64
+        python ci/download-wasmtime.py darwin arm64
         python setup.py bdist_wheel --plat-name macosx-11-0-arm64
     - run: |
         git clean -fdx wasmtime build
-        python download-wasmtime.py win32 x86_64
+        python ci/download-wasmtime.py win32 x86_64
         python setup.py bdist_wheel --plat-name win-amd64
 
     # Build an "any" wheel with:
@@ -80,7 +80,7 @@ jobs:
     # shared libraries.
     - run: |
         git clean -fdx wasmtime build
-        python download-wasmtime.py win32 x86_64
+        python ci/download-wasmtime.py win32 x86_64
         python setup.py bdist_wheel
 
     - uses: actions/upload-artifact@v1
@@ -96,7 +96,7 @@ jobs:
       with:
         python-version: '3.x'
     - run: pip install pdoc3
-    - run: python download-wasmtime.py
+    - run: python ci/download-wasmtime.py
     - run: pdoc --html wasmtime
     - uses: actions/upload-artifact@v1
       with:
@@ -110,7 +110,7 @@ jobs:
     - uses: actions/setup-python@v1
       with:
         python-version: '3.x'
-    - run: python download-wasmtime.py
+    - run: python ci/download-wasmtime.py
     - run: pip install -e ".[testing]"
     - run: coverage run -m pytest
     - run: coverage html
