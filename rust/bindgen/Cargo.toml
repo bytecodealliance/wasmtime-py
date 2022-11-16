@@ -1,0 +1,26 @@
+[package]
+name = "bindgen"
+authors = ["Alex Crichton <alex@alexcrichton.com>"]
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[lib]
+crate-type = ['cdylib', 'rlib']
+
+[dependencies]
+anyhow = "1.0"
+heck = { version = "0.4", features = ["unicode"] }
+wit-component = { git = 'https://github.com/bytecodealliance/wit-bindgen', default-features = false }
+wit-parser = { git = 'https://github.com/bytecodealliance/wit-bindgen', default-features = false }
+indexmap = "1.0"
+wasmtime-environ = { git = 'https://github.com/bytecodealliance/wasmtime', features = ['component-model'] }
+wit-bindgen-guest-rust = { workspace = true, features = ['default'] }
+
+[features]
+cli = []
+
+[[bin]]
+name = "bootstrap"
+required-features = ["cli"]
+

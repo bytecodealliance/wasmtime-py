@@ -1,7 +1,7 @@
 use crate::imports::PyImports;
 use std::fmt::{self, Write};
 use std::mem;
-use wit_bindgen_core::wit_parser::*;
+use wit_parser::*;
 
 /// A [Source] represents some unit of Python code
 /// and keeps track of its indent.

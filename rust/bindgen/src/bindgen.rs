@@ -26,34 +26,30 @@
 //! and exported instances are modeled as a method which returns a struct from
 //! `exports/*.py`.
 
+use crate::files::Files;
+use crate::ns::Ns;
+use crate::source::{self, Source};
+use anyhow::{Context, Result};
 use heck::*;
 use indexmap::IndexMap;
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 use std::fmt::Write;
 use std::mem;
 use wasmtime_environ::component::{
-    CanonicalOptions, Component, CoreDef, CoreExport, Export, ExportItem, GlobalInitializer,
-    InstantiateModule, LowerImport, RuntimeInstanceIndex, StaticModuleIndex, StringEncoding,
+    CanonicalOptions, Component, ComponentTypesBuilder, CoreDef, CoreExport, Export, ExportItem,
+    GlobalInitializer, InstantiateModule, LowerImport, RuntimeInstanceIndex, StaticModuleIndex,
+    StringEncoding, Translator,
 };
-use wasmtime_environ::{EntityIndex, ModuleTranslation, PrimaryMap};
-use wit_bindgen_core::component::ComponentGenerator;
-use wit_bindgen_core::wit_parser::abi::{
-    AbiVariant, Bindgen, Bitcast, Instruction, LiftLower, WasmType,
-};
-use wit_bindgen_core::{
-    uwrite, uwriteln, wit_parser::*, Files, InterfaceGenerator as _, Ns, WorldGenerator,
-};
+use wasmtime_environ::wasmparser::{Validator, WasmFeatures};
+use wasmtime_environ::{EntityIndex, ModuleTranslation, PrimaryMap, ScopeVec, Tunables};
 use wit_component::ComponentInterfaces;
-
-mod imports;
-mod source;
-
-use source::Source;
+use wit_parser::{
+    abi::{AbiVariant, Bindgen, Bitcast, Instruction, LiftLower, WasmType},
+    *,
+};
 
 #[derive(Default)]
-struct WasmtimePy {
-    opts: Opts,
-
+pub struct WasmtimePy {
     // `$out_dir/__init__.py`
     init: Source,
     // `$out_dir/types.py`
@@ -73,21 +69,75 @@ struct WasmtimePy {
     all_intrinsics: BTreeSet<&'static str>,
 }
 
-#[derive(Default, Debug, Clone)]
-#[cfg_attr(feature = "clap", derive(clap::Args))]
-pub struct Opts {
-    // ...
-}
-
-impl Opts {
-    pub fn build(self) -> Box<dyn ComponentGenerator> {
-        let mut r = WasmtimePy::default();
-        r.opts = self;
-        Box::new(r)
-    }
-}
-
 impl WasmtimePy {
+    /// Generate bindings to load and instantiate the specific binary component
+    /// provided.
+    pub fn generate(&mut self, name: &str, binary: &[u8], files: &mut Files) -> Result<()> {
+        // Use the `wit-component` crate here to parse `binary` and discover
+        // the type-level descriptions and `Interface`s corresponding to the
+        // component binary. This is effectively a step that infers a "world" of
+        // a component. Right now `interfaces` is a world-like thing and this
+        // will likely change as worlds are iterated on in the component model
+        // standard. Regardless though this is the step where types are learned
+        // and `Interface`s are constructed for further code generation below.
+        let interfaces = wit_component::decode_component_interfaces(binary)
+            .context("failed to extract interface information from component")?;
+
+        // Components are complicated, there's no real way around that. To
+        // handle all the work of parsing a component and figuring out how to
+        // instantiate core wasm modules and such all the work is offloaded to
+        // Wasmtime itself. This crate generator is based on Wasmtime's
+        // low-level `wasmtime-environ` crate which is technically not a public
+        // dependency but the same author who worked on that in Wasmtime wrote
+        // this as well so... "seems fine".
+        //
+        // Note that we're not pulling in the entire Wasmtime engine here,
+        // moreso just the "spine" of validating a component. This enables using
+        // Wasmtime's internal `Component` representation as a much easier to
+        // process version of a component that has decompiled everything
+        // internal to a component to a straight linear list of initializers
+        // that need to be executed to instantiate a component.
+        let scope = ScopeVec::new();
+        let tunables = Tunables::default();
+        let mut types = ComponentTypesBuilder::default();
+        let mut validator = Validator::new_with_features(WasmFeatures {
+            component_model: true,
+            ..WasmFeatures::default()
+        });
+        let (component, modules) = Translator::new(&tunables, &mut validator, &mut types, &scope)
+            .translate(binary)
+            .context("failed to parse the input component")?;
+
+        // Insert all core wasm modules into the generated `Files` which will
+        // end up getting used in the `generate_instantiate` method.
+        for (i, module) in modules.iter() {
+            files.push(&self.core_file_name(name, i.as_u32()), module.wasm);
+        }
+
+        // With all that prep work delegate to `generate` here
+        // to generate all the type-level descriptions for this component now
+        // that the interfaces in/out are understood.
+        for (name, import) in interfaces.imports.iter() {
+            self.import(name, import, files);
+        }
+        for (name, export) in interfaces.exports.iter() {
+            self.export(name, export, files);
+        }
+        if let Some(iface) = &interfaces.default {
+            self.export_default(name, iface, files);
+        }
+        self.finish_interfaces(name, &interfaces, files);
+
+        // And finally generate the code necessary to instantiate the given
+        // component to this method using the `Component` that
+        // `wasmtime-environ` parsed.
+        self.instantiate(name, &component, &modules, &interfaces);
+
+        self.finish_component(name, files);
+
+        Ok(())
+    }
+
     fn interface<'a>(&'a mut self, iface: &'a Interface, at_root: bool) -> InterfaceGenerator<'a> {
         InterfaceGenerator {
             gen: self,
@@ -122,31 +172,7 @@ impl WasmtimePy {
             ",
         );
     }
-}
 
-fn array_ty(iface: &Interface, ty: &Type) -> Option<&'static str> {
-    match ty {
-        Type::Bool => None,
-        Type::U8 => Some("c_uint8"),
-        Type::S8 => Some("c_int8"),
-        Type::U16 => Some("c_uint16"),
-        Type::S16 => Some("c_int16"),
-        Type::U32 => Some("c_uint32"),
-        Type::S32 => Some("c_int32"),
-        Type::U64 => Some("c_uint64"),
-        Type::S64 => Some("c_int64"),
-        Type::Float32 => Some("c_float"),
-        Type::Float64 => Some("c_double"),
-        Type::Char => None,
-        Type::String => None,
-        Type::Id(id) => match &iface.types[*id].kind {
-            TypeDefKind::Type(t) => array_ty(iface, t),
-            _ => None,
-        },
-    }
-}
-
-impl ComponentGenerator for WasmtimePy {
     fn instantiate(
         &mut self,
         name: &str,
@@ -197,6 +223,10 @@ impl ComponentGenerator for WasmtimePy {
         i.gen.init.dedent();
     }
 
+    fn core_file_name(&mut self, name: &str, idx: u32) -> String {
+        format!("{name}.core{idx}.wasm")
+    }
+
     fn finish_component(&mut self, _name: &str, files: &mut Files) {
         if !self.imports_init.is_empty() {
             files.push("imports/__init__.py", self.imports_init.finish().as_bytes());
@@ -217,6 +247,102 @@ impl ComponentGenerator for WasmtimePy {
         }
 
         files.push("__init__.py", self.init.finish().as_bytes());
+    }
+
+    fn import(&mut self, name: &str, iface: &Interface, files: &mut Files) {
+        let mut gen = self.interface(iface, false);
+        gen.types();
+
+        // Generate a "protocol" class which I'm led to believe is the rough
+        // equivalent of a Rust trait in Python for this imported interface.
+        // This will be referenced in the constructor for the main component.
+        let camel = name.to_upper_camel_case();
+        let snake = name.to_snake_case();
+        gen.src.pyimport("typing", "Protocol");
+        uwriteln!(gen.src, "class {camel}(Protocol):");
+        gen.src.indent();
+        for func in iface.functions.iter() {
+            gen.src.pyimport("abc", "abstractmethod");
+            gen.src.push_str("@abstractmethod\n");
+            gen.print_sig(func, true);
+            gen.src.push_str(":\n");
+            gen.src.indent();
+            gen.src.push_str("raise NotImplementedError\n");
+            gen.src.dedent();
+        }
+        gen.src.dedent();
+        gen.src.push_str("\n");
+
+        let src = gen.src.finish();
+        files.push(&format!("imports/{snake}.py"), src.as_bytes());
+        self.imports.push(name.to_string());
+    }
+
+    fn export(&mut self, name: &str, iface: &Interface, _files: &mut Files) {
+        let mut gen = self.interface(iface, false);
+        gen.types();
+
+        // Only generate types for exports and this will get finished later on
+        // as lifted functions need to be inserted into these files as they're
+        // discovered.
+        let src = gen.src;
+        self.exports.insert(name.to_string(), src);
+    }
+
+    fn export_default(&mut self, _name: &str, iface: &Interface, _files: &mut Files) {
+        let mut gen = self.interface(iface, true);
+
+        // Generate types and imports directly into `__init__.py` for the
+        // default export, and exported functions (lifted functions) will get
+        // generate later.
+        mem::swap(&mut gen.src, &mut gen.gen.init);
+        gen.types();
+        mem::swap(&mut gen.src, &mut gen.gen.init);
+    }
+
+    fn finish_interfaces(
+        &mut self,
+        name: &str,
+        _interfaces: &ComponentInterfaces,
+        _files: &mut Files,
+    ) {
+        if !self.imports.is_empty() {
+            let camel = name.to_upper_camel_case();
+            self.imports_init.pyimport("dataclasses", "dataclass");
+            uwriteln!(self.imports_init, "@dataclass");
+            uwriteln!(self.imports_init, "class {camel}Imports:");
+            self.imports_init.indent();
+            for import in self.imports.iter() {
+                let snake = import.to_snake_case();
+                let camel = import.to_upper_camel_case();
+                self.imports_init
+                    .pyimport(&format!(".{snake}"), camel.as_str());
+                uwriteln!(self.imports_init, "{snake}: {camel}");
+            }
+            self.imports_init.dedent();
+        }
+    }
+}
+
+fn array_ty(iface: &Interface, ty: &Type) -> Option<&'static str> {
+    match ty {
+        Type::Bool => None,
+        Type::U8 => Some("c_uint8"),
+        Type::S8 => Some("c_int8"),
+        Type::U16 => Some("c_uint16"),
+        Type::S16 => Some("c_int16"),
+        Type::U32 => Some("c_uint32"),
+        Type::S32 => Some("c_int32"),
+        Type::U64 => Some("c_uint64"),
+        Type::S64 => Some("c_int64"),
+        Type::Float32 => Some("c_float"),
+        Type::Float64 => Some("c_double"),
+        Type::Char => None,
+        Type::String => None,
+        Type::Id(id) => match &iface.types[*id].kind {
+            TypeDefKind::Type(t) => array_ty(iface, t),
+            _ => None,
+        },
     }
 }
 
@@ -648,77 +774,6 @@ impl<'a> Instantiator<'a> {
     }
 }
 
-impl WorldGenerator for WasmtimePy {
-    fn import(&mut self, name: &str, iface: &Interface, files: &mut Files) {
-        let mut gen = self.interface(iface, false);
-        gen.types();
-
-        // Generate a "protocol" class which I'm led to believe is the rough
-        // equivalent of a Rust trait in Python for this imported interface.
-        // This will be referenced in the constructor for the main component.
-        let camel = name.to_upper_camel_case();
-        let snake = name.to_snake_case();
-        gen.src.pyimport("typing", "Protocol");
-        uwriteln!(gen.src, "class {camel}(Protocol):");
-        gen.src.indent();
-        for func in iface.functions.iter() {
-            gen.src.pyimport("abc", "abstractmethod");
-            gen.src.push_str("@abstractmethod\n");
-            gen.print_sig(func, true);
-            gen.src.push_str(":\n");
-            gen.src.indent();
-            gen.src.push_str("raise NotImplementedError\n");
-            gen.src.dedent();
-        }
-        gen.src.dedent();
-        gen.src.push_str("\n");
-
-        let src = gen.src.finish();
-        files.push(&format!("imports/{snake}.py"), src.as_bytes());
-        self.imports.push(name.to_string());
-    }
-
-    fn export(&mut self, name: &str, iface: &Interface, _files: &mut Files) {
-        let mut gen = self.interface(iface, false);
-        gen.types();
-
-        // Only generate types for exports and this will get finished later on
-        // as lifted functions need to be inserted into these files as they're
-        // discovered.
-        let src = gen.src;
-        self.exports.insert(name.to_string(), src);
-    }
-
-    fn export_default(&mut self, _name: &str, iface: &Interface, _files: &mut Files) {
-        let mut gen = self.interface(iface, true);
-
-        // Generate types and imports directly into `__init__.py` for the
-        // default export, and exported functions (lifted functions) will get
-        // generate later.
-        mem::swap(&mut gen.src, &mut gen.gen.init);
-        gen.types();
-        mem::swap(&mut gen.src, &mut gen.gen.init);
-    }
-
-    fn finish(&mut self, name: &str, _interfaces: &ComponentInterfaces, _files: &mut Files) {
-        if !self.imports.is_empty() {
-            let camel = name.to_upper_camel_case();
-            self.imports_init.pyimport("dataclasses", "dataclass");
-            uwriteln!(self.imports_init, "@dataclass");
-            uwriteln!(self.imports_init, "class {camel}Imports:");
-            self.imports_init.indent();
-            for import in self.imports.iter() {
-                let snake = import.to_snake_case();
-                let camel = import.to_upper_camel_case();
-                self.imports_init
-                    .pyimport(&format!(".{snake}"), camel.as_str());
-                uwriteln!(self.imports_init, "{snake}: {camel}");
-            }
-            self.imports_init.dedent();
-        }
-    }
-}
-
 struct InterfaceGenerator<'a> {
     src: Source,
     gen: &'a mut WasmtimePy,
@@ -931,11 +986,28 @@ impl InterfaceGenerator<'_> {
         }
         self.src.push_str("]\n\n");
     }
-}
 
-impl<'a> wit_bindgen_core::InterfaceGenerator<'a> for InterfaceGenerator<'a> {
-    fn iface(&self) -> &'a Interface {
-        self.iface
+    fn types(&mut self) {
+        for (id, ty) in self.iface.types.iter() {
+            let name = match &ty.name {
+                Some(name) => name,
+                None => continue,
+            };
+            match &ty.kind {
+                TypeDefKind::Record(record) => self.type_record(id, name, record, &ty.docs),
+                TypeDefKind::Flags(flags) => self.type_flags(id, name, flags, &ty.docs),
+                TypeDefKind::Tuple(tuple) => self.type_tuple(id, name, tuple, &ty.docs),
+                TypeDefKind::Enum(enum_) => self.type_enum(id, name, enum_, &ty.docs),
+                TypeDefKind::Variant(variant) => self.type_variant(id, name, variant, &ty.docs),
+                TypeDefKind::Option(t) => self.type_option(id, name, t, &ty.docs),
+                TypeDefKind::Result(r) => self.type_result(id, name, r, &ty.docs),
+                TypeDefKind::Union(u) => self.type_union(id, name, u, &ty.docs),
+                TypeDefKind::List(t) => self.type_list(id, name, t, &ty.docs),
+                TypeDefKind::Type(t) => self.type_alias(id, name, t, &ty.docs),
+                TypeDefKind::Future(_) => todo!("generate for future"),
+                TypeDefKind::Stream(_) => todo!("generate for stream"),
+            }
+        }
     }
 
     fn type_record(&mut self, _id: TypeId, name: &str, record: &Record, docs: &Docs) {
@@ -1094,10 +1166,6 @@ impl<'a> wit_bindgen_core::InterfaceGenerator<'a> for InterfaceGenerator<'a> {
             .push_str(&format!("{} = ", name.to_upper_camel_case()));
         self.print_list(ty);
         self.src.push_str("\n");
-    }
-
-    fn type_builtin(&mut self, id: TypeId, name: &str, ty: &Type, docs: &Docs) {
-        self.type_alias(id, name, ty, docs);
     }
 }
 

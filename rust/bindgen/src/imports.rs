@@ -1,6 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write;
-use wit_bindgen_core::uwriteln;
 
 /// Tracks all of the import and intrinsics that a given codegen
 /// requires and how to generate them when needed.
