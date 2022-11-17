@@ -22,13 +22,13 @@ runs:
   - uses: actions/cache@v3
     with:
       path: ${{ runner.tool_cache }}/wasm-tools
-      key: wasm-tools-bin-e15e768a346c30738103d372e8ccf442646628c9
-  - run: echo "${{ runner.tool_cache }}/wasm-tools/bin" >> $GITHUB_PATH
+      key: wasm-tools-bin-e15e768a346c30738103d372e8ccf442646628c9-${{ runner.os }}
+  - run: echo '${{ runner.tool_cache }}/wasm-tools/bin' >> $GITHUB_PATH
     shell: bash
   - run: |
       cargo install \
         wasm-tools \
-        --root ${{ runner.tool_cache }}/wasm-tools \
+        --root '${{ runner.tool_cache }}/wasm-tools' \
         --git https://github.com/bytecodealliance/wasm-tools \
         --rev e15e768a346c30738103d372e8ccf442646628c9 \
         --no-default-features \

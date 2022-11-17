@@ -52,19 +52,6 @@ def main():
         cwd='rust'
     ).check_returncode()
 
-    print('======================= Verifying python generates same result ====')
-
-    from wasmtime.bindgen import generate
-    with open(component, 'rb') as f:
-        wasm = f.read()
-    result = generate('bindgen', wasm)
-    for name, contents in result.items():
-        path = Path('wasmtime/bindgen/generated').joinpath(name)
-        with open(path, 'rb') as f:
-            contents2 = f.read()
-            if contents2 != contents:
-                raise RuntimeError('path difference {}' % path)
-
 
 if __name__ == '__main__':
     main()
