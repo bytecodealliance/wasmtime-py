@@ -2,16 +2,40 @@ name: 'Setup wasmtime-py CI'
 runs:
   using: "composite"
   steps:
-  - run: rustup target add wasm32-unknown-unknown wasm32-wasi
-    shell: bash
-  - run: cargo install wasm-tools --git https://github.com/bytecodealliance/wasm-tools --no-default-features --features component
-    shell: bash
+  # Setup Python and the Python dependencies of this project
   - uses: actions/setup-python@v4
     with:
       python-version: '3.x'
+  - run: pip install -e ".[testing]"
+    shell: bash
+
+  # Download precompiled wasmtime binaries for running the project
   - run: python ci/download-wasmtime.py
     shell: bash
-  - run: python ci/build-rust.py
+
+  # Ensure the Rust lockfile is up-to-date
+  - run: cargo fetch --manifest-path rust/Cargo.toml --locked
     shell: bash
-  - run: pip install -e ".[testing]"
+
+  # Install the `wasm-tools` binary with the `component` subcommand that is all
+  # that's needed here.
+  - uses: actions/cache@v3
+    with:
+      path: ${{ runner.tool_cache }}/wasm-tools
+      key: wasm-tools-bin-e15e768a346c30738103d372e8ccf442646628c9
+  - run: echo "${{ runner.tool_cache }}/wasm-tools/bin" >> $GITHUB_PATH
+  - run: |
+      cargo install \
+        wasm-tools \
+        --root ${{ runner.tool_cache }}/wasm-tools
+        --git https://github.com/bytecodealliance/wasm-tools \
+        --rev e15e768a346c30738103d372e8ccf442646628c9 \
+        --no-default-features \
+        --features component
+    shell: bash
+
+  # Build the bindgen wasm blob with some extra Rust targets.
+  - run: rustup target add wasm32-unknown-unknown wasm32-wasi
+    shell: bash
+  - run: python ci/build-rust.py
     shell: bash
