@@ -5,3 +5,6 @@ members = ['bindgen', 'wasi_snapshot_preview1']
 git = 'https://github.com/bytecodealliance/wit-bindgen'
 default-features = false
 features = ['macros']
+
+[profile.release]
+strip = 'debuginfo'
