@@ -17,8 +17,8 @@ runs:
   - uses: actions/cache@v3
     with:
       path: |
-        ~/.cargo/registry
-        ~/.cargo/git
+        ~/.cargo/registry/index
+        ~/.cargo/git/db
       key: cargo-registry-${{ hashFiles('rust/Cargo.lock') }}
   - run: cargo fetch --manifest-path rust/Cargo.toml --locked
     shell: bash
