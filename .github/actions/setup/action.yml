@@ -41,5 +41,9 @@ runs:
       echo CARGO_INCREMENTAL=0 >> $GITHUB_ENV
       echo CARGO_PROFILE_DEV_DEBUG=0 >> $GITHUB_ENV
     shell: bash
+  - uses: actions/cache@v3
+    with:
+      path: rust/target
+      key: rust-target-${{ runner.name }}-${{ hashFiles('rust/Cargo.lock') }}
   - run: python ci/build-rust.py
     shell: bash
