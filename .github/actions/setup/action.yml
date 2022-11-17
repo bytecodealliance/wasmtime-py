@@ -36,7 +36,10 @@ runs:
     shell: bash
 
   # Build the bindgen wasm blob with some extra Rust targets.
-  - run: rustup target add wasm32-unknown-unknown wasm32-wasi
+  - run: |
+      rustup target add wasm32-unknown-unknown wasm32-wasi
+      echo CARGO_INCREMENTAL=0 >> $GITHUB_ENV
+      echo CARGO_PROFILE_DEV_DEBUG=0 >> $GITHUB_ENV
     shell: bash
   - run: python ci/build-rust.py
     shell: bash
