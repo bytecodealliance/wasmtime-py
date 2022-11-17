@@ -1738,7 +1738,7 @@ impl Bindgen for FunctionBindgen<'_> {
                         uwriteln!(self.src, "{tmp} = 0");
                         for (i, op) in operands.iter().enumerate() {
                             let i = 32 * i;
-                            uwriteln!(self.src, "{tmp} |= {op} << {i}\n");
+                            uwriteln!(self.src, "{tmp} |= ({op} & 0xffffffff) << {i}\n");
                         }
                         tmp
                     }
