@@ -121,11 +121,12 @@ jobs:
     - uses: actions/download-artifact@v3
       with:
         name: coverage
+        path: generated-docs/coverage
     - uses: actions/download-artifact@v3
       with:
         name: generated-docs
+        path: generated-docs
     - run: find .
-    - run: mv coverage generated-docs
     - uses: JamesIves/github-pages-deploy-action@4.1.4
       with:
         branch: gh-pages
@@ -142,8 +143,8 @@ jobs:
     - uses: actions/download-artifact@v3
       with:
         name: wheels
+        path: dist
     - run: find .
-    - run: mv wheels dist
 
     - name: Publish distribution 📦 to Test PyPI
       if: github.event_name == 'push'
