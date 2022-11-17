@@ -6,6 +6,7 @@
 # generating bindings during test collection and otherwise setting up everything
 # to be naturally checked with mypy and other tests configured.
 
+from wasmtime import wat2wasm
 from wasmtime.bindgen import generate
 from pathlib import Path
 import os
@@ -18,7 +19,7 @@ import os
 #
 # and then used to type-check everything.
 def bindgen(name: str, wat: str) -> None:
-    files = generate(name, wat.encode())
+    files = generate(name, wat2wasm(wat))
     root = Path(__file__).parent.joinpath('generated')
     dst = root.joinpath(name)
     for name, contents in files.items():
