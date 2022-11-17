@@ -46,22 +46,27 @@ jobs:
     - run: |
         git clean -fdx wasmtime build
         python ci/download-wasmtime.py linux x86_64
+        python ci/build-rust.py
         python setup.py bdist_wheel --plat-name manylinux1-x86_64
     - run: |
         git clean -fdx wasmtime build
         python ci/download-wasmtime.py linux aarch64
+        python ci/build-rust.py
         python setup.py bdist_wheel --plat-name manylinux2014_aarch64
     - run: |
         git clean -fdx wasmtime build
         python ci/download-wasmtime.py darwin x86_64
+        python ci/build-rust.py
         python setup.py bdist_wheel --plat-name macosx-10-13-x86_64
     - run: |
         git clean -fdx wasmtime build
         python ci/download-wasmtime.py darwin arm64
         python setup.py bdist_wheel --plat-name macosx-11-0-arm64
+        python ci/build-rust.py
     - run: |
         git clean -fdx wasmtime build
         python ci/download-wasmtime.py win32 x86_64
+        python ci/build-rust.py
         python setup.py bdist_wheel --plat-name win-amd64
 
     # Build an "any" wheel with:
@@ -76,6 +81,7 @@ jobs:
     - run: |
         git clean -fdx wasmtime build
         python ci/download-wasmtime.py win32 x86_64
+        python ci/build-rust.py
         python setup.py bdist_wheel
 
     - uses: actions/upload-artifact@v3
