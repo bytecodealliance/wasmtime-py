@@ -11,8 +11,8 @@ crate-type = ['cdylib', 'rlib']
 [dependencies]
 anyhow = "1.0"
 heck = { version = "0.4", features = ["unicode"] }
-wit-component = { git = 'https://github.com/bytecodealliance/wit-bindgen', default-features = false }
-wit-parser = { git = 'https://github.com/bytecodealliance/wit-bindgen', default-features = false }
+wit-component = { git = 'https://github.com/bytecodealliance/wasm-tools' }
+wit-parser = { git = 'https://github.com/bytecodealliance/wasm-tools', default-features = false }
 indexmap = "1.0"
 wasmtime-environ = { git = 'https://github.com/bytecodealliance/wasmtime', features = ['component-model'] }
 wit-bindgen-guest-rust = { workspace = true, features = ['default'] }
