@@ -1,9 +1,13 @@
 from . import _ffi as ffi
 from wasmtime import Config, WasmtimeError
+from typing import Optional
+import ctypes
 
 
 class Engine:
-    def __init__(self, config: Config = None):
+    _ptr: "ctypes._Pointer[ffi.wasm_engine_t]"
+
+    def __init__(self, config: Optional[Config] = None):
         if config is None:
             self._ptr = ffi.wasm_engine_new()
         elif not isinstance(config, Config):
