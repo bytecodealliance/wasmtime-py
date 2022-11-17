@@ -94,6 +94,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: ./.github/actions/setup
+    - run: pip install pdoc3
     - run: pdoc --html wasmtime
     - uses: actions/upload-artifact@v3
       with:
