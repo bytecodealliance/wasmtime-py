@@ -4,6 +4,8 @@ runs:
   steps:
   - run: rustup target add wasm32-unknown-unknown wasm32-wasi
     shell: bash
+  - run: cargo install wasm-tools --git https://github.com/bytecodealliance/wasm-tools --no-default-features --features component
+    shell: bash
   - uses: actions/setup-python@v4
     with:
       python-version: '3.x'
