@@ -1,4 +1,4 @@
 [flake8]
 ignore = F405,F403
 max-line-length = 160
-exclude = wasmtime/__init__.py,tests/__init__.py,wasmtime/bindgen/generated/*
+exclude = wasmtime/__init__.py,tests/__init__.py,wasmtime/bindgen/generated/*,tests/codegen/*

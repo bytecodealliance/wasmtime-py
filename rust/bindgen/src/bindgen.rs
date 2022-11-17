@@ -198,7 +198,7 @@ impl WasmtimePy {
 
         uwriteln!(
             self.init,
-            "def __init__(self, store: wasmtime.Store{imports}):"
+            "def __init__(self, store: wasmtime.Store{imports}) -> None:"
         );
         self.init.indent();
         let mut i = Instantiator {
@@ -212,6 +212,9 @@ impl WasmtimePy {
         };
         for init in component.initializers.iter() {
             i.global_initializer(init);
+        }
+        if component.initializers.len() == 0 {
+            i.gen.init.push_str("pass\n");
         }
         let (lifts, nested) = i.exports(&component.exports, interfaces.default.as_ref());
         i.gen.init.dedent();

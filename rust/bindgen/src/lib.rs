@@ -43,10 +43,11 @@ mod bindings {
 
     impl wasmtime_py::WasmtimePy for PythonBindings {
         fn generate(name: String, component: Vec<u8>) -> Result<Vec<(String, Vec<u8>)>, String> {
+            let component = wat::parse_bytes(&component).map_err(|e| e.to_string())?;
             let mut gen = crate::WasmtimePy::default();
             let mut files = Default::default();
             gen.generate(&name, &component, &mut files)
-                .map_err(|e| format!("{:?}", e))?;
+                .map_err(|e| format!("{e:?}"))?;
             Ok(files
                 .iter()
                 .map(|(name, bytes)| (name.to_string(), bytes.to_vec()))

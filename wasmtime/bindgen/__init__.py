@@ -1,5 +1,5 @@
 from .generated import Bindgen, BindgenImports, Err
-from typing import Mapping
+from typing import Mapping, Tuple
 import sys
 from wasmtime import Store
 
@@ -12,6 +12,19 @@ class Imports:
         sys.stderr.buffer.write(list)
 
 
+bindgen = None
+store = None
+
+
+def init() -> Tuple[Bindgen, Store]:
+    global store
+    global bindgen
+    if bindgen is None:
+        store = Store()
+        bindgen = Bindgen(store, BindgenImports(python=Imports()))
+    return bindgen, store
+
+
 # Generates Python bindings for the given component.
 #
 # The `name` provided is used as the name of the `component` binary provided.
@@ -21,8 +34,7 @@ class Imports:
 # This function returns a mapping of filename to contents of files that are
 # generated to represent the Python bindings here.
 def generate(name: str, component: bytes) -> Mapping[str, bytes]:
-    store = Store()
-    bindgen = Bindgen(store, BindgenImports(python=Imports()))
+    bindgen, store = init()
     result = bindgen.generate(store, name, component)
     if isinstance(result, Err):
         raise RuntimeError(result.value)

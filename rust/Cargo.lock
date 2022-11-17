@@ -33,6 +33,7 @@ dependencies = [
  "heck",
  "indexmap",
  "wasmtime-environ",
+ "wat",
  "wit-bindgen-guest-rust",
  "wit-component",
  "wit-parser",
