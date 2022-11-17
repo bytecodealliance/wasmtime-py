@@ -1,0 +1,15 @@
+name: 'Setup wasmtime-py CI'
+runs:
+  using: "composite"
+  steps:
+  - run: rustup target add wasm32-unknown-unknown wasm32-wasi
+    shell: bash
+  - uses: actions/setup-python@v4
+    with:
+      python-version: '3.x'
+  - run: python ci/download-wasmtime.py
+    shell: bash
+  - run: python ci/build-rust.py
+    shell: bash
+  - run: pip install -e ".[testing]"
+    shell: bash

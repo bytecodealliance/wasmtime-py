@@ -17,12 +17,19 @@ in the top-level directory of the package's source (this is what CI does):
 [wasmtime]: https://wasmtime.dev/
 
 ```sh
-$ python download-wasmtime.py
+$ python ci/download-wasmtime.py
 ```
 
 Otherwise if you have a local checkout of Wasmtime you can symlink its
 `libwasmtime.so` (or equivalent) to `wasmtime/linux-x86_64/_libwasmtime.so` (or
 equivalent).
+
+Next the bindings generation requires compiling some Rust code to WebAssembly,
+which can be done with:
+
+```sh
+$ python ci/build-rust.py
+```
 
 Finally, install the dev dependencies with `pip`:
 

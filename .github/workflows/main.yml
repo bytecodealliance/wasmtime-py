@@ -1,7 +1,7 @@
 name: CI
 on:
   push:
-    branches: [main]
+    branches: [main, components]
     tags-ignore: [dev]
   pull_request:
     branches: [main]
@@ -27,23 +27,18 @@ jobs:
         - os: windows-latest
           python-version: pypy3
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-      - run: python ci/download-wasmtime.py
-      - run: pip install -e ".[testing]"
       - run: pytest
 
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - uses: actions/setup-python@v1
-      with:
-        python-version: '3.x'
+    - uses: actions/checkout@v3
+    - uses: ./.github/actions/setup
     - run: pip install setuptools wheel
     # If this is a tagged build use real version numbers
     - run: echo "PROD=true" >> $GITHUB_ENV
@@ -83,7 +78,7 @@ jobs:
         python ci/download-wasmtime.py win32 x86_64
         python setup.py bdist_wheel
 
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v3
       with:
         name: wheels
         path: dist
@@ -91,14 +86,10 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v1
-      with:
-        python-version: '3.x'
-    - run: pip install pdoc3
-    - run: python ci/download-wasmtime.py
+    - uses: actions/checkout@v3
+    - uses: ./.github/actions/setup
     - run: pdoc --html wasmtime
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v3
       with:
         name: generated-docs
         path: html/wasmtime
@@ -106,15 +97,11 @@ jobs:
   coverage:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v1
-      with:
-        python-version: '3.x'
-    - run: python ci/download-wasmtime.py
-    - run: pip install -e ".[testing]"
+    - uses: actions/checkout@v3
+    - uses: ./.github/actions/setup
     - run: coverage run -m pytest
     - run: coverage html
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v3
       with:
         name: coverage
         path: htmlcov
@@ -123,11 +110,11 @@ jobs:
     needs: [coverage, docs]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/download-artifact@v1
+    - uses: actions/checkout@v3
+    - uses: actions/download-artifact@v3
       with:
         name: coverage
-    - uses: actions/download-artifact@v1
+    - uses: actions/download-artifact@v3
       with:
         name: generated-docs
     - run: find .
@@ -143,11 +130,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v1
-      with:
-        python-version: '3.x'
-    - uses: actions/download-artifact@v1
+    - uses: actions/checkout@v3
+    - uses: ./.github/actions/setup
+    - uses: actions/download-artifact@v3
       with:
         name: wheels
     - run: find .
