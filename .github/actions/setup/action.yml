@@ -13,6 +13,14 @@ runs:
   - run: python ci/download-wasmtime.py
     shell: bash
 
+  # https://github.com/actions/cache/blob/main/workarounds.md#improving-cache-restore-performance-on-windows-using-cross-os-caching
+  - if: ${{ runner.os == 'Windows' }}
+    name: Use GNU tar
+    shell: cmd
+    run: |
+      echo "Adding GNU tar to PATH"
+      echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
+
   # Ensure the Rust lockfile is up-to-date
   - uses: actions/cache@v3
     with:
