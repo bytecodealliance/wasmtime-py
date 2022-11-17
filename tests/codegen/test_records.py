@@ -1,5 +1,4 @@
 from . import bindgen
-import math
 from typing import Tuple
 from wasmtime import Store
 
@@ -162,7 +161,7 @@ bindgen('records', module)
 from .generated.records import Records, RecordsImports, imports, Flag1, Flag2, Flag8, Flag16, Flag32, Flag64, R1
 from .generated.records.imports import host
 
-class Host:
+class Host(imports.Host):
     def multiple_results(self) -> Tuple[int, int]:
         return 1, 2
 

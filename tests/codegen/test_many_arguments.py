@@ -79,9 +79,9 @@ module = """
 """
 bindgen('many_arguments', module)
 
-from .generated.many_arguments import ManyArguments, ManyArgumentsImports
+from .generated.many_arguments import ManyArguments, ManyArgumentsImports, imports
 
-class MyImports:
+class MyImports(imports.Host):
     def many_arguments(self,
             a1: int,
             a2: int,

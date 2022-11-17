@@ -273,6 +273,9 @@ impl WasmtimePy {
             gen.src.push_str("raise NotImplementedError\n");
             gen.src.dedent();
         }
+        if iface.functions.is_empty() {
+            gen.src.push_str("pass\n");
+        }
         gen.src.dedent();
         gen.src.push_str("\n");
 
@@ -1286,8 +1289,8 @@ impl FunctionBindgen<'_> {
                 src,
                 "
                     def {name}(i: int) -> float:
-                        _i32_to_f32_i32[0] = i     # type: ignore
-                        return _i32_to_f32_f32[0]  # type: ignore
+                        _i32_to_f32_i32[0] = i
+                        return _i32_to_f32_f32[0]
                 ",
             );
         })
@@ -1300,8 +1303,8 @@ impl FunctionBindgen<'_> {
                 src,
                 "
                     def {name}(i: float) -> int:
-                        _i32_to_f32_f32[0] = i    # type: ignore
-                        return _i32_to_f32_i32[0] # type: ignore
+                        _i32_to_f32_f32[0] = i
+                        return _i32_to_f32_i32[0]
                 ",
             );
         })
@@ -1327,8 +1330,8 @@ impl FunctionBindgen<'_> {
                 src,
                 "
                     def {name}(i: int) -> float:
-                        _i64_to_f64_i64[0] = i     # type: ignore
-                        return _i64_to_f64_f64[0]  # type: ignore
+                        _i64_to_f64_i64[0] = i
+                        return _i64_to_f64_f64[0]
                 ",
             );
         })
@@ -1341,8 +1344,8 @@ impl FunctionBindgen<'_> {
                 src,
                 "
                     def {name}(i: float) -> int:
-                        _i64_to_f64_f64[0] = i    # type: ignore
-                        return _i64_to_f64_i64[0] # type: ignore
+                        _i64_to_f64_f64[0] = i
+                        return _i64_to_f64_i64[0]
                 ",
             );
         })

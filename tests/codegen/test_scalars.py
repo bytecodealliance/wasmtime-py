@@ -119,9 +119,9 @@ module = """
 """
 bindgen('scalars', module)
 
-from .generated.scalars import Scalars, ScalarsImports
+from .generated.scalars import Scalars, ScalarsImports, imports
 
-class Host:
+class Host(imports.Host):
     def roundtrip_u8(self, val: int) -> int:
         assert val >= 0
         assert val <= (1 << 8) - 1

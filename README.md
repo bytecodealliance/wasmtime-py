@@ -135,10 +135,10 @@ world demo {
 And this `demo.py` script
 
 ```python
-from demo import Demo, DemoImports
+from demo import Demo, DemoImports, imports
 from wasmtime import Store
 
-class Host:
+class Host(imports.Python):
     def print(self, s: str):
         print(s)
 

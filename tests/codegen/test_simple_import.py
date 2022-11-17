@@ -21,9 +21,9 @@ module = """
 """
 bindgen('simple_import', module)
 
-from .generated.simple_import import SimpleImport, SimpleImportImports
+from .generated.simple_import import SimpleImport, SimpleImportImports, imports
 
-class Host:
+class Host(imports.Host):
     def thunk(self):
         self.hit = True
 
