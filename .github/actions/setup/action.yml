@@ -45,5 +45,9 @@ runs:
     with:
       path: rust/target
       key: rust-target-${{ runner.name }}-${{ hashFiles('rust/Cargo.lock') }}
+  - uses: actions/cache@v3
+    with:
+      path: ~/.cargo/registry
+      key: cargo-registry-${{ hashFiles('rust/Cargo.lock') }}
   - run: python ci/build-rust.py
     shell: bash
