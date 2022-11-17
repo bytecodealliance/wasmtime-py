@@ -16,7 +16,9 @@ runs:
   # Ensure the Rust lockfile is up-to-date
   - uses: actions/cache@v3
     with:
-      path: ~/.cargo/registry
+      path: |
+        ~/.cargo/registry
+        ~/.cargo/git
       key: cargo-registry-${{ hashFiles('rust/Cargo.lock') }}
   - run: cargo fetch --manifest-path rust/Cargo.toml --locked
     shell: bash
