@@ -81,24 +81,25 @@ bindgen('many_arguments', module)
 
 from .generated.many_arguments import ManyArguments, ManyArgumentsImports, imports
 
+
 class MyImports(imports.Host):
     def many_arguments(self,
-            a1: int,
-            a2: int,
-            a3: int,
-            a4: int,
-            a5: int,
-            a6: int,
-            a7: int,
-            a8: int,
-            a9: int,
-            a10: int,
-            a11: int,
-            a12: int,
-            a13: int,
-            a14: int,
-            a15: int,
-            a16: int) -> None:
+                       a1: int,
+                       a2: int,
+                       a3: int,
+                       a4: int,
+                       a5: int,
+                       a6: int,
+                       a7: int,
+                       a8: int,
+                       a9: int,
+                       a10: int,
+                       a11: int,
+                       a12: int,
+                       a13: int,
+                       a14: int,
+                       a15: int,
+                       a16: int) -> None:
         assert(a1 == 1)
         assert(a2 == 2)
         assert(a3 == 3)
@@ -120,4 +121,4 @@ class MyImports(imports.Host):
 def test_bindings():
     store = Store()
     wasm = ManyArguments(store, ManyArgumentsImports(MyImports()))
-    wasm.many_arguments(store, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,14, 15, 16)
+    wasm.many_arguments(store, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)

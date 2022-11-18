@@ -161,6 +161,7 @@ bindgen('records', module)
 from .generated.records import Records, RecordsImports, imports, Flag1, Flag2, Flag8, Flag16, Flag32, Flag64, R1
 from .generated.records.imports import host
 
+
 class Host(imports.Host):
     def multiple_results(self) -> Tuple[int, int]:
         return 1, 2
@@ -192,6 +193,7 @@ class Host(imports.Host):
 
     def roundtrip_r1(self, f: host.R1) -> host.R1:
         return f
+
 
 def test_bindings():
     store = Store()

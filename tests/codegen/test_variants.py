@@ -212,6 +212,7 @@ from .generated import variants as e
 from .generated.variants.imports import host
 from .generated.variants.types import Result, Ok, Err
 
+
 class Host(imports.Host):
     def roundtrip_option(self, a: Optional[float]) -> Optional[int]:
         if a:
@@ -309,7 +310,7 @@ def test_bindings():
     wasm = Variants(store, VariantsImports(host=Host()))
 
     assert wasm.roundtrip_option(store, 1.) == 1
-    assert wasm.roundtrip_option(store, None) == None
+    assert wasm.roundtrip_option(store, None) is None
     assert wasm.roundtrip_option(store, 2.) == 2
 
     assert wasm.roundtrip_result(store, Ok(2)) == Ok(2)
@@ -360,32 +361,31 @@ def test_bindings():
     assert z3 == e.Z3A(3.)
     assert z4 == e.Z4A(4.)
 
-
     # All-Integers
     # Booleans
     assert wasm.add_one_all_integers(store, e.AllIntegers0(False)) == e.AllIntegers0(True)
     assert wasm.add_one_all_integers(store, e.AllIntegers0(True)) == e.AllIntegers0(False)
     # Unsigned integers
     assert wasm.add_one_all_integers(store, e.AllIntegers1(0)) == e.AllIntegers1(1)
-    assert wasm.add_one_all_integers(store, e.AllIntegers1(2**8-1)) == e.AllIntegers1(0)
+    assert wasm.add_one_all_integers(store, e.AllIntegers1(2**8 - 1)) == e.AllIntegers1(0)
     assert wasm.add_one_all_integers(store, e.AllIntegers2(0)) == e.AllIntegers2(1)
-    assert wasm.add_one_all_integers(store, e.AllIntegers2(2**16-1)) == e.AllIntegers2(0)
+    assert wasm.add_one_all_integers(store, e.AllIntegers2(2**16 - 1)) == e.AllIntegers2(0)
     assert wasm.add_one_all_integers(store, e.AllIntegers3(0)) == e.AllIntegers3(1)
-    assert wasm.add_one_all_integers(store, e.AllIntegers3(2**32-1)) == e.AllIntegers3(0)
+    assert wasm.add_one_all_integers(store, e.AllIntegers3(2**32 - 1)) == e.AllIntegers3(0)
     assert wasm.add_one_all_integers(store, e.AllIntegers4(0)) == e.AllIntegers4(1)
-    assert wasm.add_one_all_integers(store, e.AllIntegers4(2**64-1)) == e.AllIntegers4(0)
+    assert wasm.add_one_all_integers(store, e.AllIntegers4(2**64 - 1)) == e.AllIntegers4(0)
     # Signed integers
     assert wasm.add_one_all_integers(store, e.AllIntegers5(0)) == e.AllIntegers5(1)
-    assert wasm.add_one_all_integers(store, e.AllIntegers5(2**7-2)) == e.AllIntegers5(2**7-1)
+    assert wasm.add_one_all_integers(store, e.AllIntegers5(2**7 - 2)) == e.AllIntegers5(2**7 - 1)
     assert wasm.add_one_all_integers(store, e.AllIntegers5(-8)) == e.AllIntegers5(-7)
     assert wasm.add_one_all_integers(store, e.AllIntegers6(0)) == e.AllIntegers6(1)
-    assert wasm.add_one_all_integers(store, e.AllIntegers6(2**15-2)) == e.AllIntegers6(2**15-1)
+    assert wasm.add_one_all_integers(store, e.AllIntegers6(2**15 - 2)) == e.AllIntegers6(2**15 - 1)
     assert wasm.add_one_all_integers(store, e.AllIntegers6(-8)) == e.AllIntegers6(-7)
     assert wasm.add_one_all_integers(store, e.AllIntegers7(0)) == e.AllIntegers7(1)
-    assert wasm.add_one_all_integers(store, e.AllIntegers7(2**31-2)) == e.AllIntegers7(2**31-1)
+    assert wasm.add_one_all_integers(store, e.AllIntegers7(2**31 - 2)) == e.AllIntegers7(2**31 - 1)
     assert wasm.add_one_all_integers(store, e.AllIntegers7(-8)) == e.AllIntegers7(-7)
     assert wasm.add_one_all_integers(store, e.AllIntegers8(0)) == e.AllIntegers8(1)
-    assert wasm.add_one_all_integers(store, e.AllIntegers8(2**63-2)) == e.AllIntegers8(2**63-1)
+    assert wasm.add_one_all_integers(store, e.AllIntegers8(2**63 - 2)) == e.AllIntegers8(2**63 - 1)
     assert wasm.add_one_all_integers(store, e.AllIntegers8(-8)) == e.AllIntegers8(-7)
 
     assert wasm.add_one_all_floats(store, e.AllFloats0(0.0)) == e.AllFloats0(1.0)

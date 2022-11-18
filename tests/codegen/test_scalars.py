@@ -121,6 +121,7 @@ bindgen('scalars', module)
 
 from .generated.scalars import Scalars, ScalarsImports, imports
 
+
 class Host(imports.Host):
     def roundtrip_u8(self, val: int) -> int:
         assert val >= 0
@@ -174,6 +175,7 @@ class Host(imports.Host):
     def roundtrip_bool(self, a: bool) -> bool:
         return a
 
+
 def test_bindings():
     store = Store()
     bindings = Scalars(store, ScalarsImports(host=Host()))
@@ -215,5 +217,5 @@ def test_bindings():
     assert bindings.roundtrip_char(store, ' ') == ' '
     assert bindings.roundtrip_char(store, '🚩') == '🚩'
 
-    assert bindings.roundtrip_bool(store, True) == True
-    assert bindings.roundtrip_bool(store, False) == False
+    assert bindings.roundtrip_bool(store, True)
+    assert not bindings.roundtrip_bool(store, False)

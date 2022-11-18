@@ -1,4 +1,8 @@
 [flake8]
 ignore = F405,F403
 max-line-length = 160
-exclude = wasmtime/__init__.py,tests/__init__.py,wasmtime/bindgen/generated/*,tests/codegen/*
+exclude = wasmtime/__init__.py,tests/__init__.py,wasmtime/bindgen/generated/*,tests/codegen/generated/*
+
+per-file-ignores =
+  # Codegen tests intentionally have some imports not at the top
+  tests/codegen/*:E402

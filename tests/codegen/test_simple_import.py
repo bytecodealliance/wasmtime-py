@@ -23,9 +23,11 @@ bindgen('simple_import', module)
 
 from .generated.simple_import import SimpleImport, SimpleImportImports, imports
 
+
 class Host(imports.Host):
     def thunk(self):
         self.hit = True
+
 
 def test_bindings():
     store = Store()

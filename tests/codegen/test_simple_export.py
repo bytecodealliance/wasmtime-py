@@ -17,9 +17,9 @@ bindgen('simple_export', module)
 
 from .generated.simple_export import SimpleExport
 
+
 def test_bindings():
     store = Store()
     bindings = SimpleExport(store)
     result = bindings.get(store)
     assert result == 100
-

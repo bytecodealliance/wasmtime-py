@@ -11,6 +11,7 @@ from wasmtime.bindgen import generate
 from pathlib import Path
 import os
 
+
 # Helper function to generate bindings for the `wat` specified into the
 # `generated` sub-folder. After calling this method the bindings can be
 # imported with:
