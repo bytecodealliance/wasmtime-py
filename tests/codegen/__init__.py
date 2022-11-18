@@ -23,13 +23,20 @@ def bindgen(name: str, wat: str) -> None:
     root = Path(__file__).parent.joinpath('generated')
     dst = root.joinpath(name)
     for name, contents in files.items():
+        # If the file already has the desired contents then skip writing. This
+        # is an attempt to fix CI issues on windows.
+        file = dst.joinpath(name)
+        if file.exists():
+            with open(file, 'rb') as f:
+                if f.read() == contents:
+                    continue
+
         # Write the contents to a temporary file and then attempt to atomically
         # replace the previous file, if any, with the new contents. This
         # is done to hopefully fix an apparent issue in `pytest` where it seems
         # that there are multiple threads of the python interpreter, perhaps for
         # pytest itself, mypy, and flake8, and overwriting files in-place causes
         # issues are partial files may be seen.
-        file = dst.joinpath(name)
         tmp_file = file.with_suffix('.tmp')
         if not file.parent.exists():
             file.parent.mkdir(parents=True)
