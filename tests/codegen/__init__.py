@@ -42,10 +42,6 @@ def bindgen(name: str, wat: str) -> None:
         if not file.parent.exists():
             file.parent.mkdir(parents=True)
         tmp_file.write_bytes(contents)
-        print(file.parts)
-        print(file)
-        print(tmp_file.parts)
-        print(tmp_file)
         os.replace(tmp_file, file)
 
 
