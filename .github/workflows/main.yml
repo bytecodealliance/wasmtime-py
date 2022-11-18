@@ -32,9 +32,8 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-      - run: pytest -s
-        env:
-          PYTEST_DEBUG: 1
+      - run: pytest --setup-only
+      - run: pytest
 
   build:
     runs-on: ubuntu-latest
