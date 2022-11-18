@@ -1,0 +1,64 @@
+name: 'Setup wasmtime-py CI'
+runs:
+  using: "composite"
+  steps:
+  # Setup Python and the Python dependencies of this project
+  - uses: actions/setup-python@v4
+    with:
+      python-version: '3.x'
+  - run: pip install -e ".[testing]"
+    shell: bash
+
+  # Download precompiled wasmtime binaries for running the project
+  - run: python ci/download-wasmtime.py
+    shell: bash
+
+  # https://github.com/actions/cache/blob/main/workarounds.md#improving-cache-restore-performance-on-windows-using-cross-os-caching
+  - if: ${{ runner.os == 'Windows' }}
+    name: Use GNU tar
+    shell: cmd
+    run: |
+      echo "Adding GNU tar to PATH"
+      echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
+
+  # Ensure the Rust lockfile is up-to-date
+  - uses: actions/cache@v3
+    with:
+      path: |
+        ~/.cargo/registry/index
+        ~/.cargo/git/db
+      key: cargo-registry-${{ hashFiles('rust/Cargo.lock') }}
+  - run: cargo fetch --manifest-path rust/Cargo.toml --locked
+    shell: bash
+
+  # Install the `wasm-tools` binary with the `component` subcommand that is all
+  # that's needed here.
+  - uses: actions/cache@v3
+    with:
+      path: ${{ runner.tool_cache }}/wasm-tools
+      key: wasm-tools-bin-e15e768a346c30738103d372e8ccf442646628c9-${{ runner.os }}
+  - run: echo '${{ runner.tool_cache }}/wasm-tools/bin' >> $GITHUB_PATH
+    shell: bash
+  - run: |
+      cargo install \
+        wasm-tools \
+        --root '${{ runner.tool_cache }}/wasm-tools' \
+        --git https://github.com/bytecodealliance/wasm-tools \
+        --rev e15e768a346c30738103d372e8ccf442646628c9 \
+        --no-default-features \
+        --features component
+    shell: bash
+
+  # Build the bindgen wasm blob with some extra Rust targets.
+  - run: |
+      rustup target add wasm32-unknown-unknown wasm32-wasi
+      echo CARGO_INCREMENTAL=0 >> $GITHUB_ENV
+      echo CARGO_PROFILE_DEV_DEBUG=0 >> $GITHUB_ENV
+      echo RUSTC_VERSION=`rustc --version` >> $GITHUB_ENV
+    shell: bash
+  - uses: actions/cache@v3
+    with:
+      path: rust/target
+      key: rust-target-${{ env.RUSTC_VERSION }}-${{ runner.os }}-${{ hashFiles('rust/Cargo.lock') }}
+  - run: python ci/build-rust.py
+    shell: bash

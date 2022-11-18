@@ -1,3 +1,1 @@
-recursive-include wasmtime *.so
-recursive-include wasmtime *.dll
-recursive-include wasmtime *.dylib
+recursive-include wasmtime *.py *.wasm *.so *.dll *.dylib

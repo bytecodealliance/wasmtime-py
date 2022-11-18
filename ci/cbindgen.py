@@ -15,7 +15,7 @@ class Visitor(c_ast.NodeVisitor):
         self.ret += '# flake8: noqa\n'
         self.ret += '#\n'
         self.ret += '# This is a procedurally generated file, DO NOT EDIT\n'
-        self.ret += '# instead edit `./bindgen.py` at the root of the repo\n'
+        self.ret += '# instead edit `./ci/cbindgen.py` at the root of the repo\n'
         self.ret += '\n'
         self.ret += 'from ctypes import *\n'
         self.ret += 'import ctypes\n'

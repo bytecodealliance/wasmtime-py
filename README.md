@@ -83,6 +83,89 @@ import your_wasm_file
 print(your_wasm_file.run())
 ```
 
+## Components
+
+The `wasmtime` package has initial support for running WebAssembly components in
+Python with high-level bindings. WebAssembly components are defined by the
+[component model] and are a flagship feature under development for Wasmtime and
+its bindings. Components enable communication between the host and WebAssembly
+guests with richer types than the numerical primitives supported by core
+WebAssembly. For example with a component Python can pass a string to wasm and
+back.
+
+Components are represented as `*.wasm` binaries in the same manner as core
+WebAssembly modules. With a component binary you can generate Python bindings
+with:
+
+```sh
+$ python -m wasmtime.bindgen the-component.wasm --out-dir the-bindings
+```
+
+An example of using this can be done with the [`wasm-tools`] repository. For
+example with this core wasm module at `demo.wat`:
+
+```wasm
+(module
+  (import "python" "print" (func $print (param i32 i32)))
+  (memory (export "memory") 1)
+
+  (func (export "run")
+    i32.const 100   ;; base pointer of string
+    i32.const 13    ;; length of string
+    call $print)
+
+  (data (i32.const 100) "Hello, world!")
+)
+```
+
+and with this [`*.wit`] interface at `demo.wit`:
+
+```text
+world demo {
+  import python: interface {
+    print: func(s: string)
+  }
+
+  default export interface {
+    run: func()
+  }
+}
+```
+
+And this `demo.py` script
+
+```python
+from demo import Demo, DemoImports, imports
+from wasmtime import Store
+
+class Host(imports.Python):
+    def print(self, s: str):
+        print(s)
+
+def main():
+    store = Store()
+    demo = Demo(store, DemoImports(Host()))
+    demo.run(store)
+
+if __name__ == '__main__':
+    main()
+```
+
+```sh
+$ wasm-tools component new demo.wat --wit demo.wit -o demo.wasm
+$ python -m wasmtime.bindgen demo.wasm --out-dir demo
+$ python demo.py
+Hello, world!
+```
+
+The generated package `demo` has all of the requisite exports/imports into the
+component bound. The `demo` package is additionally annotated with types to
+assist with type-checking and self-documentation as much as possible.
+
+[component model]: https://github.com/WebAssembly/component-model
+[`wasm-tools`]: https://githubcom/bytecodealliance/wasm-tools
+[`*.wit`]: https://github.com/WebAssembly/component-model/blob/main/design/mvp/WIT.md
+
 ## Contributing
 
 See [`CONTRIBUTING.md`](./CONTRIBUTING.md).
