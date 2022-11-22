@@ -10,7 +10,7 @@ import tarfile
 import urllib.request
 import zipfile
 
-WASMTIME_VERSION = "v3.0.0"
+WASMTIME_VERSION = "dev"
 
 
 def main(platform, arch):
