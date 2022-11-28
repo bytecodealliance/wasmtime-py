@@ -42,7 +42,6 @@ use wasmtime_environ::component::{
 };
 use wasmtime_environ::wasmparser::{Validator, WasmFeatures};
 use wasmtime_environ::{EntityIndex, ModuleTranslation, PrimaryMap, ScopeVec, Tunables};
-use wit_component::ComponentInterfaces;
 use wit_parser::{
     abi::{AbiVariant, Bindgen, Bitcast, Instruction, LiftLower, WasmType},
     *,
@@ -80,7 +79,7 @@ impl WasmtimePy {
         // will likely change as worlds are iterated on in the component model
         // standard. Regardless though this is the step where types are learned
         // and `Interface`s are constructed for further code generation below.
-        let interfaces = wit_component::decode_component_interfaces(binary)
+        let world = wit_component::decode_world(name, binary)
             .context("failed to extract interface information from component")?;
 
         // Components are complicated, there's no real way around that. To
@@ -117,21 +116,21 @@ impl WasmtimePy {
         // With all that prep work delegate to `generate` here
         // to generate all the type-level descriptions for this component now
         // that the interfaces in/out are understood.
-        for (name, import) in interfaces.imports.iter() {
+        for (name, import) in world.imports.iter() {
             self.import(name, import, files);
         }
-        for (name, export) in interfaces.exports.iter() {
+        for (name, export) in world.exports.iter() {
             self.export(name, export, files);
         }
-        if let Some(iface) = &interfaces.default {
+        if let Some(iface) = &world.default {
             self.export_default(name, iface, files);
         }
-        self.finish_interfaces(name, &interfaces, files);
+        self.finish_interfaces(&world, files);
 
         // And finally generate the code necessary to instantiate the given
         // component to this method using the `Component` that
         // `wasmtime-environ` parsed.
-        self.instantiate(name, &component, &modules, &interfaces);
+        self.instantiate(&world, &component, &modules);
 
         self.finish_component(name, files);
 
@@ -175,14 +174,13 @@ impl WasmtimePy {
 
     fn instantiate(
         &mut self,
-        name: &str,
+        world: &World,
         component: &Component,
         modules: &PrimaryMap<StaticModuleIndex, ModuleTranslation<'_>>,
-        interfaces: &ComponentInterfaces,
     ) {
         self.init.pyimport("wasmtime", None);
 
-        let camel = name.to_upper_camel_case();
+        let camel = world.name.to_upper_camel_case();
         let imports = if !component.import_types.is_empty() {
             self.init
                 .pyimport(".imports", format!("{camel}Imports").as_str());
@@ -202,11 +200,11 @@ impl WasmtimePy {
         );
         self.init.indent();
         let mut i = Instantiator {
-            name,
+            name: &world.name,
             gen: self,
             modules,
             component,
-            interfaces,
+            world,
             instances: PrimaryMap::default(),
             lifts: 0,
         };
@@ -216,7 +214,7 @@ impl WasmtimePy {
         if component.initializers.len() == 0 {
             i.gen.init.push_str("pass\n");
         }
-        let (lifts, nested) = i.exports(&component.exports, interfaces.default.as_ref());
+        let (lifts, nested) = i.exports(&component.exports, world.default.as_ref());
         i.gen.init.dedent();
 
         i.generate_lifts(&camel, None, &lifts);
@@ -306,14 +304,9 @@ impl WasmtimePy {
         mem::swap(&mut gen.src, &mut gen.gen.init);
     }
 
-    fn finish_interfaces(
-        &mut self,
-        name: &str,
-        _interfaces: &ComponentInterfaces,
-        _files: &mut Files,
-    ) {
+    fn finish_interfaces(&mut self, world: &World, _files: &mut Files) {
         if !self.imports.is_empty() {
-            let camel = name.to_upper_camel_case();
+            let camel = world.name.to_upper_camel_case();
             self.imports_init.pyimport("dataclasses", "dataclass");
             uwriteln!(self.imports_init, "@dataclass");
             uwriteln!(self.imports_init, "class {camel}Imports:");
@@ -357,7 +350,7 @@ struct Instantiator<'a> {
     gen: &'a mut WasmtimePy,
     modules: &'a PrimaryMap<StaticModuleIndex, ModuleTranslation<'a>>,
     instances: PrimaryMap<RuntimeInstanceIndex, StaticModuleIndex>,
-    interfaces: &'a ComponentInterfaces,
+    world: &'a World,
     component: &'a Component,
     lifts: usize,
 }
@@ -472,7 +465,7 @@ impl<'a> Instantiator<'a> {
         let (import_index, path) = &self.component.imports[import.import];
         let (import_name, _import_ty) = &self.component.import_types[*import_index];
         assert_eq!(path.len(), 1);
-        let iface = &self.interfaces.imports[import_name.as_str()];
+        let iface = &self.world.imports[import_name.as_str()];
         let func = iface.functions.iter().find(|f| f.name == path[0]).unwrap();
 
         let index = import.index.as_u32();
@@ -687,7 +680,7 @@ impl<'a> Instantiator<'a> {
                 }
 
                 Export::Instance(exports) => {
-                    let iface = &self.interfaces.exports[name];
+                    let iface = &self.world.exports[name];
                     let (my_toplevel, my_nested) = self.exports(exports, Some(iface));
                     // More than one level of nesting not supported at this
                     // time.
