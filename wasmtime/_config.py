@@ -216,6 +216,18 @@ class Config:
             raise TypeError('expected an bool')
         ffi.wasmtime_config_consume_fuel_set(self._ptr, instances)
 
+    @setter_property
+    def parallel_compilation(self, enable: bool) -> None:
+        """
+        Configures whether parallel compilation is enabled for functions
+        within a module.
+
+        This is enabled by default.
+        """
+        if not isinstance(enable, bool):
+            raise TypeError('expected a bool')
+        ffi.wasmtime_config_parallel_compilation_set(self._ptr, enable)
+
     def __del__(self) -> None:
         if hasattr(self, '_ptr'):
             ffi.wasm_config_delete(self._ptr)

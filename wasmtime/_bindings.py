@@ -2066,6 +2066,12 @@ _wasmtime_config_strategy_set.argtypes = [POINTER(wasm_config_t), wasmtime_strat
 def wasmtime_config_strategy_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_strategy_set(arg0, arg1)  # type: ignore
 
+_wasmtime_config_parallel_compilation_set = dll.wasmtime_config_parallel_compilation_set
+_wasmtime_config_parallel_compilation_set.restype = None
+_wasmtime_config_parallel_compilation_set.argtypes = [POINTER(wasm_config_t), c_bool]
+def wasmtime_config_parallel_compilation_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_parallel_compilation_set(arg0, arg1)  # type: ignore
+
 _wasmtime_config_cranelift_debug_verifier_set = dll.wasmtime_config_cranelift_debug_verifier_set
 _wasmtime_config_cranelift_debug_verifier_set.restype = None
 _wasmtime_config_cranelift_debug_verifier_set.argtypes = [POINTER(wasm_config_t), c_bool]
