@@ -18,6 +18,7 @@ class TestConfig(unittest.TestCase):
         config.strategy = "cranelift"
         config.strategy = "auto"
         config.cache = True
+        config.parallel_compilation = False
         with self.assertRaises(WasmtimeError):
             config.cache = "./test.toml"
         with self.assertRaises(WasmtimeError):
