@@ -66,7 +66,7 @@ All commits/PRs run the full test suite, and check for code style
 and other errors using [flake8](https://flake8.pycqa.org/).
 
 [Bytecode Alliance]: https://bytecodealliance.org/
-[Code of Conduct]: CODE_OF_CONDUCT.md
-[Organizational Code of Conduct]: ORG_CODE_OF_CONDUCT.md
+[Code of Conduct]: https://github.com/bytecodealliance/wasmtime/blob/main/CODE_OF_CONDUCT.md
+[Organizational Code of Conduct]: https://github.com/bytecodealliance/wasmtime/blob/main/ORG_CODE_OF_CONDUCT.md
 [Wasmtime]: https://github.com/bytecodealliance/wasmtime
 [apidoc]: https://bytecodealliance.github.io/wasmtime-py/
