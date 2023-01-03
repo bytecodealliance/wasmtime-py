@@ -163,7 +163,7 @@ component bound. The `demo` package is additionally annotated with types to
 assist with type-checking and self-documentation as much as possible.
 
 [component model]: https://github.com/WebAssembly/component-model
-[`wasm-tools`]: https://githubcom/bytecodealliance/wasm-tools
+[`wasm-tools`]: https://github.com/bytecodealliance/wasm-tools
 [`*.wit`]: https://github.com/WebAssembly/component-model/blob/main/design/mvp/WIT.md
 
 ## Contributing
