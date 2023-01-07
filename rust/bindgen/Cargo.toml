@@ -14,7 +14,7 @@ heck = { version = "0.4", features = ["unicode"] }
 wit-component = "0.3"
 wit-parser = "0.3"
 indexmap = "1.0"
-wasmtime-environ = { git = 'https://github.com/bytecodealliance/wasmtime', features = ['component-model'] }
+wasmtime-environ = { version = "4.0.0", features = ['component-model'] }
 wit-bindgen-guest-rust = { workspace = true, features = ['default'] }
 
 [features]
