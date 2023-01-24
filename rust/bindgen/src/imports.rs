@@ -6,26 +6,17 @@ use std::fmt::Write;
 #[derive(Default)]
 pub struct PyImports {
     pyimports: BTreeMap<String, Option<BTreeSet<String>>>,
+    typing_imports: BTreeMap<String, Option<BTreeSet<String>>>,
 }
 
 impl PyImports {
     /// Record that a Python import is required
     pub fn pyimport<'a>(&mut self, module: &str, name: impl Into<Option<&'a str>>) {
-        let name = name.into();
-        let list = self
-            .pyimports
-            .entry(module.to_string())
-            .or_insert(match name {
-                Some(_) => Some(BTreeSet::new()),
-                None => None,
-            });
-        match name {
-            Some(name) => {
-                assert!(list.is_some());
-                list.as_mut().unwrap().insert(name.to_string());
-            }
-            None => assert!(list.is_none()),
-        }
+        push(&mut self.pyimports, module, name.into())
+    }
+
+    pub fn typing_import<'a>(&mut self, module: &str, name: impl Into<Option<&'a str>>) {
+        push(&mut self.typing_imports, module, name.into())
     }
 
     pub fn is_empty(&self) -> bool {
@@ -33,23 +24,58 @@ impl PyImports {
     }
 
     pub fn finish(&self) -> String {
-        let mut result = String::new();
-        for (k, list) in self.pyimports.iter() {
-            match list {
-                Some(list) => {
-                    let list = list.iter().cloned().collect::<Vec<_>>().join(", ");
-                    uwriteln!(result, "from {k} import {list}");
-                }
-                None => uwriteln!(result, "import {k}"),
-            }
-        }
+        let mut result = render(&self.pyimports);
 
-        if !self.pyimports.is_empty() {
-            result.push_str("\n");
+        if !self.typing_imports.is_empty() {
+            result.push_str("from typing import TYPE_CHECKING\n");
+            result.push_str("if TYPE_CHECKING:\n");
+            for line in render(&self.typing_imports).lines() {
+                if !line.is_empty() {
+                    result.push_str("  ");
+                    result.push_str(line);
+                }
+                result.push_str("\n");
+            }
         }
 
         result
     }
+}
+
+fn push(
+    imports: &mut BTreeMap<String, Option<BTreeSet<String>>>,
+    module: &str,
+    name: Option<&str>,
+) {
+    let list = imports.entry(module.to_string()).or_insert(match name {
+        Some(_) => Some(BTreeSet::new()),
+        None => None,
+    });
+    match name {
+        Some(name) => {
+            assert!(list.is_some());
+            list.as_mut().unwrap().insert(name.to_string());
+        }
+        None => assert!(list.is_none()),
+    }
+}
+
+fn render(imports: &BTreeMap<String, Option<BTreeSet<String>>>) -> String {
+    let mut result = String::new();
+    for (k, list) in imports.iter() {
+        match list {
+            Some(list) => {
+                let list = list.iter().cloned().collect::<Vec<_>>().join(", ");
+                uwriteln!(result, "from {k} import {list}");
+            }
+            None => uwriteln!(result, "import {k}"),
+        }
+    }
+
+    if !imports.is_empty() {
+        result.push_str("\n");
+    }
+    result
 }
 
 #[cfg(test)]

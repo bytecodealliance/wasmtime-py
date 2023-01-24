@@ -117,6 +117,10 @@ impl Source {
         self.imports.pyimport(module, name.into())
     }
 
+    pub fn typing_import<'a>(&mut self, module: &str, name: impl Into<Option<&'a str>>) {
+        self.imports.typing_import(module, name.into())
+    }
+
     pub fn finish(&self) -> String {
         let mut ret = self.imports.finish();
         ret.push_str(&self.body.contents);

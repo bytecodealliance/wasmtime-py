@@ -35,13 +35,13 @@ pub use files::Files;
 
 #[cfg(target_arch = "wasm32")]
 mod bindings {
-    wit_bindgen_guest_rust::generate!("../bindgen.wit");
+    wit_bindgen_guest_rust::generate!("bindgen" in "../bindgen.wit");
 
     export_wasmtime_py!(PythonBindings);
 
     struct PythonBindings;
 
-    impl wasmtime_py::WasmtimePy for PythonBindings {
+    impl WasmtimePy for PythonBindings {
         fn generate(name: String, component: Vec<u8>) -> Result<Vec<(String, Vec<u8>)>, String> {
             let mut gen = crate::WasmtimePy::default();
             let mut files = Default::default();

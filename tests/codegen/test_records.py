@@ -33,24 +33,25 @@ module = """
             (export "multiple-results" (func (result "a" u8) (result "b" u16)))
             (export "swap" (func (param "a" $tuple) (result $tuple)))
 
-            (export "flag1" (type (eq $flag1)))
-            (export "flag2" (type (eq $flag2)))
-            (export "flag8" (type (eq $flag8)))
-            (export "flag16" (type (eq $flag16)))
-            (export "flag32" (type (eq $flag32)))
-            (export "flag64" (type (eq $flag64)))
+            (export $f1 "flag1" (type (eq $flag1)))
+            (export $f2 "flag2" (type (eq $flag2)))
+            (export $f8 "flag8" (type (eq $flag8)))
+            (export $f16 "flag16" (type (eq $flag16)))
+            (export $f32 "flag32" (type (eq $flag32)))
+            (export $f64 "flag64" (type (eq $flag64)))
 
-            (export "roundtrip-flag1" (func (param "a" $flag1) (result $flag1)))
-            (export "roundtrip-flag2" (func (param "a" $flag2) (result $flag2)))
-            (export "roundtrip-flag8" (func (param "a" $flag8) (result $flag8)))
-            (export "roundtrip-flag16" (func (param "a" $flag16) (result $flag16)))
-            (export "roundtrip-flag32" (func (param "a" $flag32) (result $flag32)))
-            (export "roundtrip-flag64" (func (param "a" $flag64) (result $flag64)))
+            (export "roundtrip-flag1" (func (param "a" $f1) (result $f1)))
+            (export "roundtrip-flag2" (func (param "a" $f2) (result $f2)))
+            (export "roundtrip-flag8" (func (param "a" $f8) (result $f8)))
+            (export "roundtrip-flag16" (func (param "a" $f16) (result $f16)))
+            (export "roundtrip-flag32" (func (param "a" $f32) (result $f32)))
+            (export "roundtrip-flag64" (func (param "a" $f64) (result $f64)))
 
             (export "empty-tuple" (func (param "a" (tuple)) (result (tuple))))
 
-            (export "r1" (type (eq $r1)))
-            (export "roundtrip-r1" (func (param "a" $r1) (result $r1)))
+            (type $r1 (record (field "a" u8) (field "b" $f1)))
+            (export $r1' "r1" (type (eq $r1)))
+            (export "roundtrip-r1" (func (param "a" $r1') (result $r1')))
         ))
 
         (core module $libc
@@ -126,39 +127,53 @@ module = """
             ))
         ))
 
-        (export "flag1" (type $flag1))
-        (export "flag2" (type $flag2))
-        (export "flag8" (type $flag8))
-        (export "flag16" (type $flag16))
-        (export "flag32" (type $flag32))
-        (export "flag64" (type $flag64))
-        (export "r1" (type $r1))
-
-        (func (export "multiple-results") (result "a" u8) (result "b" u16)
+        (func $multiple-results (result "a" u8) (result "b" u16)
             (canon lift (core func $i "multi") (memory $libc "mem")))
-        (func (export "swap") (param "a" $tuple) (result "a" $tuple)
+        (func $swap (param "a" $tuple) (result "a" $tuple)
             (canon lift (core func $i "swap") (memory $libc "mem")))
-        (func (export "roundtrip-flag1") (param "a" $flag1) (result "a" $flag1)
+        (func $roundtrip-flag1 (param "a" $flag1) (result "a" $flag1)
             (canon lift (core func $i "r-flag1")))
-        (func (export "roundtrip-flag2") (param "a" $flag2) (result "a" $flag2)
+        (func $roundtrip-flag2  (param "a" $flag2) (result "a" $flag2)
             (canon lift (core func $i "r-flag2")))
-        (func (export "roundtrip-flag8") (param "a" $flag8) (result "a" $flag8)
+        (func $roundtrip-flag8 (param "a" $flag8) (result "a" $flag8)
             (canon lift (core func $i "r-flag8")))
-        (func (export "roundtrip-flag16") (param "a" $flag16) (result "a" $flag16)
+        (func $roundtrip-flag16 (param "a" $flag16) (result "a" $flag16)
             (canon lift (core func $i "r-flag16")))
-        (func (export "roundtrip-flag32") (param "a" $flag32) (result "a" $flag32)
+        (func $roundtrip-flag32 (param "a" $flag32) (result "a" $flag32)
             (canon lift (core func $i "r-flag32")))
-        (func (export "roundtrip-flag64") (param "a" $flag64) (result "a" $flag64)
+        (func $roundtrip-flag64 (param "a" $flag64) (result "a" $flag64)
             (canon lift (core func $i "r-flag64") (memory $libc "mem")))
-        (func (export "empty-tuple") (param "a" (tuple)) (result "a" (tuple))
+        (func $empty-tuple (param "a" (tuple)) (result "a" (tuple))
             (canon lift (core func $i "r-empty")))
-        (func (export "roundtrip-r1") (param "a" $r1) (result "b" $r1)
+        (func $roundtrip-r1 (param "a" $r1) (result "b" $r1)
             (canon lift (core func $i "r-r1") (memory $libc "mem")))
+
+        (instance (export "e")
+            (export "flag1" (type $flag1))
+            (export "flag2" (type $flag2))
+            (export "flag8" (type $flag8))
+            (export "flag16" (type $flag16))
+            (export "flag32" (type $flag32))
+            (export "flag64" (type $flag64))
+            (export "r1" (type $r1))
+
+            (export "multiple-results" (func $multiple-results))
+            (export "swap" (func $swap))
+            (export "roundtrip-flag1" (func $roundtrip-flag1))
+            (export "roundtrip-flag2" (func $roundtrip-flag2))
+            (export "roundtrip-flag8" (func $roundtrip-flag8))
+            (export "roundtrip-flag16" (func $roundtrip-flag16))
+            (export "roundtrip-flag32" (func $roundtrip-flag32))
+            (export "roundtrip-flag64" (func $roundtrip-flag64))
+            (export "empty-tuple" (func $empty-tuple))
+            (export "roundtrip-r1" (func $roundtrip-r1))
+        )
     )
 """
 bindgen('records', module)
 
-from .generated.records import Records, RecordsImports, imports, Flag1, Flag2, Flag8, Flag16, Flag32, Flag64, R1
+from .generated.records import Records, RecordsImports, imports
+from .generated.records.exports.e import Flag1, Flag2, Flag8, Flag16, Flag32, Flag64, R1
 from .generated.records.imports import host
 
 
@@ -199,34 +214,34 @@ def test_bindings():
     store = Store()
     bindings = Records(store, RecordsImports(host=Host()))
 
-    assert bindings.multiple_results(store) == (1, 2)
-    assert bindings.swap(store, (3, 4)) == (4, 3)
+    assert bindings.e().multiple_results(store) == (1, 2)
+    assert bindings.e().swap(store, (3, 4)) == (4, 3)
 
-    assert bindings.roundtrip_flag1(store, Flag1(0)) == Flag1(0)
+    assert bindings.e().roundtrip_flag1(store, Flag1(0)) == Flag1(0)
     for f1 in Flag1:
-        assert bindings.roundtrip_flag1(store, f1) == f1
-    assert bindings.roundtrip_flag2(store, Flag2(0)) == Flag2(0)
+        assert bindings.e().roundtrip_flag1(store, f1) == f1
+    assert bindings.e().roundtrip_flag2(store, Flag2(0)) == Flag2(0)
     for f2 in Flag2:
-        assert bindings.roundtrip_flag2(store, f2) == f2
-    assert bindings.roundtrip_flag8(store, Flag8(0)) == Flag8(0)
+        assert bindings.e().roundtrip_flag2(store, f2) == f2
+    assert bindings.e().roundtrip_flag8(store, Flag8(0)) == Flag8(0)
     for f8 in Flag8:
-        assert bindings.roundtrip_flag8(store, f8) == f8
-    assert bindings.roundtrip_flag16(store, Flag16(0)) == Flag16(0)
+        assert bindings.e().roundtrip_flag8(store, f8) == f8
+    assert bindings.e().roundtrip_flag16(store, Flag16(0)) == Flag16(0)
     for f16 in Flag16:
-        assert bindings.roundtrip_flag16(store, f16) == f16
-    assert bindings.roundtrip_flag32(store, Flag32(0)) == Flag32(0)
+        assert bindings.e().roundtrip_flag16(store, f16) == f16
+    assert bindings.e().roundtrip_flag32(store, Flag32(0)) == Flag32(0)
     for f32 in Flag32:
-        assert bindings.roundtrip_flag32(store, f32) == f32
-    assert bindings.roundtrip_flag64(store, Flag64(0)) == Flag64(0)
+        assert bindings.e().roundtrip_flag32(store, f32) == f32
+    assert bindings.e().roundtrip_flag64(store, Flag64(0)) == Flag64(0)
     for f64 in Flag64:
-        assert bindings.roundtrip_flag64(store, f64) == f64
+        assert bindings.e().roundtrip_flag64(store, f64) == f64
 
-    bindings.empty_tuple(store, None)
+    bindings.e().empty_tuple(store, None)
 
-    r = bindings.roundtrip_r1(store, R1(8, Flag1(0)))
+    r = bindings.e().roundtrip_r1(store, R1(8, Flag1(0)))
     assert r.a == 8
     assert r.b == Flag1(0)
 
-    r = bindings.roundtrip_r1(store, R1(a=100, b=Flag1.A | Flag1.B))
+    r = bindings.e().roundtrip_r1(store, R1(a=100, b=Flag1.A | Flag1.B))
     assert r.a == 100
     assert r.b == Flag1.A | Flag1.B

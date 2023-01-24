@@ -1,13 +1,16 @@
 from ctypes import byref, POINTER, c_int
 from . import _ffi as ffi
 import ctypes
+from typing import Optional
 
 
 class WasmtimeError(Exception):
-    _ptr: "ctypes._Pointer[ffi.wasmtime_error_t]"
+    _ptr: "Optional[ctypes._Pointer[ffi.wasmtime_error_t]]"
+    _message: Optional[str]
 
-    # def __init__(self, message: str):
-    #     self.message = message
+    def __init__(self, message: str):
+        self._message = message
+        self._ptr = None
 
     @classmethod
     def _from_ptr(cls, ptr: "ctypes._Pointer") -> 'WasmtimeError':
@@ -24,9 +27,12 @@ class WasmtimeError(Exception):
 
         err: WasmtimeError = cls.__new__(cls)
         err._ptr = ptr
+        err._message = None
         return err
 
     def __str__(self) -> str:
+        if self._message:
+            return self._message
         message_vec = ffi.wasm_byte_vec_t()
         ffi.wasmtime_error_message(self._ptr, byref(message_vec))
         message = ffi.to_str(message_vec)
@@ -34,7 +40,7 @@ class WasmtimeError(Exception):
         return message
 
     def __del__(self) -> None:
-        if hasattr(self, '_ptr'):
+        if hasattr(self, '_ptr') and self._ptr:
             ffi.wasmtime_error_delete(self._ptr)
 
 
