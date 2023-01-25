@@ -391,8 +391,7 @@ dependencies = [
 [[package]]
 name = "wasm-encoder"
 version = "0.22.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ef126be0e14bdf355ac1a8b41afc89195289e5c7179f80118e3abddb472f0810"
+source = "git+https://github.com/alexcrichton/wasm-tools?branch=remove-type-src-map#6796b295f0e3cc9989a4fbf0c038130a3451ff17"
 dependencies = [
  "leb128",
 ]
@@ -418,13 +417,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "wasmparser"
+version = "0.99.0"
+source = "git+https://github.com/alexcrichton/wasm-tools?branch=remove-type-src-map#6796b295f0e3cc9989a4fbf0c038130a3451ff17"
+dependencies = [
+ "indexmap",
+ "url",
+]
+
+[[package]]
 name = "wasmprinter"
 version = "0.2.49"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "27c13dff901f9354fa9a6a877152d9c5642513645985635c9b83bcca99e40ea1"
 dependencies = [
  "anyhow",
- "wasmparser 0.99.0",
+ "wasmparser 0.99.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -519,8 +527,7 @@ dependencies = [
 [[package]]
 name = "wit-component"
 version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "03db9831d4147baa1bae36410ec29c27caed0e0b5a592d5adad54698681b952b"
+source = "git+https://github.com/alexcrichton/wasm-tools?branch=remove-type-src-map#6796b295f0e3cc9989a4fbf0c038130a3451ff17"
 dependencies = [
  "anyhow",
  "bitflags",
@@ -528,15 +535,14 @@ dependencies = [
  "log",
  "url",
  "wasm-encoder 0.22.0",
- "wasmparser 0.99.0",
+ "wasmparser 0.99.0 (git+https://github.com/alexcrichton/wasm-tools?branch=remove-type-src-map)",
  "wit-parser",
 ]
 
 [[package]]
 name = "wit-parser"
 version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2e60c4242d4cf4394fac7587c0d96c39b3c0fb09e638815c3f244f6bb5356f04"
+source = "git+https://github.com/alexcrichton/wasm-tools?branch=remove-type-src-map#6796b295f0e3cc9989a4fbf0c038130a3451ff17"
 dependencies = [
  "anyhow",
  "id-arena",
