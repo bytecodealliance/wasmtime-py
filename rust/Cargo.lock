@@ -391,7 +391,7 @@ dependencies = [
 [[package]]
 name = "wasm-encoder"
 version = "0.22.0"
-source = "git+https://github.com/alexcrichton/wasm-tools?branch=remove-type-src-map#6796b295f0e3cc9989a4fbf0c038130a3451ff17"
+source = "git+https://github.com/bytecodealliance/wasm-tools#e49e0252467408603669d8186929d4b7ff6e48af"
 dependencies = [
  "leb128",
 ]
@@ -419,7 +419,7 @@ dependencies = [
 [[package]]
 name = "wasmparser"
 version = "0.99.0"
-source = "git+https://github.com/alexcrichton/wasm-tools?branch=remove-type-src-map#6796b295f0e3cc9989a4fbf0c038130a3451ff17"
+source = "git+https://github.com/bytecodealliance/wasm-tools#e49e0252467408603669d8186929d4b7ff6e48af"
 dependencies = [
  "indexmap",
  "url",
@@ -527,7 +527,7 @@ dependencies = [
 [[package]]
 name = "wit-component"
 version = "0.4.3"
-source = "git+https://github.com/alexcrichton/wasm-tools?branch=remove-type-src-map#6796b295f0e3cc9989a4fbf0c038130a3451ff17"
+source = "git+https://github.com/bytecodealliance/wasm-tools#e49e0252467408603669d8186929d4b7ff6e48af"
 dependencies = [
  "anyhow",
  "bitflags",
@@ -535,14 +535,14 @@ dependencies = [
  "log",
  "url",
  "wasm-encoder 0.22.0",
- "wasmparser 0.99.0 (git+https://github.com/alexcrichton/wasm-tools?branch=remove-type-src-map)",
+ "wasmparser 0.99.0 (git+https://github.com/bytecodealliance/wasm-tools)",
  "wit-parser",
 ]
 
 [[package]]
 name = "wit-parser"
 version = "0.4.1"
-source = "git+https://github.com/alexcrichton/wasm-tools?branch=remove-type-src-map#6796b295f0e3cc9989a4fbf0c038130a3451ff17"
+source = "git+https://github.com/bytecodealliance/wasm-tools#e49e0252467408603669d8186929d4b7ff6e48af"
 dependencies = [
  "anyhow",
  "id-arena",

@@ -11,5 +11,5 @@ strip = 'debuginfo'
 
 [patch.crates-io]
 wasmtime-environ = { git = 'https://github.com/bytecodealliance/wasmtime' }
-wit-component = { git = 'https://github.com/alexcrichton/wasm-tools', branch = 'remove-type-src-map' }
-wit-parser = { git = 'https://github.com/alexcrichton/wasm-tools', branch = 'remove-type-src-map' }
+wit-component = { git = 'https://github.com/bytecodealliance/wasm-tools' }
+wit-parser = { git = 'https://github.com/bytecodealliance/wasm-tools' }
