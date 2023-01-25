@@ -2,9 +2,7 @@
 members = ['bindgen', 'wasi_snapshot_preview1']
 
 [workspace.dependencies.wit-bindgen-guest-rust]
-# git = 'https://github.com/bytecodealliance/wit-bindgen'
-git = 'https://github.com/alexcrichton/witx-bindgen'
-branch = 'fix-bindings'
+git = 'https://github.com/bytecodealliance/wit-bindgen'
 default-features = false
 features = ['macros']
 
