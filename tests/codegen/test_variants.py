@@ -4,62 +4,62 @@ from typing import Optional
 
 module = """
     (component
-        (type $e1 (enum "a" "b"))
-
-        (type $c1 (variant (case "a" s32) (case "b" s64)))
-        (type $c2 (variant (case "a" s32) (case "b" float32)))
-        (type $c3 (variant (case "a" s32) (case "b" float64)))
-        (type $c4 (variant (case "a" s64) (case "b" float32)))
-        (type $c5 (variant (case "a" s64) (case "b" float64)))
-        (type $c6 (variant (case "a" float32) (case "b" float64)))
-        (type $casts (tuple $c1 $c2 $c3 $c4 $c5 $c6))
-
-        (type $z1 (variant (case "a" s32) (case "b")))
-        (type $z2 (variant (case "a" s64) (case "b")))
-        (type $z3 (variant (case "a" float32) (case "b")))
-        (type $z4 (variant (case "a" float64) (case "b")))
-        (type $zeros (tuple $z1 $z2 $z3 $z4))
-
-        (type $all-integers (union bool u8 u16 u32 u64 s8 s16 s32 s64))
-        (type $all-floats (union float32 float64))
-        (type $duplicated-s32 (union s32 s32 s32))
-        (type $distinguished (union s32 float32))
-
         (import "host" (instance $i
-            (export "e1" (type (eq $e1)))
+            (type $e1 (enum "a" "b"))
 
-            (export "c1" (type (eq $c1)))
-            (export "c2" (type (eq $c2)))
-            (export "c3" (type (eq $c3)))
-            (export "c4" (type (eq $c4)))
-            (export "c5" (type (eq $c5)))
-            (export "c6" (type (eq $c6)))
-            (export "casts" (type (eq $casts)))
+            (type $c1 (variant (case "a" s32) (case "b" s64)))
+            (type $c2 (variant (case "a" s32) (case "b" float32)))
+            (type $c3 (variant (case "a" s32) (case "b" float64)))
+            (type $c4 (variant (case "a" s64) (case "b" float32)))
+            (type $c5 (variant (case "a" s64) (case "b" float64)))
+            (type $c6 (variant (case "a" float32) (case "b" float64)))
 
-            (export "z1" (type (eq $z1)))
-            (export "z2" (type (eq $z2)))
-            (export "z3" (type (eq $z3)))
-            (export "z4" (type (eq $z4)))
-            (export "zeros" (type (eq $zeros)))
+            (type $z1 (variant (case "a" s32) (case "b")))
+            (type $z2 (variant (case "a" s64) (case "b")))
+            (type $z3 (variant (case "a" float32) (case "b")))
+            (type $z4 (variant (case "a" float64) (case "b")))
 
-            (export "all-integers" (type (eq $all-integers)))
-            (export "all-floats" (type (eq $all-floats)))
-            (export "duplicated-s32" (type (eq $duplicated-s32)))
-            (export "distinguished" (type (eq $distinguished)))
+            (type $all-integers (union bool u8 u16 u32 u64 s8 s16 s32 s64))
+            (type $all-floats (union float32 float64))
+            (type $duplicated-s32 (union s32 s32 s32))
+            (type $distinguished (union s32 float32))
+
+            (export $e1' "e1" (type (eq $e1)))
+
+            (export $c1' "c1" (type (eq $c1)))
+            (export $c2' "c2" (type (eq $c2)))
+            (export $c3' "c3" (type (eq $c3)))
+            (export $c4' "c4" (type (eq $c4)))
+            (export $c5' "c5" (type (eq $c5)))
+            (export $c6' "c6" (type (eq $c6)))
+            (type $casts (tuple $c1' $c2' $c3' $c4' $c5' $c6'))
+            (export $casts' "casts" (type (eq $casts)))
+
+            (export $z1' "z1" (type (eq $z1)))
+            (export $z2' "z2" (type (eq $z2)))
+            (export $z3' "z3" (type (eq $z3)))
+            (export $z4' "z4" (type (eq $z4)))
+            (type $zeros (tuple $z1' $z2' $z3' $z4'))
+            (export $zeros' "zeros" (type (eq $zeros)))
+
+            (export $all-integers' "all-integers" (type (eq $all-integers)))
+            (export $all-floats' "all-floats" (type (eq $all-floats)))
+            (export $duplicated-s32' "duplicated-s32" (type (eq $duplicated-s32)))
+            (export $distinguished' "distinguished" (type (eq $distinguished)))
 
             (export "roundtrip-option" (func (param "a" (option float32)) (result (option u8))))
             (export "roundtrip-result" (func
                 (param "a" (result u32 (error float32)))
                 (result (result float64 (error u8)))
             ))
-            (export "roundtrip-enum" (func (param "a" $e1) (result $e1)))
-            (export "variant-casts" (func (param "a" $casts) (result $casts)))
-            (export "variant-zeros" (func (param "a" $zeros) (result $zeros)))
+            (export "roundtrip-enum" (func (param "a" $e1') (result $e1')))
+            (export "variant-casts" (func (param "a" $casts') (result $casts')))
+            (export "variant-zeros" (func (param "a" $zeros') (result $zeros')))
 
-            (export "add-one-all-integers" (func (param "a" $all-integers) (result $all-integers)))
-            (export "add-one-all-floats" (func (param "a" $all-floats) (result $all-floats)))
-            (export "add-one-duplicated-s32" (func (param "a" $duplicated-s32) (result $duplicated-s32)))
-            (export "add-one-distinguished" (func (param "a" $distinguished) (result $distinguished)))
+            (export "add-one-all-integers" (func (param "a" $all-integers') (result $all-integers')))
+            (export "add-one-all-floats" (func (param "a" $all-floats') (result $all-floats')))
+            (export "add-one-duplicated-s32" (func (param "a" $duplicated-s32') (result $duplicated-s32')))
+            (export "add-one-distinguished" (func (param "a" $distinguished') (result $distinguished')))
         ))
 
         (core module $libc (memory (export "m") 1))
@@ -161,54 +161,88 @@ module = """
             ))
         ))
 
-        (export "e1" (type $e1))
+        (type $e1 (enum "a" "b"))
 
-        (export "c1" (type $c1))
-        (export "c2" (type $c2))
-        (export "c3" (type $c3))
-        (export "c4" (type $c4))
-        (export "c5" (type $c5))
-        (export "c6" (type $c6))
-        (export "casts" (type $casts))
+        (type $c1 (variant (case "a" s32) (case "b" s64)))
+        (type $c2 (variant (case "a" s32) (case "b" float32)))
+        (type $c3 (variant (case "a" s32) (case "b" float64)))
+        (type $c4 (variant (case "a" s64) (case "b" float32)))
+        (type $c5 (variant (case "a" s64) (case "b" float64)))
+        (type $c6 (variant (case "a" float32) (case "b" float64)))
+        (type $casts (tuple $c1 $c2 $c3 $c4 $c5 $c6))
 
-        (export "z1" (type $z1))
-        (export "z2" (type $z2))
-        (export "z3" (type $z3))
-        (export "z4" (type $z4))
-        (export "zeros" (type $zeros))
+        (type $z1 (variant (case "a" s32) (case "b")))
+        (type $z2 (variant (case "a" s64) (case "b")))
+        (type $z3 (variant (case "a" float32) (case "b")))
+        (type $z4 (variant (case "a" float64) (case "b")))
+        (type $zeros (tuple $z1 $z2 $z3 $z4))
 
-        (export "all-integers" (type $all-integers))
-        (export "all-floats" (type $all-floats))
-        (export "duplicated-s32" (type $duplicated-s32))
-        (export "distinguished" (type $distinguished))
+        (type $all-integers (union bool u8 u16 u32 u64 s8 s16 s32 s64))
+        (type $all-floats (union float32 float64))
+        (type $duplicated-s32 (union s32 s32 s32))
+        (type $distinguished (union s32 float32))
 
-        (func (export "roundtrip-option") (param "a" (option float32)) (result (option u8))
+        (func $roundtrip-option (param "a" (option float32)) (result (option u8))
             (canon lift (core func $i "r-opt") (memory $libc "m")))
-        (func (export "roundtrip-result")
+        (func $roundtrip-result
             (param "a" (result u32 (error float32)))
             (result (result float64 (error u8)))
             (canon lift (core func $i "r-result") (memory $libc "m")))
-        (func (export "roundtrip-enum") (param "a" $e1) (result $e1)
+        (func $roundtrip-enum (param "a" $e1) (result $e1)
             (canon lift (core func $i "r-enum")))
-        (func (export "variant-casts") (param "a" $casts) (result $casts)
+        (func $variant-casts (param "a" $casts) (result $casts)
             (canon lift (core func $i "v-casts") (memory $libc "m")))
-        (func (export "variant-zeros") (param "a" $zeros) (result $zeros)
+        (func $variant-zeros (param "a" $zeros) (result $zeros)
             (canon lift (core func $i "v-zeros") (memory $libc "m")))
 
-        (func (export "add-one-all-integers") (param "a" $all-integers) (result $all-integers)
+        (func $add-one-all-integers (param "a" $all-integers) (result $all-integers)
             (canon lift (core func $i "a-int") (memory $libc "m")))
-        (func (export "add-one-all-floats") (param "a" $all-floats) (result $all-floats)
+        (func $add-one-all-floats (param "a" $all-floats) (result $all-floats)
             (canon lift (core func $i "a-float") (memory $libc "m")))
-        (func (export "add-one-duplicated-s32") (param "a" $duplicated-s32) (result $duplicated-s32)
+        (func $add-one-duplicated-s32 (param "a" $duplicated-s32) (result $duplicated-s32)
             (canon lift (core func $i "a-dup") (memory $libc "m")))
-        (func (export "add-one-distinguished") (param "a" $distinguished) (result $distinguished)
+        (func $add-one-distinguished (param "a" $distinguished) (result $distinguished)
             (canon lift (core func $i "a-dist") (memory $libc "m")))
+
+        (instance (export "e")
+            (export "e1" (type $e1))
+
+            (export "c1" (type $c1))
+            (export "c2" (type $c2))
+            (export "c3" (type $c3))
+            (export "c4" (type $c4))
+            (export "c5" (type $c5))
+            (export "c6" (type $c6))
+            (export "casts" (type $casts))
+
+            (export "z1" (type $z1))
+            (export "z2" (type $z2))
+            (export "z3" (type $z3))
+            (export "z4" (type $z4))
+            (export "zeros" (type $zeros))
+
+            (export "all-integers" (type $all-integers))
+            (export "all-floats" (type $all-floats))
+            (export "duplicated-s32" (type $duplicated-s32))
+            (export "distinguished" (type $distinguished))
+
+            (export "roundtrip-option" (func $roundtrip-option))
+            (export "roundtrip-result" (func $roundtrip-result))
+            (export "roundtrip-enum" (func $roundtrip-enum))
+            (export "variant-casts" (func $variant-casts))
+            (export "variant-zeros" (func $variant-zeros))
+            (export "add-one-all-integers" (func $add-one-all-integers))
+            (export "add-one-all-floats" (func $add-one-all-floats))
+            (export "add-one-duplicated-s32" (func $add-one-duplicated-s32))
+            (export "add-one-distinguished" (func $add-one-distinguished))
+
+        )
     )
 """
 bindgen('variants', module)
 
 from .generated.variants import Variants, VariantsImports, imports
-from .generated import variants as e
+from .generated.variants import e
 from .generated.variants.imports import host
 from .generated.variants.types import Result, Ok, Err
 
@@ -309,18 +343,19 @@ def test_bindings():
     store = Store()
     wasm = Variants(store, VariantsImports(host=Host()))
 
-    assert wasm.roundtrip_option(store, 1.) == 1
-    assert wasm.roundtrip_option(store, None) is None
-    assert wasm.roundtrip_option(store, 2.) == 2
+    exports = wasm.e()
+    assert exports.roundtrip_option(store, 1.) == 1
+    assert exports.roundtrip_option(store, None) is None
+    assert exports.roundtrip_option(store, 2.) == 2
 
-    assert wasm.roundtrip_result(store, Ok(2)) == Ok(2)
-    assert wasm.roundtrip_result(store, Ok(4)) == Ok(4)
-    assert wasm.roundtrip_result(store, Err(5)) == Err(5)
+    assert exports.roundtrip_result(store, Ok(2)) == Ok(2)
+    assert exports.roundtrip_result(store, Ok(4)) == Ok(4)
+    assert exports.roundtrip_result(store, Err(5)) == Err(5)
 
-    assert wasm.roundtrip_enum(store, e.E1.A) == e.E1.A
-    assert wasm.roundtrip_enum(store, e.E1.B) == e.E1.B
+    assert exports.roundtrip_enum(store, e.E1.A) == e.E1.A
+    assert exports.roundtrip_enum(store, e.E1.B) == e.E1.B
 
-    a1, a2, a3, a4, a5, a6 = wasm.variant_casts(store, (
+    a1, a2, a3, a4, a5, a6 = exports.variant_casts(store, (
         e.C1A(1),
         e.C2A(2),
         e.C3A(3),
@@ -335,7 +370,7 @@ def test_bindings():
     assert a5 == e.C5A(5)
     assert a6 == e.C6A(6.)
 
-    b1, b2, b3, b4, b5, b6 = wasm.variant_casts(store, (
+    b1, b2, b3, b4, b5, b6 = exports.variant_casts(store, (
         e.C1B(1),
         e.C2B(2),
         e.C3B(3),
@@ -350,7 +385,7 @@ def test_bindings():
     assert b5 == e.C5B(5)
     assert b6 == e.C6B(6.)
 
-    z1, z2, z3, z4 = wasm.variant_zeros(store, (
+    z1, z2, z3, z4 = exports.variant_zeros(store, (
         e.Z1A(1),
         e.Z2A(2),
         e.Z3A(3.),
@@ -363,37 +398,37 @@ def test_bindings():
 
     # All-Integers
     # Booleans
-    assert wasm.add_one_all_integers(store, e.AllIntegers0(False)) == e.AllIntegers0(True)
-    assert wasm.add_one_all_integers(store, e.AllIntegers0(True)) == e.AllIntegers0(False)
+    assert exports.add_one_all_integers(store, e.AllIntegers0(False)) == e.AllIntegers0(True)
+    assert exports.add_one_all_integers(store, e.AllIntegers0(True)) == e.AllIntegers0(False)
     # Unsigned integers
-    assert wasm.add_one_all_integers(store, e.AllIntegers1(0)) == e.AllIntegers1(1)
-    assert wasm.add_one_all_integers(store, e.AllIntegers1(2**8 - 1)) == e.AllIntegers1(0)
-    assert wasm.add_one_all_integers(store, e.AllIntegers2(0)) == e.AllIntegers2(1)
-    assert wasm.add_one_all_integers(store, e.AllIntegers2(2**16 - 1)) == e.AllIntegers2(0)
-    assert wasm.add_one_all_integers(store, e.AllIntegers3(0)) == e.AllIntegers3(1)
-    assert wasm.add_one_all_integers(store, e.AllIntegers3(2**32 - 1)) == e.AllIntegers3(0)
-    assert wasm.add_one_all_integers(store, e.AllIntegers4(0)) == e.AllIntegers4(1)
-    assert wasm.add_one_all_integers(store, e.AllIntegers4(2**64 - 1)) == e.AllIntegers4(0)
+    assert exports.add_one_all_integers(store, e.AllIntegers1(0)) == e.AllIntegers1(1)
+    assert exports.add_one_all_integers(store, e.AllIntegers1(2**8 - 1)) == e.AllIntegers1(0)
+    assert exports.add_one_all_integers(store, e.AllIntegers2(0)) == e.AllIntegers2(1)
+    assert exports.add_one_all_integers(store, e.AllIntegers2(2**16 - 1)) == e.AllIntegers2(0)
+    assert exports.add_one_all_integers(store, e.AllIntegers3(0)) == e.AllIntegers3(1)
+    assert exports.add_one_all_integers(store, e.AllIntegers3(2**32 - 1)) == e.AllIntegers3(0)
+    assert exports.add_one_all_integers(store, e.AllIntegers4(0)) == e.AllIntegers4(1)
+    assert exports.add_one_all_integers(store, e.AllIntegers4(2**64 - 1)) == e.AllIntegers4(0)
     # Signed integers
-    assert wasm.add_one_all_integers(store, e.AllIntegers5(0)) == e.AllIntegers5(1)
-    assert wasm.add_one_all_integers(store, e.AllIntegers5(2**7 - 2)) == e.AllIntegers5(2**7 - 1)
-    assert wasm.add_one_all_integers(store, e.AllIntegers5(-8)) == e.AllIntegers5(-7)
-    assert wasm.add_one_all_integers(store, e.AllIntegers6(0)) == e.AllIntegers6(1)
-    assert wasm.add_one_all_integers(store, e.AllIntegers6(2**15 - 2)) == e.AllIntegers6(2**15 - 1)
-    assert wasm.add_one_all_integers(store, e.AllIntegers6(-8)) == e.AllIntegers6(-7)
-    assert wasm.add_one_all_integers(store, e.AllIntegers7(0)) == e.AllIntegers7(1)
-    assert wasm.add_one_all_integers(store, e.AllIntegers7(2**31 - 2)) == e.AllIntegers7(2**31 - 1)
-    assert wasm.add_one_all_integers(store, e.AllIntegers7(-8)) == e.AllIntegers7(-7)
-    assert wasm.add_one_all_integers(store, e.AllIntegers8(0)) == e.AllIntegers8(1)
-    assert wasm.add_one_all_integers(store, e.AllIntegers8(2**63 - 2)) == e.AllIntegers8(2**63 - 1)
-    assert wasm.add_one_all_integers(store, e.AllIntegers8(-8)) == e.AllIntegers8(-7)
+    assert exports.add_one_all_integers(store, e.AllIntegers5(0)) == e.AllIntegers5(1)
+    assert exports.add_one_all_integers(store, e.AllIntegers5(2**7 - 2)) == e.AllIntegers5(2**7 - 1)
+    assert exports.add_one_all_integers(store, e.AllIntegers5(-8)) == e.AllIntegers5(-7)
+    assert exports.add_one_all_integers(store, e.AllIntegers6(0)) == e.AllIntegers6(1)
+    assert exports.add_one_all_integers(store, e.AllIntegers6(2**15 - 2)) == e.AllIntegers6(2**15 - 1)
+    assert exports.add_one_all_integers(store, e.AllIntegers6(-8)) == e.AllIntegers6(-7)
+    assert exports.add_one_all_integers(store, e.AllIntegers7(0)) == e.AllIntegers7(1)
+    assert exports.add_one_all_integers(store, e.AllIntegers7(2**31 - 2)) == e.AllIntegers7(2**31 - 1)
+    assert exports.add_one_all_integers(store, e.AllIntegers7(-8)) == e.AllIntegers7(-7)
+    assert exports.add_one_all_integers(store, e.AllIntegers8(0)) == e.AllIntegers8(1)
+    assert exports.add_one_all_integers(store, e.AllIntegers8(2**63 - 2)) == e.AllIntegers8(2**63 - 1)
+    assert exports.add_one_all_integers(store, e.AllIntegers8(-8)) == e.AllIntegers8(-7)
 
-    assert wasm.add_one_all_floats(store, e.AllFloats0(0.0)) == e.AllFloats0(1.0)
-    assert wasm.add_one_all_floats(store, e.AllFloats1(0.0)) == e.AllFloats1(1.0)
+    assert exports.add_one_all_floats(store, e.AllFloats0(0.0)) == e.AllFloats0(1.0)
+    assert exports.add_one_all_floats(store, e.AllFloats1(0.0)) == e.AllFloats1(1.0)
 
-    assert wasm.add_one_duplicated_s32(store, e.DuplicatedS320(0)) == e.DuplicatedS320(1)
-    assert wasm.add_one_duplicated_s32(store, e.DuplicatedS321(1)) == e.DuplicatedS321(2)
-    assert wasm.add_one_duplicated_s32(store, e.DuplicatedS322(2)) == e.DuplicatedS322(3)
+    assert exports.add_one_duplicated_s32(store, e.DuplicatedS320(0)) == e.DuplicatedS320(1)
+    assert exports.add_one_duplicated_s32(store, e.DuplicatedS321(1)) == e.DuplicatedS321(2)
+    assert exports.add_one_duplicated_s32(store, e.DuplicatedS322(2)) == e.DuplicatedS322(3)
 
-    assert wasm.add_one_distinguished(store, 1) == 2
-    assert wasm.add_one_distinguished(store, 2.) == 3.
+    assert exports.add_one_distinguished(store, 1) == 2
+    assert exports.add_one_distinguished(store, 2.) == 3.

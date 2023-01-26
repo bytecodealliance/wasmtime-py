@@ -11,6 +11,7 @@ import urllib.request
 import zipfile
 
 WASMTIME_VERSION = "v5.0.0"
+WASMTIME_VERSION = "dev"
 
 
 def main(platform, arch):
