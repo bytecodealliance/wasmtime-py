@@ -76,7 +76,7 @@ class _WasmtimeLoader(Loader):
                     not isinstance(item, Global) and \
                     not isinstance(item, Memory):
                 item = Func(store, wasm_import.type, item)
-            linker.define(module_name, field_name, item)
+            linker.define(store, module_name, field_name, item)
 
         res = linker.instantiate(store, wasm_module)
         exports = res.exports(store)

@@ -32,7 +32,7 @@ class Linker:
             raise TypeError("expected a boolean")
         ffi.wasmtime_linker_allow_shadowing(self._ptr, allow)
 
-    def define(self, module: str, name: str, item: AsExtern) -> None:
+    def define(self, store: Storelike, module: str, name: str, item: AsExtern) -> None:
         """
         Defines a new item, by name, in this linker.
 
@@ -50,6 +50,7 @@ class Linker:
         name_buf = create_string_buffer(name_bytes)
         error = ffi.wasmtime_linker_define(
             self._ptr,
+            store._context,
             module_buf,
             len(module_bytes),
             name_buf,
