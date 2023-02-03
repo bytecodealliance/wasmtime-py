@@ -10,31 +10,31 @@ class TestLinker(unittest.TestCase):
         linker.allow_shadowing = False
 
         func = Func(store, FuncType([], []), lambda: None)
-        linker.define("", "a", func)
+        linker.define(store, "", "a", func)
 
         g = Global(store, GlobalType(ValType.i32(), False), Val.i32(0))
-        linker.define("", "c", g)
+        linker.define(store, "", "c", g)
 
         mem = Memory(store, MemoryType(Limits(1, None)))
-        linker.define("", "e", mem)
+        linker.define(store, "", "e", mem)
 
         module = Module(store.engine, """
             (module (table (export "") 1 funcref))
         """)
         table = Instance(store, module, []).exports(store)[0]
-        linker.define("", "g", table)
+        linker.define(store, "", "g", table)
 
         with self.assertRaises(WasmtimeError):
-            linker.define("", "a", func)
+            linker.define(store, "", "a", func)
         linker.allow_shadowing = True
-        linker.define("", "a", func)
+        linker.define(store, "", "a", func)
 
         with self.assertRaises(TypeError):
-            linker.define("", "", 2)  # type: ignore
+            linker.define(store, "", "", 2)  # type: ignore
         with self.assertRaises(AttributeError):
-            linker.define(2, "", func)  # type: ignore
+            linker.define(store, 2, "", func)  # type: ignore
         with self.assertRaises(AttributeError):
-            linker.define("", 2, func)  # type: ignore
+            linker.define(store, "", 2, func)  # type: ignore
 
     def test_define_instance(self):
         store = Store()
@@ -66,7 +66,7 @@ class TestLinker(unittest.TestCase):
         linker.define_instance(store, "x", instance)
 
         func = Func(store, FuncType([], []), lambda: None)
-        linker.define("y", "z", func)
+        linker.define(store, "y", "z", func)
 
         module = Module(store.engine, """
             (module

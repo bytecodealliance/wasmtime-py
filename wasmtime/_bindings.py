@@ -2586,9 +2586,9 @@ def wasmtime_linker_allow_shadowing(linker: Any, allow_shadowing: Any) -> None:
 
 _wasmtime_linker_define = dll.wasmtime_linker_define
 _wasmtime_linker_define.restype = POINTER(wasmtime_error_t)
-_wasmtime_linker_define.argtypes = [POINTER(wasmtime_linker_t), POINTER(c_char), c_size_t, POINTER(c_char), c_size_t, POINTER(wasmtime_extern_t)]
-def wasmtime_linker_define(linker: Any, module: Any, module_len: Any, name: Any, name_len: Any, item: Any) -> ctypes._Pointer:
-    return _wasmtime_linker_define(linker, module, module_len, name, name_len, item)  # type: ignore
+_wasmtime_linker_define.argtypes = [POINTER(wasmtime_linker_t), POINTER(wasmtime_context_t), POINTER(c_char), c_size_t, POINTER(c_char), c_size_t, POINTER(wasmtime_extern_t)]
+def wasmtime_linker_define(linker: Any, store: Any, module: Any, module_len: Any, name: Any, name_len: Any, item: Any) -> ctypes._Pointer:
+    return _wasmtime_linker_define(linker, store, module, module_len, name, name_len, item)  # type: ignore
 
 _wasmtime_linker_define_func = dll.wasmtime_linker_define_func
 _wasmtime_linker_define_func.restype = POINTER(wasmtime_error_t)
