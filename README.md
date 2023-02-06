@@ -37,7 +37,24 @@ $ pip install wasmtime
 ```
 
 The package currently supports 64-bit builds of Python 3.6+ on x86\_64 Windows,
-macOS, and Linux
+macOS, and Linux.
+
+## Versioning
+
+`wasmtime-py` follows the Wasmtime versioning scheme, with a new major version being
+released every month. As with Wasmtime itself, new major versions of `wasmtime-py`
+can contain changes that break code written against the previous major version.
+
+Since every installed Python package needs to agree on a single version of 
+`wasmtime-py`, to use the upper bound on the major version in the dependency
+requirement should be bumped reguarly, ideally as soon as a new `wasmtime-py`
+version is released. To automate this process it is possible to use 
+the [whitequark/track-pypi-dependency-version][] script. [YoWASP/runtime][] is
+an example of a project that automatically publishes releases on PyPI once a new
+version of `wasmtime-py` is released if it passes the testsuite.
+
+[whitequark/track-pypi-dependency-version]: https://github.com/whitequark/track-pypi-dependency-version
+[YoWASP/runtime]: https://github.com/YoWASP/runtime
 
 ## Usage
 
