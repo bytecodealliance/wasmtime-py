@@ -1959,6 +1959,12 @@ _wasi_config_preopen_dir.argtypes = [POINTER(wasi_config_t), POINTER(c_char), PO
 def wasi_config_preopen_dir(config: Any, path: Any, guest_path: Any) -> bool:
     return _wasi_config_preopen_dir(config, path, guest_path)  # type: ignore
 
+_wasi_config_preopen_socket = dll.wasi_config_preopen_socket
+_wasi_config_preopen_socket.restype = c_bool
+_wasi_config_preopen_socket.argtypes = [POINTER(wasi_config_t), c_uint32, POINTER(c_char)]
+def wasi_config_preopen_socket(config: Any, fd_num: Any, host_port: Any) -> bool:
+    return _wasi_config_preopen_socket(config, fd_num, host_port)  # type: ignore
+
 class wasmtime_error(Structure):
     pass
 
@@ -2206,6 +2212,12 @@ _wasmtime_store_context.restype = POINTER(wasmtime_context_t)
 _wasmtime_store_context.argtypes = [POINTER(wasmtime_store_t)]
 def wasmtime_store_context(store: Any) -> ctypes._Pointer:
     return _wasmtime_store_context(store)  # type: ignore
+
+_wasmtime_store_limiter = dll.wasmtime_store_limiter
+_wasmtime_store_limiter.restype = None
+_wasmtime_store_limiter.argtypes = [POINTER(wasmtime_store_t), c_int64, c_int64, c_int64, c_int64, c_int64]
+def wasmtime_store_limiter(store: Any, memory_size: Any, table_elements: Any, instances: Any, tables: Any, memories: Any) -> None:
+    return _wasmtime_store_limiter(store, memory_size, table_elements, instances, tables, memories)  # type: ignore
 
 _wasmtime_store_delete = dll.wasmtime_store_delete
 _wasmtime_store_delete.restype = None

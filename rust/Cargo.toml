@@ -10,6 +10,4 @@ features = ['macros']
 strip = 'debuginfo'
 
 [patch.crates-io]
-wasmtime-environ = { git = 'https://github.com/bytecodealliance/wasmtime' }
-wit-component = { git = 'https://github.com/bytecodealliance/wasm-tools' }
-wit-parser = { git = 'https://github.com/bytecodealliance/wasm-tools' }
+wasmtime-environ = { git = 'https://github.com/bytecodealliance/wasmtime', branch = 'release-6.0.0' }
