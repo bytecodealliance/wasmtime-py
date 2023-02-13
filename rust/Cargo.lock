@@ -33,7 +33,7 @@ dependencies = [
  "heck",
  "indexmap",
  "wasmtime-environ",
- "wit-bindgen-guest-rust",
+ "wit-bindgen",
  "wit-component",
  "wit-parser",
 ]
@@ -376,7 +376,7 @@ name = "wasi_snapshot_preview1"
 version = "0.1.0"
 dependencies = [
  "wasi",
- "wit-bindgen-guest-rust",
+ "wit-bindgen",
 ]
 
 [[package]]
@@ -459,9 +459,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "wit-bindgen"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c528d2ebfc375d928a6682a46acab1c125071908fa91378a63feca794c3c515a"
+dependencies = [
+ "bitflags",
+ "wit-bindgen-guest-rust-macro",
+]
+
+[[package]]
 name = "wit-bindgen-core"
 version = "0.3.0"
-source = "git+https://github.com/bytecodealliance/wit-bindgen#ef00821dc41fb5fd212311757713c61e8bffa3ba"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ea1d49787508c06dfbeeb2c6599a20fc475547b102fc3e8637ada7d67bb62969"
 dependencies = [
  "anyhow",
  "wit-component",
@@ -471,7 +482,8 @@ dependencies = [
 [[package]]
 name = "wit-bindgen-gen-guest-rust"
 version = "0.3.0"
-source = "git+https://github.com/bytecodealliance/wit-bindgen#ef00821dc41fb5fd212311757713c61e8bffa3ba"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3ae66d141c30d008ae9ef39b266b34c481db8c0aaa688c1431d04b8b8f3247d4"
 dependencies = [
  "heck",
  "wit-bindgen-core",
@@ -482,25 +494,18 @@ dependencies = [
 [[package]]
 name = "wit-bindgen-gen-rust-lib"
 version = "0.3.0"
-source = "git+https://github.com/bytecodealliance/wit-bindgen#ef00821dc41fb5fd212311757713c61e8bffa3ba"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4b7e9138be66f508243c62d3d565fc03ce43ed04f3fc19a5fe8d3fb7f69f3fe4"
 dependencies = [
  "heck",
  "wit-bindgen-core",
 ]
 
 [[package]]
-name = "wit-bindgen-guest-rust"
-version = "0.3.0"
-source = "git+https://github.com/bytecodealliance/wit-bindgen#ef00821dc41fb5fd212311757713c61e8bffa3ba"
-dependencies = [
- "bitflags",
- "wit-bindgen-guest-rust-macro",
-]
-
-[[package]]
 name = "wit-bindgen-guest-rust-macro"
 version = "0.3.0"
-source = "git+https://github.com/bytecodealliance/wit-bindgen#ef00821dc41fb5fd212311757713c61e8bffa3ba"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f9719f2ff3068780f21202b62c968b3a34dc2a302874e327302d82abfd478313"
 dependencies = [
  "anyhow",
  "proc-macro2",

@@ -15,7 +15,7 @@ wit-component = "0.6"
 wit-parser = "0.6"
 indexmap = "1.0"
 wasmtime-environ = { version = "6.0.0", features = ['component-model'] }
-wit-bindgen-guest-rust = { workspace = true, features = ['default'] }
+wit-bindgen = { workspace = true, features = ['default'] }
 
 [features]
 cli = []

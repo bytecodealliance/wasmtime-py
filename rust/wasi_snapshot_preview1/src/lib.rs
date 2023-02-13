@@ -1,7 +1,7 @@
 use std::arch::wasm32::unreachable;
 use wasi::*;
 
-wit_bindgen_guest_rust::generate!("python" in "../python.wit");
+wit_bindgen::generate!("python" in "../python.wit");
 
 #[no_mangle]
 pub extern "C" fn environ_get(environ: *mut *mut u8, environ_buf: *mut u8) -> Errno {
