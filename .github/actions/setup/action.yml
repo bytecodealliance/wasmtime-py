@@ -49,7 +49,7 @@ runs:
   - run: |
       path='${{ runner.tool_cache }}/wasm-tools'
       curl -o "$path/bins.zip" -L https://github.com/bytecodealliance/wasm-tools/releases/download/$WASM_TOOLS/$WASM_TOOLS-x86_64-windows.zip
-      7z e "$path/bins.zip" -o "$path"
+      7z e "$path/bins.zip" -o"$path"
     if: runner.os == 'Windows'
     shell: bash
 
