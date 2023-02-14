@@ -35,8 +35,8 @@ runs:
   # that's needed here.
   - run: |
       echo WASM_TOOLS=wasm-tools-1.0.23 >> $GITHUB_ENV
-      mkdir -p ${{ runner.tool_cache }}/wasm-tools
-      echo ${{ runner.tool_cache }}/wasm-tools >> $GITHUB_PATH
+      mkdir -p '${{ runner.tool_cache }}/wasm-tools'
+      echo '${{ runner.tool_cache }}/wasm-tools' >> $GITHUB_PATH
     shell: bash
   - run: |
       curl -L https://github.com/bytecodealliance/wasm-tools/releases/download/$WASM_TOOLS/$WASM_TOOLS-x86_64-linux.tar.gz | tar xzv -C ${{ runner.tool_cache }}/wasm-tools --strip-components 1
