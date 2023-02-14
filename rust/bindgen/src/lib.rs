@@ -35,7 +35,7 @@ pub use files::Files;
 
 #[cfg(target_arch = "wasm32")]
 mod bindings {
-    wit_bindgen_guest_rust::generate!("bindgen" in "../bindgen.wit");
+    wit_bindgen::generate!("bindgen" in "../bindgen.wit");
 
     export_wasmtime_py!(PythonBindings);
 

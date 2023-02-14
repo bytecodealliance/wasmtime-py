@@ -132,12 +132,14 @@ impl WasmtimePy {
             match import {
                 WorldItem::Function(_) => unimplemented!(),
                 WorldItem::Interface(id) => self.import_interface(&resolve, name, *id, files),
+                WorldItem::Type(_) => unimplemented!(),
             }
         }
         for (name, export) in world.exports.iter() {
             match export {
                 WorldItem::Function(_) => {}
                 WorldItem::Interface(id) => self.export_interface(&resolve, name, *id, files),
+                WorldItem::Type(_) => unreachable!(),
             }
         }
         self.finish_interfaces(&world, files);
@@ -498,6 +500,7 @@ impl<'a> Instantiator<'a> {
                 assert_eq!(path.len(), 1);
                 (&self.resolve.interfaces[*i].functions[&path[0]], Some(*i))
             }
+            WorldItem::Type(_) => unimplemented!(),
         };
 
         let index = import.index.as_u32();
@@ -689,7 +692,7 @@ impl<'a> Instantiator<'a> {
                     let callee = self.gen_lift_callee(func);
                     let func = match item {
                         WorldItem::Function(f) => f,
-                        WorldItem::Interface(_) => unreachable!(),
+                        WorldItem::Interface(_) | WorldItem::Type(_) => unreachable!(),
                     };
                     toplevel.push(Lift {
                         callee,
@@ -702,7 +705,7 @@ impl<'a> Instantiator<'a> {
                 Export::Instance(exports) => {
                     let id = match item {
                         WorldItem::Interface(id) => *id,
-                        WorldItem::Function(_) => unreachable!(),
+                        WorldItem::Function(_) | WorldItem::Type(_) => unreachable!(),
                     };
                     let mut lifts = Vec::new();
                     for (name, export) in exports {

@@ -1,15 +1,11 @@
 [workspace]
 members = ['bindgen', 'wasi_snapshot_preview1']
 
-[workspace.dependencies.wit-bindgen-guest-rust]
-git = 'https://github.com/bytecodealliance/wit-bindgen'
-default-features = false
-features = ['macros']
+[workspace.dependencies]
+wit-bindgen = { version = "0.3.0", default-features = false, features = ['macros'] }
 
 [profile.release]
 strip = 'debuginfo'
 
 [patch.crates-io]
-wasmtime-environ = { git = 'https://github.com/bytecodealliance/wasmtime' }
-wit-component = { git = 'https://github.com/bytecodealliance/wasm-tools' }
-wit-parser = { git = 'https://github.com/bytecodealliance/wasm-tools' }
+wasmtime-environ = { git = 'https://github.com/bytecodealliance/wasmtime', branch = 'release-6.0.0' }
