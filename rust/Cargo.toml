@@ -6,6 +6,3 @@ wit-bindgen = { version = "0.3.0", default-features = false, features = ['macros
 
 [profile.release]
 strip = 'debuginfo'
-
-[patch.crates-io]
-wasmtime-environ = { git = 'https://github.com/bytecodealliance/wasmtime', branch = 'release-6.0.0' }
