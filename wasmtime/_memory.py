@@ -74,7 +74,30 @@ class Memory:
         """
         if self._store is None:
             raise RuntimeError("you must call `set_store()` before using highlevel access")
-        return self.data_ptr(self._store)[key]
+        data_ptr = self.data_ptr(self._store)
+        size = self.data_len(self._store)
+        if isinstance(key, int):
+            if key>=size:
+                raise IndexError("out of memory size")
+            return data_ptr[key]
+        if not isinstance(key, slice):
+            raise TypeError("key can either be integer index or slice")
+        start = key.start
+        stop = key.stop
+        if key.step is not None:
+            raise ValueError("slice with step is not supported")
+
+        val_size = stop - start
+        value = bytearray(val_size)
+
+        if stop is None:
+            stop = start+val_size
+        if stop>size:
+            raise IndexError("out of memory size")
+        dst_ptr = (ctypes.c_ubyte * val_size).from_buffer(value)
+        src_ptr = ctypes.addressof((ctypes.c_ubyte*val_size).from_address(ctypes.addressof(data_ptr.contents)+start))
+        ctypes.memmove(dst_ptr, src_ptr, val_size)
+        return value
 
     def __setitem__(self, key, value: bytearray):
         """
@@ -91,16 +114,16 @@ class Memory:
         if isinstance(key, int):
             if key>=size:
                 raise IndexError("out of memory size")
-            return data_ptr[key]
+            data_ptr[key] = value
         if not isinstance(key, slice):
             raise TypeError("key can either be integer index or slice")
         start = key.start
         stop = key.stop
         if key.step is not None:
             raise ValueError("slice with step is not supported")
-        if stop is None:
-            stop=start+len(value)
         val_size = len(value)
+        if stop is None:
+            stop=start+val_size
         if stop-start>val_size or stop>size:
             raise IndexError("out of memory size")
         src_ptr = (ctypes.c_ubyte * val_size).from_buffer(value)
