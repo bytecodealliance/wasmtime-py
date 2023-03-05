@@ -82,16 +82,14 @@ class Memory:
             return data_ptr[key]
         if not isinstance(key, slice):
             raise TypeError("key can either be integer index or slice")
-        start = key.start
-        stop = key.stop
-        if key.step is not None:
+        
+        start, stop, step = key.indices(size)
+        if step!=1:
             raise ValueError("slice with step is not supported")
 
         val_size = stop - start
         value = bytearray(val_size)
 
-        if stop is None:
-            stop = start+val_size
         if stop>size:
             raise IndexError("out of memory size")
         dst_ptr = (ctypes.c_ubyte * val_size).from_buffer(value)
@@ -117,10 +115,11 @@ class Memory:
             data_ptr[key] = value
         if not isinstance(key, slice):
             raise TypeError("key can either be integer index or slice")
-        start = key.start
-        stop = key.stop
-        if key.step is not None:
+
+        start, stop, step = key.indices(size)
+        if step!=1:
             raise ValueError("slice with step is not supported")
+
         val_size = len(value)
         if stop is None:
             stop=start+val_size
