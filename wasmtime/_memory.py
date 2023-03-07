@@ -70,7 +70,7 @@ class Memory:
         """
         self._store = store
 
-    def __getitem__(self, key: typing.Union[int, slice]):
+    def __getitem__(self, key: typing.Union[int, slice]) -> typing.Union[int, bytearray]:
         """
         provide memory[offset] or memory[start:stop]
         """
@@ -102,7 +102,7 @@ class Memory:
         self,
         key: typing.Union[int, slice],
         value: typing.Union[bytearray, array.array, int],
-    ):
+    ) -> typing.Union[bytearray, array.array, int]:
         """
         provide setter for memory[key] with slice support
 

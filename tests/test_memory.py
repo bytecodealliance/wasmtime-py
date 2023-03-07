@@ -69,13 +69,13 @@ class TestMemory(unittest.TestCase):
         with self.assertRaises(IndexError):
             memory[size_bytes + 1] = 0
         with self.assertRaises(TypeError):
-            _ = memory[(1, 2)]
+            _ = memory[(1, 2)] # type: ignore
         with self.assertRaises(TypeError):
-            _ = memory["foo"]
+            _ = memory["foo"] # type: ignore
         with self.assertRaises(TypeError):
-            memory[(1, 2)] = ba
+            memory[(1, 2)] = ba # type: ignore
         with self.assertRaises(TypeError):
-            memory["foo"] = ba
+            memory["foo"] = ba # type: ignore
         with self.assertRaises(ValueError):
             _ = memory[1:100:2]
         with self.assertRaises(ValueError):
