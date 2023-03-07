@@ -77,9 +77,9 @@ class TestMemory(unittest.TestCase):
         with self.assertRaises(TypeError):
             memory["foo"] = ba
         with self.assertRaises(ValueError):
-            i = memory[1,100,2]
+            i = memory[1:100:2]
         with self.assertRaises(ValueError):
-            memory[1,100,2] = ba
+            memory[1:100:2] = ba
         offset = 2048
         ba_size = len(ba)
         memory[offset:] = ba
