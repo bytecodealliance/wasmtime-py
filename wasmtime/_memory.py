@@ -1,9 +1,10 @@
 from . import _ffi as ffi
 from ctypes import *
 import ctypes
+from typing import Union
 from wasmtime import MemoryType, WasmtimeError
 from ._store import Storelike
-from typing import Union
+
 
 class Memory:
     _memory: ffi.wasmtime_memory_t
@@ -75,8 +76,8 @@ class Memory:
         if self._store is None:
             raise RuntimeError("you must call `set_store()` before using highlevel access")
 
-        data_ptr = self._memory.data_ptr(self._store)
-        size = self._memory.data_len(self._store)
+        data_ptr = self.data_ptr(self._store)
+        size = self.data_len(self._store)
         if isinstance(key, int):
             if key>=size:
                 raise IndexError("out of memory size")
@@ -110,8 +111,8 @@ class Memory:
         if self._store is None:
             raise RuntimeError("you must call `set_store()` before using highlevel access")
 
-        data_ptr = self._memory.data_ptr(self._store)
-        size = self._memory.data_len(self._store)
+        data_ptr = self.data_ptr(self._store)
+        size = self.data_len(self._store)
         if isinstance(key, int):
             if key>=size:
                 raise IndexError("out of memory size")

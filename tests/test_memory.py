@@ -53,3 +53,37 @@ class TestMemory(unittest.TestCase):
             MemoryType(Limits(0x100000000, None))
         with self.assertRaises(WasmtimeError):
             MemoryType(Limits(1, 0x100000000))
+
+    def test_slices(self):
+        store = Store()
+        ty = MemoryType(Limits(1, None))
+        memory = Memory(store, ty)
+        memory.grow(store, 2)
+        ba = bytearray([i for i in range(200)])
+        with self.assertRaises(RuntimeError):
+            i = memory[1000]
+        memory.set_store(store)
+        size_bytes = memory.data_len(store)
+        with self.assertRaises(IndexError):
+            i = memory[size_bytes+1]
+        with self.assertRaises(IndexError):
+            memory[size_bytes+1] = 0
+        with self.assertRaises(TypeError):
+            i = memory[(1,2)]
+        with self.assertRaises(TypeError):
+            i = memory["foo"]
+        with self.assertRaises(TypeError):
+            memory[(1,2)] = ba
+        with self.assertRaises(TypeError):
+            memory["foo"] = ba
+        with self.assertRaises(ValueError):
+            i = memory[1,100,2]
+        with self.assertRaises(ValueError):
+            memory[1,100,2] = ba
+        offset = 2048
+        ba_size = len(ba)
+        memory[offset:] = ba
+        out = memory[offset:ba_size]
+        self.assertEqual(ba, out)
+        self.assertEqual(memory[offset+199], 199)
+
