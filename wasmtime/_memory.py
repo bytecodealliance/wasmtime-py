@@ -7,7 +7,7 @@ from wasmtime import MemoryType, WasmtimeError
 from ._store import Storelike
 
 class MemorySlicer:
-    def __init__(self, memory: Memory, store: Storelike):
+    def __init__(self, memory: "Memory", store: Storelike):
         self._memory = memory
         self._store = store
 
