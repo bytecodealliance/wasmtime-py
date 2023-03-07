@@ -136,11 +136,58 @@ class Memory:
         """
         return ffi.wasmtime_memory_data(store._context, byref(self._memory))
 
-    def get_slicer(self, store: Storelike) -> MemorySlicer:
+    def read(
+            self,
+            store: Storelike,
+            start: int = 0,
+            stop: int = None,
+            step: int = None) -> typing.Any:
         """
-        return MemorySlicer for fast and easy access to memory both read and write
+        provide fast way to read large memory slice similar to list[start:stop:step]
         """
-        return MemorySlicer(self, store)
+        data_ptr = self.data_ptr(store)
+        size = self.data_len(store)
+        key = slice(start, stop, step)
+        start, stop, step = key.indices(size)
+        val_size = stop - start
+        if val_size <= 0:
+            # return bytearray of size zero
+            return bytearray(0)
+        ptr_type = ctypes.c_ubyte * val_size
+        src_ptr = (ptr_type).from_address(ctypes.addressof(data_ptr.contents) + start)
+        value = bytearray(src_ptr)
+        if step != 1:
+            value[::step]
+        return value
+
+    def write(
+            self,
+            store: Storelike,
+            value: typing.Any,
+            start: int = 0,
+            stop: int = None) -> typing.Any:
+        """
+        write into a possibly large slice of memory
+        """
+        data_ptr = self.data_ptr(store)
+        size = self.data_len(store)
+        key = slice(start, stop, step)
+        start, stop, step = key.indices(size)
+        # value must be bytearray ex. cast bytes() to bytearray
+        if not isinstance(value, array.array) and not isinstance(value, bytearray):
+            # value = array.array('B', value)
+            value = bytearray(value)
+        val_size = len(value)
+        # key.indices(size) knows about size but not val_size
+        stop = start + min(stop - start, val_size)
+        # NOTE: we can use * 1, because we need pointer to the start only
+        ptr_type = ctypes.c_ubyte * val_size
+        src_ptr = (ptr_type).from_buffer(value)
+        dst_ptr = ctypes.addressof(
+            (ptr_type).from_address(ctypes.addressof(data_ptr.contents) + start)
+        )
+        ctypes.memmove(dst_ptr, src_ptr, val_size)
+        return value
 
     def data_len(self, store: Storelike) -> int:
         """

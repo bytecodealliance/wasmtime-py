@@ -59,39 +59,42 @@ class TestMemory(unittest.TestCase):
         ty = MemoryType(Limits(1, None))
         memory = Memory(store, ty)
         memory.grow(store, 2)
+        data_ptr = memory.data_ptr(store)
         ba = bytearray([i for i in range(200)])
         size_bytes = memory.data_len(store)
-        slicer = memory.get_slicer(store)
-        # out of bound access
-        with self.assertRaises(IndexError):
-            _ = slicer[size_bytes + 1]
-        # out of bound set
-        with self.assertRaises(IndexError):
-            slicer[size_bytes + 1] = 0
-        # non-slice key read/write
-        with self.assertRaises(TypeError):
-            _ = slicer[(1, 2)]  # type: ignore
-        with self.assertRaises(TypeError):
-            _ = slicer["foo"]  # type: ignore
-        with self.assertRaises(TypeError):
-            slicer[(1, 2)] = ba  # type: ignore
-        with self.assertRaises(TypeError):
-            slicer["foo"] = ba  # type: ignore
-        # slice with step
-        with self.assertRaises(ValueError):
-            _ = slicer[1:100:2]
-        with self.assertRaises(ValueError):
-            slicer[1:100:2] = ba
+        # happy cases
         offset = 2048
         ba_size = len(ba)
-        slicer[offset:] = ba
-        out = slicer[offset: offset + ba_size]
+        # write with start and ommit stop
+        memory.write(store, ba, offset)
+        out = memory.read(store, offset, offset + ba_size)
         self.assertEqual(ba, out)
-        self.assertEqual(slicer[offset + 199], 199)
-        self.assertEqual(len(slicer[-10:]), 10)
-        self.assertEqual(len(slicer[offset:offset]), 0)
-        self.assertEqual(len(slicer[offset: offset - 1]), 0)
-        slicer[offset + ba_size: offset + ba_size + ba_size] = ba
-        out = slicer[offset: offset + ba_size]
+        self.assertEqual(data_ptr[offset], 0)
+        self.assertEqual(data_ptr[offset + 1], 1)
+        self.assertEqual(data_ptr[offset + 199], 199)
+        self.assertEqual(len(memory.read(store, -10)), 10)
+        # write with start and stop
+        memory.write(store, ba, offset + ba_size, offset + ba_size + ba_size)
+        out = None
+        out = memory.read(store, offset + ba_size, offset + ba_size + ba_size)
         self.assertEqual(ba, out)
-        self.assertEqual(slicer[offset + ba_size + 199], 199)
+        # assert old
+        self.assertEqual(data_ptr[offset], 0)
+        self.assertEqual(data_ptr[offset + 1], 1)
+        self.assertEqual(data_ptr[offset + 199], 199)
+        # assert new
+        self.assertEqual(data_ptr[offset + ba_size], 0)
+        self.assertEqual(data_ptr[offset + ba_size + 1], 1)
+        self.assertEqual(data_ptr[offset + ba_size + 199], 199)
+        # edge cases
+        # empty slices
+        self.assertEqual(len(memory.read(store, 0, 0)), 0)
+        self.assertEqual(len(memory.read(store, offset, offset)), 0)
+        self.assertEqual(len(memory.read(store, offset, offset - 1)), 0)
+        # out of bound access returns empty array similar to list slice
+        self.assertEqual(len(memory.read(store, size_bytes + 1)), 0)
+        # step
+        out = memory.read(store, offset, None, 2)
+        self.assertEqual(out, ba[::2])
+        out = memory.read(store, offset + 1, None, 2)
+        self.assertEqual(out, ba[1::2])
