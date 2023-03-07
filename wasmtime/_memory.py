@@ -68,15 +68,14 @@ class Memory:
             self,
             store: Storelike,
             start: typing.Optional[int] = 0,
-            stop: typing.Optional[int] = None,
-            step: typing.Optional[int] = None) -> typing.Any:
+            stop: typing.Optional[int] = None) -> typing.Any:
         """
         provide fast way to read large memory slice similar to list[start:stop:step]
         negative start, stop is allowed in a way similat to list slice mylist[-10:]
         """
         data_ptr = self.data_ptr(store)
         size = self.data_len(store)
-        key = slice(start, stop, step)
+        key = slice(start, stop, None)
         start, stop, step = key.indices(size)
         val_size = stop - start
         if val_size <= 0:
@@ -84,10 +83,7 @@ class Memory:
             return bytearray(0)
         ptr_type = ctypes.c_ubyte * val_size
         src_ptr = (ptr_type).from_address(ctypes.addressof(data_ptr.contents) + start)
-        value = bytearray(src_ptr)
-        if step != 1:
-            value = value[::step]
-        return value
+        return bytearray(src_ptr)
 
     def write(
             self,
