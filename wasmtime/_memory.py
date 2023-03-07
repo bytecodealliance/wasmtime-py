@@ -72,6 +72,7 @@ class Memory:
             step: int = None) -> typing.Any:
         """
         provide fast way to read large memory slice similar to list[start:stop:step]
+        negative start, stop is allowed in a way similat to list slice mylist[-10:]
         """
         data_ptr = self.data_ptr(store)
         size = self.data_len(store)
@@ -96,6 +97,7 @@ class Memory:
             stop: int = None) -> typing.Any:
         """
         write into a possibly large slice of memory
+        negative start, stop is allowed in a way similat to list slice mylist[-10:]
         """
         data_ptr = self.data_ptr(store)
         size = self.data_len(store)
