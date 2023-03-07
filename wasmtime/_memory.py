@@ -98,10 +98,8 @@ class Memory:
         value = bytearray(val_size)
 
         ptr_type = ctypes.c_ubyte * val_size
-        dst_ptr = (ptr_type).from_buffer(value)
-        src_ptr = ctypes.addressof((ptr_type).from_address(ctypes.addressof(data_ptr.contents)+start))
-        ctypes.memmove(dst_ptr, src_ptr, val_size)
-        return value
+        src_ptr = (ptr_type).from_address(ctypes.addressof(data_ptr.contents)+start)
+        return bytearray(src_ptr)
 
     def __setitem__(self, key: typing.Union[int, slice], value: typing.Union[bytearray, array.array, int]):
         """
