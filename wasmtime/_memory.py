@@ -74,7 +74,7 @@ class Memory:
         """
         provide memory[offset] or memory[start:stop]
         """
-        if self._store is None:
+        if not hasattr(self, '_store'):
             raise RuntimeError("you must call `set_store()` before using highlevel access")
 
         data_ptr = self.data_ptr(self._store)
@@ -109,7 +109,7 @@ class Memory:
         memory[start:stop]=b'hello world'
         memory[start:stop]=bytearray([1,2,3])
         """
-        if self._store is None:
+        if not hasattr(self, '_store'):
             raise RuntimeError("you must call `set_store()` before using highlevel access")
 
         data_ptr = self.data_ptr(self._store)
