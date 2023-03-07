@@ -2,7 +2,7 @@ from . import _ffi as ffi
 from ctypes import *
 import ctypes
 import array
-from typing import Union
+import typing
 from wasmtime import MemoryType, WasmtimeError
 from ._store import Storelike
 
@@ -70,7 +70,7 @@ class Memory:
         """
         self._store=store
 
-    def __getitem__(self, key: Union[int, slice]):
+    def __getitem__(self, key: typing.Union[int, slice]):
         """
         provide memory[offset] or memory[start:stop]
         """
@@ -101,7 +101,7 @@ class Memory:
         ctypes.memmove(dst_ptr, src_ptr, val_size)
         return value
 
-    def __setitem__(self, key: Union[int, slice], value: Union[bytearray, array.array]):
+    def __setitem__(self, key: typing.Union[int, slice], value: typing.Union[bytearray, array.array]):
         """
         provide setter for memory[key] with slice support
 
