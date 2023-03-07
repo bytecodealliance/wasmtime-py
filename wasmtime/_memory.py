@@ -6,6 +6,7 @@ import typing
 from wasmtime import MemoryType, WasmtimeError
 from ._store import Storelike
 
+
 class Memory:
     _memory: ffi.wasmtime_memory_t
 
