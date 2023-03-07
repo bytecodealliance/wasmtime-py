@@ -1,6 +1,7 @@
 from . import _ffi as ffi
 from ctypes import *
 import ctypes
+import array
 from typing import Union
 from wasmtime import MemoryType, WasmtimeError
 from ._store import Storelike
