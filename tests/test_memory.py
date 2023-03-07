@@ -94,7 +94,7 @@ class TestMemory(unittest.TestCase):
         # out of bound access returns empty array similar to list slice
         self.assertEqual(len(memory.read(store, size_bytes + 1)), 0)
         # step
-        out = memory.read(store, offset, None, 2)
+        out = memory.read(store, offset, offset + ba_size, 2)
         self.assertEqual(out, ba[::2])
-        out = memory.read(store, offset + 1, None, 2)
+        out = memory.read(store, offset + 1, offset + ba_size, 2)
         self.assertEqual(out, ba[1::2])
