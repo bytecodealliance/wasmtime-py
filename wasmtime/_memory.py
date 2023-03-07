@@ -70,7 +70,7 @@ class Memory:
             start: typing.Optional[int] = 0,
             stop: typing.Optional[int] = None) -> typing.Any:
         """
-        provide fast way to read large memory slice similar to list[start:stop:step]
+        provide fast way to read large memory slice similar to list[start:stop]
         negative start, stop is allowed in a way similat to list slice mylist[-10:]
         """
         data_ptr = self.data_ptr(store)
