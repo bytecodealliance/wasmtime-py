@@ -67,9 +67,9 @@ class Memory:
     def read(
             self,
             store: Storelike,
-            start: int = 0,
-            stop: int = None,
-            step: int = None) -> typing.Any:
+            start: typing.Optional[int] = 0,
+            stop: typing.Optional[int] = None,
+            step: typing.Optional[int] = None) -> typing.Any:
         """
         provide fast way to read large memory slice similar to list[start:stop:step]
         negative start, stop is allowed in a way similat to list slice mylist[-10:]
@@ -93,8 +93,8 @@ class Memory:
             self,
             store: Storelike,
             value: typing.Any,
-            start: int = 0,
-            stop: int = None) -> typing.Any:
+            start: typing.Optional[int] = 0,
+            stop: typing.Optional[int] = None) -> typing.Any:
         """
         write into a possibly large slice of memory
         negative start, stop is allowed in a way similat to list slice mylist[-10:]
