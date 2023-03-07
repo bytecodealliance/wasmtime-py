@@ -6,6 +6,7 @@ import typing
 from wasmtime import MemoryType, WasmtimeError
 from ._store import Storelike
 
+
 class MemorySlicer:
     def __init__(self, memory: "Memory", store: Storelike):
         self._memory = memory
@@ -76,6 +77,7 @@ class MemorySlicer:
         )
         ctypes.memmove(dst_ptr, src_ptr, val_size)
         return value
+
 
 class Memory:
     _memory: ffi.wasmtime_memory_t
