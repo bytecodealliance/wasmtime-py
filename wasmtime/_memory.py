@@ -93,6 +93,8 @@ class Memory:
             raise ValueError("slice with step is not supported")
 
         val_size = stop - start
+        if val_size<=0:
+            return bytearray(0)
         value = bytearray(val_size)
 
         ptr_type = ctypes.c_ubyte * val_size
@@ -101,7 +103,7 @@ class Memory:
         ctypes.memmove(dst_ptr, src_ptr, val_size)
         return value
 
-    def __setitem__(self, key: typing.Union[int, slice], value: typing.Union[bytearray, array.array]):
+    def __setitem__(self, key: typing.Union[int, slice], value: typing.Union[bytearray, array.array, int]):
         """
         provide setter for memory[key] with slice support
 

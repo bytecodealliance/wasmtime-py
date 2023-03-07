@@ -83,7 +83,14 @@ class TestMemory(unittest.TestCase):
         offset = 2048
         ba_size = len(ba)
         memory[offset:] = ba
-        out = memory[offset:ba_size]
+        out = memory[offset:offset+ba_size]
         self.assertEqual(ba, out)
         self.assertEqual(memory[offset+199], 199)
+        self.assertEqual(len(memory[-10:]), 10)
+        self.assertEqual(len(memory[offset:offset]), 0)
+        self.assertEqual(len(memory[offset:offset-1]), 0)
+        memory[offset+ba_size: offset+ba_size+ba_size] = ba
+        out = memory[offset:offset+ba_size]
+        self.assertEqual(ba, out)
+        self.assertEqual(memory[offset+199+199], 199)
 
