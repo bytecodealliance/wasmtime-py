@@ -76,7 +76,7 @@ class Memory:
         data_ptr = self.data_ptr(store)
         size = self.data_len(store)
         key = slice(start, stop, None)
-        start, stop, step = key.indices(size)
+        start, stop, _ = key.indices(size)
         val_size = stop - start
         if val_size <= 0:
             # return bytearray of size zero
@@ -98,7 +98,7 @@ class Memory:
         data_ptr = self.data_ptr(store)
         size = self.data_len(store)
         key = slice(start, stop)
-        start, stop, step = key.indices(size)
+        start, stop, _ = key.indices(size)
         # value must be bytearray ex. cast bytes() to bytearray
         if not isinstance(value, array.array) and not isinstance(value, bytearray):
             # value = array.array('B', value)
