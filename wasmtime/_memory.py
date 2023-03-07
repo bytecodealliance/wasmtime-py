@@ -86,7 +86,7 @@ class Memory:
         src_ptr = (ptr_type).from_address(ctypes.addressof(data_ptr.contents) + start)
         value = bytearray(src_ptr)
         if step != 1:
-            value[::step]
+            value = value[::step]
         return value
 
     def write(
