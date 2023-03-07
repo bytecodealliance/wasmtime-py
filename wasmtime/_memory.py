@@ -64,7 +64,7 @@ class Memory:
         """
         return ffi.wasmtime_memory_data(store._context, byref(self._memory))
 
-    def set_store(self, store: Storelike):
+    def set_store(self, store: Storelike) -> None:
         """
         must be called to set the store for highlevel access of memory
         """
@@ -142,6 +142,7 @@ class Memory:
             (ptr_type).from_address(ctypes.addressof(data_ptr.contents) + start)
         )
         ctypes.memmove(dst_ptr, src_ptr, val_size)
+        return value
 
     def data_len(self, store: Storelike) -> int:
         """
