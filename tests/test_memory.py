@@ -92,5 +92,5 @@ class TestMemory(unittest.TestCase):
         memory[offset+ba_size: offset+ba_size+ba_size] = ba
         out = memory[offset:offset+ba_size]
         self.assertEqual(ba, out)
-        self.assertEqual(memory[offset+199+199], 199)
+        self.assertEqual(memory[offset+ba_size+199], 199)
 
