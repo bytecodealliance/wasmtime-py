@@ -60,36 +60,38 @@ class TestMemory(unittest.TestCase):
         memory = Memory(store, ty)
         memory.grow(store, 2)
         ba = bytearray([i for i in range(200)])
-        with self.assertRaises(RuntimeError):
-            _ = memory[1000]
-        memory.set_store(store)
         size_bytes = memory.data_len(store)
+        slicer = memory.get_slicer(store)
+        # out of bound access
         with self.assertRaises(IndexError):
-            _ = memory[size_bytes + 1]
+            _ = slicer[size_bytes + 1]
+        # out of bound set
         with self.assertRaises(IndexError):
-            memory[size_bytes + 1] = 0
+            slicer[size_bytes + 1] = 0
+        # non-slice key read/write
         with self.assertRaises(TypeError):
-            _ = memory[(1, 2)]  # type: ignore
+            _ = slicer[(1, 2)]  # type: ignore
         with self.assertRaises(TypeError):
-            _ = memory["foo"]  # type: ignore
+            _ = slicer["foo"]  # type: ignore
         with self.assertRaises(TypeError):
-            memory[(1, 2)] = ba  # type: ignore
+            slicer[(1, 2)] = ba  # type: ignore
         with self.assertRaises(TypeError):
-            memory["foo"] = ba  # type: ignore
+            slicer["foo"] = ba  # type: ignore
+        # slice with step
         with self.assertRaises(ValueError):
-            _ = memory[1:100:2]
+            _ = slicer[1:100:2]
         with self.assertRaises(ValueError):
-            memory[1:100:2] = ba
+            slicer[1:100:2] = ba
         offset = 2048
         ba_size = len(ba)
-        memory[offset:] = ba
-        out = memory[offset: offset + ba_size]
+        slicer[offset:] = ba
+        out = slicer[offset: offset + ba_size]
         self.assertEqual(ba, out)
-        self.assertEqual(memory[offset + 199], 199)
-        self.assertEqual(len(memory[-10:]), 10)
-        self.assertEqual(len(memory[offset:offset]), 0)
-        self.assertEqual(len(memory[offset: offset - 1]), 0)
-        memory[offset + ba_size: offset + ba_size + ba_size] = ba
-        out = memory[offset: offset + ba_size]
+        self.assertEqual(slicer[offset + 199], 199)
+        self.assertEqual(len(slicer[-10:]), 10)
+        self.assertEqual(len(slicer[offset:offset]), 0)
+        self.assertEqual(len(slicer[offset: offset - 1]), 0)
+        slicer[offset + ba_size: offset + ba_size + ba_size] = ba
+        out = slicer[offset: offset + ba_size]
         self.assertEqual(ba, out)
-        self.assertEqual(memory[offset + ba_size + 199], 199)
+        self.assertEqual(slicer[offset + ba_size + 199], 199)
