@@ -68,10 +68,13 @@ class Memory:
             self,
             store: Storelike,
             start: typing.Optional[int] = 0,
-            stop: typing.Optional[int] = None) -> typing.Any:
+            stop: typing.Optional[int] = None) -> bytearray:
         """
-        provide fast way to read large memory slice similar to list[start:stop]
-        negative start, stop is allowed in a way similat to list slice mylist[-10:]
+        Reads this memory starting from `start` and up to `stop`
+        and returns a copy of the contents as a byte array.
+        
+        The indexing behavior of this method is similar to `list[start:stop]`
+        where negative starts can be used to read from the end, for example.
         """
         data_ptr = self.data_ptr(store)
         size = self.data_len(store)
@@ -90,7 +93,7 @@ class Memory:
             store: Storelike,
             value: typing.Any,
             start: typing.Optional[int] = 0,
-            stop: typing.Optional[int] = None) -> typing.Any:
+            stop: typing.Optional[int] = None) -> bytearray:
         """
         write into a possibly large slice of memory
         negative start, stop is allowed in a way similat to list slice mylist[-10:]
@@ -109,9 +112,7 @@ class Memory:
         # NOTE: we can use * 1, because we need pointer to the start only
         ptr_type = ctypes.c_ubyte * val_size
         src_ptr = (ptr_type).from_buffer(value)
-        dst_ptr = ctypes.addressof(
-            (ptr_type).from_address(ctypes.addressof(data_ptr.contents) + start)
-        )
+        dst_ptr = (ptr_type).from_address(ctypes.addressof(data_ptr.contents) + start)
         ctypes.memmove(dst_ptr, src_ptr, val_size)
         return value
 
