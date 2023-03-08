@@ -72,7 +72,7 @@ class Memory:
         """
         Reads this memory starting from `start` and up to `stop`
         and returns a copy of the contents as a byte array.
-        
+
         The indexing behavior of this method is similar to `list[start:stop]`
         where negative starts can be used to read from the end, for example.
         """
