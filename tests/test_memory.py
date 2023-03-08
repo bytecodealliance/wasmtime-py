@@ -92,3 +92,7 @@ class TestMemory(unittest.TestCase):
         self.assertEqual(len(memory.read(store, offset, offset - 1)), 0)
         # out of bound access returns empty array similar to list slice
         self.assertEqual(len(memory.read(store, size_bytes + 1)), 0)
+        # write empty
+        self.assertEqual(memory.write(store, ba, offset, offset), 0)
+        self.assertEqual(memory.write(store, bytearray(0), offset, offset+10), 0)
+        self.assertEqual(memory.write(store, bytearray(b""), offset, offset+10), 0)
