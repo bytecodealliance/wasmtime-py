@@ -113,7 +113,7 @@ class Memory:
         stop = start + min(stop - start, val_size)
         # update val_size in according to previous minimum
         val_size = stop - start
-        if val_size==0:
+        if val_size == 0:
             return val_size
         # NOTE: we can use * 1, because we need pointer to the start only
         ptr_type = ctypes.c_ubyte * val_size
