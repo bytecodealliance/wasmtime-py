@@ -92,11 +92,13 @@ class Memory:
             self,
             store: Storelike,
             value: typing.Any,
-            start: typing.Optional[int] = 0,
-            stop: typing.Optional[int] = None) -> bytearray:
+            start: typing.Optional[int] = None,
+            stop: typing.Optional[int] = None) -> int:
         """
         write into a possibly large slice of memory
         negative start, stop is allowed in a way similat to list slice mylist[-10:]
+        you can also ommit start in a way similar to mylist[:-10]
+        return number of bytes written
         """
         data_ptr = self.data_ptr(store)
         size = self.data_len(store)
@@ -109,12 +111,14 @@ class Memory:
         val_size = len(value)
         # key.indices(size) knows about size but not val_size
         stop = start + min(stop - start, val_size)
+        # update val_size in according to previous minimum
+        val_size = stop - start
         # NOTE: we can use * 1, because we need pointer to the start only
         ptr_type = ctypes.c_ubyte * val_size
         src_ptr = (ptr_type).from_buffer(value)
         dst_ptr = (ptr_type).from_address(ctypes.addressof(data_ptr.contents) + start)
         ctypes.memmove(dst_ptr, src_ptr, val_size)
-        return value
+        return val_size
 
     def data_len(self, store: Storelike) -> int:
         """
