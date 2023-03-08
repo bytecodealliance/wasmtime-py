@@ -75,7 +75,6 @@ class TestMemory(unittest.TestCase):
         self.assertEqual(len(memory.read(store, -10)), 10)
         # write with start and stop
         memory.write(store, ba, offset + ba_size, offset + ba_size + ba_size)
-        out = None
         out = memory.read(store, offset + ba_size, offset + ba_size + ba_size)
         self.assertEqual(ba, out)
         # assert old
