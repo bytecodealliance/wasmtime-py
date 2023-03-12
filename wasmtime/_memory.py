@@ -112,7 +112,7 @@ class Memory:
         val_size = len(value)
         if val_size == 0:
             return val_size
-        stop = start + val_size
+        stop = start + val_size -1
         slice_size = stop - start
         if slice_size != val_size:
             raise IndexError("mismatched value size")
