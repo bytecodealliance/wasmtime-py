@@ -116,7 +116,7 @@ class Memory:
         stop = start + val_size
         slice_size = stop - start
         if slice_size != val_size:
-            raise IndexError("mismatched value size")
+            raise IndexError(f"mismatched value size, value of size [{val_size}] with slice of size [{slice_size}]")
         if stop > size:
             raise IndexError("index out of range")
         ptr_type = ctypes.c_ubyte * val_size
