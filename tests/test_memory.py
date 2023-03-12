@@ -98,7 +98,7 @@ class TestMemory(unittest.TestCase):
         with self.assertRaises(IndexError):
             memory.write(store, ba, size_bytes)
         with self.assertRaises(IndexError):
-            memory.write(store, ba, size_bytes-ba_size+1)
+            memory.write(store, ba, size_bytes - ba_size + 1)
         self.assertEqual(memory.write(store, ba, -ba_size), ba_size)
         out = memory.read(store, -ba_size)
         self.assertEqual(ba, out)

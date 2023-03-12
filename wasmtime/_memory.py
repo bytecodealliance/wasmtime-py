@@ -103,7 +103,7 @@ class Memory:
         size = self.data_len(store)
         key = slice(start, None)
         start = key.indices(size)[0]
-        if start>=size:
+        if start >= size:
             raise IndexError("index out of range")
         # value must be bytearray ex. cast bytes() to bytearray
         if not isinstance(value, array.array) and not isinstance(value, bytearray):
@@ -112,10 +112,12 @@ class Memory:
         val_size = len(value)
         if val_size == 0:
             return val_size
-        stop = start + val_size -1
+        stop = start + val_size - 1
         slice_size = stop - start
         if slice_size != val_size:
             raise IndexError("mismatched value size")
+        if stop >= size:
+            raise IndexError("index out of range")
         ptr_type = ctypes.c_ubyte * val_size
         src_ptr = (ptr_type).from_buffer(value)
         dst_ptr = (ptr_type).from_address(ctypes.addressof(data_ptr.contents) + start)
