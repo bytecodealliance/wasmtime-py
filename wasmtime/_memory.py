@@ -102,7 +102,7 @@ class Memory:
         data_ptr = self.data_ptr(store)
         size = self.data_len(store)
         key = slice(start, None)
-        start, stop, _ = key.indices(size)
+        start = key.indices(size)[0]
         if start>=size:
             raise IndexError("index out of range")
         # value must be bytearray ex. cast bytes() to bytearray
@@ -112,6 +112,7 @@ class Memory:
         val_size = len(value)
         if val_size == 0:
             return val_size
+        stop = start + val_size
         slice_size = stop - start
         if slice_size != val_size:
             raise IndexError("mismatched value size")
