@@ -92,30 +92,29 @@ class Memory:
             self,
             store: Storelike,
             value: typing.Any,
-            start: typing.Optional[int] = None,
-            stop: typing.Optional[int] = None) -> int:
+            start: typing.Optional[int] = None) -> int:
         """
-        write into a possibly large slice of memory
-        negative start, stop is allowed in a way similat to list slice mylist[-10:]
-        you can also ommit start in a way similar to mylist[:-10]
+        write a bytearray value  into a possibly large slice of memory
+        negative start is allowed in a way similat to list slice mylist[-10:]
+        if value is not bytearray it will be used to construct an intermediate bytearray
         return number of bytes written
         """
         data_ptr = self.data_ptr(store)
         size = self.data_len(store)
-        key = slice(start, stop)
+        key = slice(start, None)
         start, stop, _ = key.indices(size)
+        if start>=size:
+            raise IndexError("index out of range")
         # value must be bytearray ex. cast bytes() to bytearray
         if not isinstance(value, array.array) and not isinstance(value, bytearray):
             # value = array.array('B', value)
             value = bytearray(value)
         val_size = len(value)
-        # key.indices(size) knows about size but not val_size
-        stop = start + min(stop - start, val_size)
-        # update val_size in according to previous minimum
-        val_size = stop - start
         if val_size == 0:
             return val_size
-        # NOTE: we can use * 1, because we need pointer to the start only
+        slice_size = stop - start
+        if slice_size != val_size:
+            raise IndexError("mismatched value size")
         ptr_type = ctypes.c_ubyte * val_size
         src_ptr = (ptr_type).from_buffer(value)
         dst_ptr = (ptr_type).from_address(ctypes.addressof(data_ptr.contents) + start)
