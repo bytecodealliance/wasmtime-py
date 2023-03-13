@@ -85,19 +85,21 @@ class Memory:
             # return bytearray of size zero
             return bytearray(0)
         ptr_type = ctypes.c_ubyte * val_size
-        src_ptr = (ptr_type).from_address(ctypes.addressof(data_ptr.contents) + start)
+        src_ptr = ptr_type.from_address(ctypes.addressof(data_ptr.contents) + start)
         return bytearray(src_ptr)
 
     def write(
             self,
             store: Storelike,
-            value: typing.Any,
+            value: typing.Union[bytearray, array.array, bytes],
             start: typing.Optional[int] = None) -> int:
         """
         write a bytearray value  into a possibly large slice of memory
         negative start is allowed in a way similat to list slice mylist[-10:]
         if value is not bytearray it will be used to construct an intermediate bytearray
         return number of bytes written
+        raises IndexError when trying to write outside the memory range
+        this happens when start offset is >= size or when end side of value is >= size
         """
         data_ptr = self.data_ptr(store)
         size = self.data_len(store)
@@ -114,14 +116,11 @@ class Memory:
             return val_size
         # stop is exclusive
         stop = start + val_size
-        slice_size = stop - start
-        if slice_size != val_size:
-            raise IndexError(f"mismatched value size, value of size [{val_size}] with slice of size [{slice_size}]")
         if stop > size:
             raise IndexError("index out of range")
-        ptr_type = ctypes.c_ubyte * val_size
-        src_ptr = (ptr_type).from_buffer(value)
-        dst_ptr = (ptr_type).from_address(ctypes.addressof(data_ptr.contents) + start)
+        ptr_type = ctypes.c_char_p
+        src_ptr = ptr_type.from_buffer(value)
+        dst_ptr = ptr_type.from_address(ctypes.addressof(data_ptr.contents) + start)
         ctypes.memmove(dst_ptr, src_ptr, val_size)
         return val_size
 
