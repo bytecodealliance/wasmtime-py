@@ -1,7 +1,6 @@
 from . import _ffi as ffi
 from ctypes import *
 import ctypes
-import array
 import typing
 from wasmtime import MemoryType, WasmtimeError
 from ._store import Storelike
@@ -65,8 +64,8 @@ class Memory:
         return ffi.wasmtime_memory_data(store._context, byref(self._memory))
 
     def get_buffer_ptr(self, store: Storelike,
-            size: typing.Optional[int] = None,
-            offset: int = 0) -> ctypes.Array:
+                       size: typing.Optional[int] = None,
+                       offset: int = 0) -> ctypes.Array:
         """
         return raw pointer to buffer suitable for creating zero-copy writable NumPy Buffer Protocol
         this method is also used internally by `read()` and `write()`
@@ -78,7 +77,7 @@ class Memory:
         if size is None:
             size = self.data_len(store)
         ptr_type = ctypes.c_ubyte * size
-        return ptr_type.from_address(ctypes.addressof(self.data_ptr(store).contents)+offset)
+        return ptr_type.from_address(ctypes.addressof(self.data_ptr(store).contents) + offset)
 
     def read(
             self,
