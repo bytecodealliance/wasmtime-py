@@ -67,11 +67,13 @@ class TestMemory(unittest.TestCase):
         ba_size = len(ba)
         # write with start and ommit stop
         memory.write(store, ba, offset)
-        out = memory.read(store, offset, offset + ba_size)
-        self.assertEqual(ba, out)
+        # check write success byte by byte, whole is asserted with read
         self.assertEqual(data_ptr[offset], 0)
         self.assertEqual(data_ptr[offset + 1], 1)
         self.assertEqual(data_ptr[offset + 199], 199)
+        # read while and assert whole area
+        out = memory.read(store, offset, offset + ba_size)
+        self.assertEqual(ba, out)
         self.assertEqual(len(memory.read(store, -10)), 10)
         # write with start and stop
         memory.write(store, ba, offset + ba_size)
