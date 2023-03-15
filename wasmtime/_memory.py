@@ -64,6 +64,18 @@ class Memory:
         """
         return ffi.wasmtime_memory_data(store._context, byref(self._memory))
 
+    def get_buffer_ptr(self, store: Storelike) -> ctypes.Array:
+        """
+        return raw pointer to buffer suitable for creating zero-copy writable NumPy Buffer Protocol
+        this method is also used internally by `read()` and `write()`
+
+        np_mem = np.frombuffer(memory.get_buffer_ptr(store), dtype=np.uint8)
+        np_mem[start:end] = A # write
+        B = np_mem[start:end] # read
+        """
+        ptr_type = ctypes.c_ubyte * (self.data_len(store))
+        return ptr_type.from_address(ctypes.addressof(self.data_ptr(store).contents))
+
     def read(
             self,
             store: Storelike,
@@ -71,12 +83,11 @@ class Memory:
             stop: typing.Optional[int] = None) -> bytearray:
         """
         Reads this memory starting from `start` and up to `stop`
-        and returns a copy of the contents as a byte array.
+        and returns a copy of the contents as a `bytearray`.
 
         The indexing behavior of this method is similar to `list[start:stop]`
         where negative starts can be used to read from the end, for example.
         """
-        data_ptr = self.data_ptr(store)
         size = self.data_len(store)
         key = slice(start, stop, None)
         start, stop, _ = key.indices(size)
@@ -84,19 +95,18 @@ class Memory:
         if val_size <= 0:
             # return bytearray of size zero
             return bytearray(0)
-        ptr_type = ctypes.c_ubyte * val_size
-        src_ptr = ptr_type.from_address(ctypes.addressof(data_ptr.contents) + start)
+        src_ptr = self.get_buffer_ptr(store)
         return bytearray(src_ptr)
 
     def write(
             self,
             store: Storelike,
-            value: typing.Union[bytearray, array.array, bytes],
+            value: typing.Union[bytearray, bytes],
             start: typing.Optional[int] = None) -> int:
         """
-        write a bytearray value  into a possibly large slice of memory
+        write a bytearray value into a possibly large slice of memory
         negative start is allowed in a way similat to list slice mylist[-10:]
-        if value is not bytearray it will be used to construct an intermediate bytearray
+        if value is not bytearray it will be used to construct an intermediate bytearray (copyied twice)
         return number of bytes written
         raises IndexError when trying to write outside the memory range
         this happens when start offset is >= size or when end side of value is >= size
@@ -108,8 +118,7 @@ class Memory:
         if start >= size:
             raise IndexError("index out of range")
         # value must be bytearray ex. cast bytes() to bytearray
-        if not isinstance(value, array.array) and not isinstance(value, bytearray):
-            # value = array.array('B', value)
+        if not isinstance(value, bytearray):
             value = bytearray(value)
         val_size = len(value)
         if val_size == 0:
@@ -118,9 +127,8 @@ class Memory:
         stop = start + val_size
         if stop > size:
             raise IndexError("index out of range")
-        ptr_type = ctypes.c_ubyte * val_size
-        src_ptr = ptr_type.from_buffer(value)
-        dst_ptr = ptr_type.from_address(ctypes.addressof(data_ptr.contents) + start)
+        src_ptr = self.get_buffer_ptr(store)
+        dst_ptr = ctypes.c_void_p(ctypes.addressof(data_ptr.contents) + start)
         ctypes.memmove(dst_ptr, src_ptr, val_size)
         return val_size
 
