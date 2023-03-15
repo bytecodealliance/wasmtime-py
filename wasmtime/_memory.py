@@ -130,8 +130,9 @@ class Memory:
         stop = start + val_size
         if stop > size:
             raise IndexError("index out of range")
-        src_ptr = self.get_buffer_ptr(store)
-        dst_ptr = ctypes.c_void_p(ctypes.addressof(data_ptr.contents) + start)
+        ptr_type = ctypes.c_ubyte * val_size
+        src_ptr = ptr_type.from_buffer(value)
+        dst_ptr = self.get_buffer_ptr(store, val_size, start)
         ctypes.memmove(dst_ptr, src_ptr, val_size)
         return val_size
 
