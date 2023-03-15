@@ -114,7 +114,6 @@ class Memory:
         raises IndexError when trying to write outside the memory range
         this happens when start offset is >= size or when end side of value is >= size
         """
-        data_ptr = self.data_ptr(store)
         size = self.data_len(store)
         key = slice(start, None)
         start = key.indices(size)[0]
