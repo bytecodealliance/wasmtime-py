@@ -74,7 +74,7 @@ class Memory:
         B = np_mem[start:end] # read
         """
         if size is None:
-            self.data_len(store)
+            size = self.data_len(store)
         ptr_type = ctypes.c_ubyte * size
         return ptr_type.from_address(ctypes.addressof(self.data_ptr(store).contents))
 
