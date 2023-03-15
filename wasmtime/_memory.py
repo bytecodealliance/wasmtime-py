@@ -64,7 +64,7 @@ class Memory:
         """
         return ffi.wasmtime_memory_data(store._context, byref(self._memory))
 
-    def get_buffer_ptr(self, store: Storelike) -> ctypes.Array:
+    def get_buffer_ptr(self, store: Storelike, size: typing.Optional[int] = None) -> ctypes.Array:
         """
         return raw pointer to buffer suitable for creating zero-copy writable NumPy Buffer Protocol
         this method is also used internally by `read()` and `write()`
@@ -73,7 +73,9 @@ class Memory:
         np_mem[start:end] = A # write
         B = np_mem[start:end] # read
         """
-        ptr_type = ctypes.c_ubyte * (self.data_len(store))
+        if size is None:
+            self.data_len(store)
+        ptr_type = ctypes.c_ubyte * size
         return ptr_type.from_address(ctypes.addressof(self.data_ptr(store).contents))
 
     def read(
@@ -95,7 +97,7 @@ class Memory:
         if val_size <= 0:
             # return bytearray of size zero
             return bytearray(0)
-        src_ptr = self.get_buffer_ptr(store)
+        src_ptr = self.get_buffer_ptr(store, val_size)
         return bytearray(src_ptr)
 
     def write(
