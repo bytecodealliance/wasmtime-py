@@ -53,3 +53,54 @@ class TestMemory(unittest.TestCase):
             MemoryType(Limits(0x100000000, None))
         with self.assertRaises(WasmtimeError):
             MemoryType(Limits(1, 0x100000000))
+
+    def test_slices(self):
+        store = Store()
+        ty = MemoryType(Limits(1, None))
+        memory = Memory(store, ty)
+        memory.grow(store, 2)
+        data_ptr = memory.data_ptr(store)
+        ba = bytearray([i for i in range(200)])
+        size_bytes = memory.data_len(store)
+        # happy cases
+        offset = 2048
+        ba_size = len(ba)
+        # write with start and ommit stop
+        memory.write(store, ba, offset)
+        # check write success byte by byte, whole is asserted with read
+        self.assertEqual(data_ptr[offset], 0)
+        self.assertEqual(data_ptr[offset + 1], 1)
+        self.assertEqual(data_ptr[offset + 199], 199)
+        # read while and assert whole area
+        out = memory.read(store, offset, offset + ba_size)
+        self.assertEqual(ba, out)
+        self.assertEqual(len(memory.read(store, -10)), 10)
+        # write with start and stop
+        memory.write(store, ba, offset + ba_size)
+        out = memory.read(store, offset + ba_size, offset + ba_size + ba_size)
+        self.assertEqual(ba, out)
+        # assert old
+        self.assertEqual(data_ptr[offset], 0)
+        self.assertEqual(data_ptr[offset + 1], 1)
+        self.assertEqual(data_ptr[offset + 199], 199)
+        # assert new
+        self.assertEqual(data_ptr[offset + ba_size], 0)
+        self.assertEqual(data_ptr[offset + ba_size + 1], 1)
+        self.assertEqual(data_ptr[offset + ba_size + 199], 199)
+        # edge cases
+        # empty slices
+        self.assertEqual(len(memory.read(store, 0, 0)), 0)
+        self.assertEqual(len(memory.read(store, offset, offset)), 0)
+        self.assertEqual(len(memory.read(store, offset, offset - 1)), 0)
+        # out of bound access returns empty array similar to list slice
+        self.assertEqual(len(memory.read(store, size_bytes + 1)), 0)
+        # write empty
+        self.assertEqual(memory.write(store, bytearray(0), offset), 0)
+        self.assertEqual(memory.write(store, bytearray(b""), offset), 0)
+        with self.assertRaises(IndexError):
+            memory.write(store, ba, size_bytes)
+        with self.assertRaises(IndexError):
+            memory.write(store, ba, size_bytes - ba_size + 1)
+        self.assertEqual(memory.write(store, ba, -ba_size), ba_size)
+        out = memory.read(store, -ba_size)
+        self.assertEqual(ba, out)
