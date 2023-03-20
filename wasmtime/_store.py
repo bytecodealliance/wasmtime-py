@@ -111,6 +111,39 @@ class Store:
         """
         ffi.wasmtime_context_set_epoch_deadline(self._context, ticks_after_current)
 
+    def set_limits(self,
+                   memory_size: int = -1,
+                   table_elements: int = -1,
+                   instances: int = -1,
+                   tables: int = -1,
+                   memories: int = -1) -> None:
+        """
+        Configures the limits of various items within this store.
+
+        * `memory_size` - the maximum size, in bytes, that linear memory is
+          allowed to consume within this store. Setting this to a lower value
+          will cause instantiation to fail if a module needs more memory.
+          Additionally the `memory.grow` instruction will return -1 once this
+          threshold is reached.
+
+        * `table_elements` - the maximum number of elements that can be stored
+          within tables in this store. Currently each table element takes 8
+          bytes.
+
+        * `instances` - the maximum number of WebAssembly instances that can
+          be created.
+
+        * `tables` - the maximum number of WebAssembly tables that can
+          be created.
+
+        * `memories` - the maximum number of WebAssembly linear memories that
+          can be created.
+
+        If any limit is negative then the limit will not be set as a part of
+        this invocation and it will be ignored.
+        """
+        ffi.wasmtime_store_limiter(self._ptr, memory_size, table_elements, instances, tables, memories)
+
     def __del__(self) -> None:
         if hasattr(self, '_ptr'):
             ffi.wasmtime_store_delete(self._ptr)
