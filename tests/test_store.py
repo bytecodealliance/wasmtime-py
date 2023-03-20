@@ -55,3 +55,27 @@ class TestStore(unittest.TestCase):
         assert(store.consume_fuel(1) == 1)
         with self.assertRaises(WasmtimeError):
             store.consume_fuel(2)
+
+    def test_limits(self):
+        store = Store()
+        Memory(store, MemoryType(Limits(1, None)))
+
+        store = Store()
+        store.set_limits(memory_size=0)
+        with self.assertRaises(WasmtimeError):
+            Memory(store, MemoryType(Limits(1, None)))
+        store.set_limits(memory_size=100000)
+        Memory(store, MemoryType(Limits(1, None)))
+
+        store = Store()
+        store.set_limits(table_elements=1)
+        Table(store, TableType(ValType.funcref(), Limits(1, None)), None)
+        with self.assertRaises(WasmtimeError):
+            Table(store, TableType(ValType.funcref(), Limits(2, None)), None)
+
+        store = Store()
+        store.set_limits(memory_size=200000)
+        mem = Memory(store, MemoryType(Limits(1, None)))
+        mem.grow(store, 1)
+        with self.assertRaises(WasmtimeError):
+            mem.grow(store, 100)
