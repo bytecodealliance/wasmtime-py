@@ -7,7 +7,7 @@ from wasmtime import *
 class TestModule(unittest.TestCase):
     def test_smoke(self):
         Module(Engine(), '(module)')
-        Module(Engine(), bytes(b'\0asm\x01\0\0\0'))
+        Module(Engine(), b'\0asm\x01\0\0\0')
         Module(Engine(), bytearray(b'\0asm\x01\0\0\0'))
 
     def test_invalid(self):

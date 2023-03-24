@@ -1,0 +1,44 @@
+[tool.ruff]
+select = [
+    "B",
+    "C4",
+    "C9",
+    "E",
+    "F",
+    "PL",
+    "S",
+    "UP",
+    "W",
+]
+ignore = [
+    "B011",
+    "F403",
+    "F405",
+    "PLR2004",
+    "S101",
+    "UP015",
+    "UP032",
+]
+line-length = 134
+target-version = "py37"
+
+[tool.ruff.mccabe]
+max-complexity = 29
+
+[tool.ruff.pylint]
+max-args = 6
+max-branches = 30
+max-returns = 23
+max-statements = 60
+
+[tool.ruff.per-file-ignores]
+"*/__init__.py" = ["F401"]
+"ci/cbindgen.py" = ["PLR1701"]
+"ci/download-wasmtime.py" = ["S110", "S310"]
+"tests/*" = ["E402"]
+"tests/test_func.py" = ["B017"]
+"tests/codegen/test_lists.py" = ["PLC1901"]
+"tests/codegen/test_many_arguments.py" = ["PLR0913"]
+"wasmtime/_func.py" = ["PLW0603"]
+"wasmtime/bindgen/__init__.py" = ["PLW0603"]
+"wasmtime/loader.py" = ["PLC1901"]

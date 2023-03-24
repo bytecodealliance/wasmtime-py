@@ -12,7 +12,7 @@ from pycparser import c_ast, parse_file
 class Visitor(c_ast.NodeVisitor):
     def __init__(self):
         self.ret = ''
-        self.ret += '# flake8: noqa\n'
+        self.ret += '# ruff: noqa\n'
         self.ret += '#\n'
         self.ret += '# This is a procedurally generated file, DO NOT EDIT\n'
         self.ret += '# instead edit `./ci/cbindgen.py` at the root of the repo\n'

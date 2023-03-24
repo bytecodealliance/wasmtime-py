@@ -36,7 +36,7 @@ def bindgen(name: str, wat: str) -> None:
         # replace the previous file, if any, with the new contents. This
         # is done to hopefully fix an apparent issue in `pytest` where it seems
         # that there are multiple threads of the python interpreter, perhaps for
-        # pytest itself, mypy, and flake8, and overwriting files in-place causes
+        # pytest itself, mypy, and ruff, and overwriting files in-place causes
         # issues are partial files may be seen.
         tmp_file = file.with_suffix('.tmp')
         if not file.parent.exists():

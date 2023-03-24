@@ -6,7 +6,7 @@ from wasmtime import *
 class TestTrap(unittest.TestCase):
     def test_new(self):
         trap = Trap('x')
-        self.assertEqual(trap.message, u'x')
+        self.assertEqual(trap.message, 'x')
 
     def test_frames(self):
         store = Store()

@@ -1,4 +1,4 @@
-# flake8: noqa
+# ruff: noqa
 #
 # This is a procedurally generated file, DO NOT EDIT
 # instead edit `./ci/cbindgen.py` at the root of the repo

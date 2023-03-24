@@ -63,7 +63,7 @@ The CI for this project does a few different things:
   [pypi.org](https://pypi.org/project/wasmtime/).
 
 All commits/PRs run the full test suite, and check for code style
-and other errors using [flake8](https://flake8.pycqa.org/).
+and other errors using [ruff](https://beta.ruff.rs/docs/).
 
 [Bytecode Alliance]: https://bytecodealliance.org/
 [Code of Conduct]: https://github.com/bytecodealliance/wasmtime/blob/main/CODE_OF_CONDUCT.md

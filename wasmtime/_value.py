@@ -151,7 +151,7 @@ class Val:
                 return Val.funcref(None)
         elif ty == ValType.externref():
             return Val.externref(val)
-        raise TypeError("don't know how to convert %r to %s" % (val, ty))
+        raise TypeError("don't know how to convert {!r} to {}".format(val, ty))
 
     def _into_raw(self) -> wasmtime_val_t:
         raw = self._unwrap_raw()

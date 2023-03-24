@@ -60,7 +60,7 @@ class TestMemory(unittest.TestCase):
         memory = Memory(store, ty)
         memory.grow(store, 2)
         data_ptr = memory.data_ptr(store)
-        ba = bytearray([i for i in range(200)])
+        ba = bytearray(range(200))
         size_bytes = memory.data_len(store)
         # happy cases
         offset = 2048
