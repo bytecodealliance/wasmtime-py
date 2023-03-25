@@ -16,6 +16,11 @@ LAST_EXCEPTION: Optional[Exception] = None
 
 class Func:
     _func: ffi.wasmtime_func_t
+    _params_n: int
+    _results_n: int
+    _params_str: list[str]
+    _results_str: list[str]
+    _vals_raw_type: ctypes.Array[wasmtime_val_raw_t]
 
     def __init__(self, store: Storelike, ty: FuncType, func: Callable, access_caller: bool = False):
         """
