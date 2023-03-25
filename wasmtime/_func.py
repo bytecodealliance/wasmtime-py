@@ -31,7 +31,19 @@ class Func:
             raise TypeError("expected a Store")
         if not isinstance(ty, FuncType):
             raise TypeError("expected a FuncType")
-        self._func_call_init(ty)
+        # init signature properties used by call
+        self._ty = ty
+        ty_params = ty.params
+        ty_results = ty.results
+        self._params_str = (str(i) for i in ty_params)
+        self._results_str = (str(i) for i in ty_results)
+        params_n = len(ty_params)
+        results_n = len(ty_results)
+        self._params_n = params_n
+        self._results_n = results_n
+        n = max(params_n, results_n)
+        self._vals_raw_type = wasmtime_val_raw_t*n
+
         idx = FUNCTIONS.allocate((func, ty.results, access_caller))
         _func = ffi.wasmtime_func_t()
         ffi.wasmtime_func_new(
@@ -55,19 +67,6 @@ class Func:
         """
         ptr = ffi.wasmtime_func_type(store._context, byref(self._func))
         return FuncType._from_ptr(ptr, None)
-
-    def _func_call_init(self, ty):
-        self._ty = ty
-        ty_params = ty.params
-        ty_results = ty.results
-        self._params_str = (str(i) for i in ty_params)
-        self._results_str = (str(i) for i in ty_results)
-        params_n = len(ty_params)
-        results_n = len(ty_results)
-        self._params_n = params_n
-        self._results_n = results_n
-        n = max(params_n, results_n)
-        self._vals_raw_type = wasmtime_val_raw_t*n
 
     def _create_raw_vals(self, *params: IntoVal) -> ctypes.Array[wasmtime_val_raw_t]:
         raw = self._vals_raw_type()
@@ -109,7 +108,7 @@ class Func:
         # according to https://docs.wasmtime.dev/c-api/func_8h.html#a3b54596199641a8647a7cd89f322966f
         # it's safe to call wasmtime_func_call_unchecked because
         # - we allocate enough space to hold all the parameters and all the results
-        # - we set proper types
+        # - we set proper types by reading types from ty
         # - but not sure about "Values such as externref and funcref are valid within the store being called"
         with enter_wasm(store) as trap:
             error = None
