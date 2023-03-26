@@ -124,8 +124,7 @@ class Func:
         # - we set proper types by reading types from ty
         # - but not sure about "Values such as externref and funcref are valid within the store being called"
         with enter_wasm(store) as trap:
-            error = None
-            ffi.wasmtime_func_call_unchecked(
+            error = ffi.wasmtime_func_call_unchecked(
                 store._context,
                 byref(self._func),
                 vals_raw_ptr,
