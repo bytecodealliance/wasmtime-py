@@ -16,10 +16,12 @@ LAST_EXCEPTION: Optional[Exception] = None
 
 class Func:
     _func: ffi.wasmtime_func_t
+    _ty: FuncType
     _params_n: int
     _results_n: int
     _params_str: list[str]
     _results_str: list[str]
+    _results_str0: str
     _vals_raw_type: ctypes.Array[wasmtime_val_raw_t]
 
     def __init__(self, store: Storelike, ty: FuncType, func: Callable, access_caller: bool = False):
@@ -36,19 +38,7 @@ class Func:
             raise TypeError("expected a Store")
         if not isinstance(ty, FuncType):
             raise TypeError("expected a FuncType")
-        # init signature properties used by call
-        self._ty = ty
-        ty_params = ty.params
-        ty_results = ty.results
-        self._params_str = (str(i) for i in ty_params)
-        self._results_str = (str(i) for i in ty_results)
-        params_n = len(ty_params)
-        results_n = len(ty_results)
-        self._params_n = params_n
-        self._results_n = results_n
-        n = max(params_n, results_n)
-        self._vals_raw_type = wasmtime_val_raw_t*n
-
+        self._init_call(ty)
         idx = FUNCTIONS.allocate((func, ty.results, access_caller))
         _func = ffi.wasmtime_func_t()
         ffi.wasmtime_func_new(
@@ -83,9 +73,25 @@ class Func:
         if self._results_n==0:
             return None
         if self._results_n==1:
-            return getattr(vals_raw[0], self._results_str[0])
+            return getattr(vals_raw[0], self._results_str0)
         # we can use tuple construct, but I'm using list for compatability
         return [getattr(val_raw, ret_str) for val_raw, ret_str in zip(vals_raw, self._results_str)]
+
+    def _init_call(self, ty):
+        """init signature properties used by call"""
+        self._ty = ty
+        ty_params = ty.params
+        ty_results = ty.results
+        self._params_str = (str(i) for i in ty_params)
+        self._results_str = (str(i) for i in ty_results)
+        self._results_str0 = str(ty_results[0])
+        params_n = len(ty_params)
+        results_n = len(ty_results)
+        self._params_n = params_n
+        self._results_n = results_n
+        n = max(params_n, results_n)
+        self._vals_raw_type = wasmtime_val_raw_t*n
+
 
     def __call__(self, store: Storelike, *params: IntoVal) -> Union[IntoVal, Sequence[IntoVal], None]:
         """
@@ -101,6 +107,8 @@ class Func:
         Note that you can also use the `__call__` method and invoke a `Func` as
         if it were a function directly.
         """
+        if getattr(self, "_ty", None) is None:
+            self._init_call(self.type(store))
         params_n = len(params)
         if params_n > self._params_n:
             raise WasmtimeError("too many parameters provided: given %s, expected %s" %
