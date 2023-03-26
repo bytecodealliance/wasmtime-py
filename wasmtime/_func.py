@@ -82,11 +82,11 @@ class Func:
         self._ty = ty
         ty_params = ty.params
         ty_results = ty.results
-        self._params_str = (str(i) for i in ty_params)
-        self._results_str = (str(i) for i in ty_results)
-        self._results_str0 = str(ty_results[0])
         params_n = len(ty_params)
         results_n = len(ty_results)
+        self._params_str = (str(i) for i in ty_params)
+        self._results_str = (str(i) for i in ty_results)
+        self._results_str0 = str(ty_results[0]) if results_n else None
         self._params_n = params_n
         self._results_n = results_n
         n = max(params_n, results_n)
