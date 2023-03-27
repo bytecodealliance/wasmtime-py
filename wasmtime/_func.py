@@ -7,12 +7,34 @@ from ._extern import wrap_extern
 from typing import Callable, Optional, Generic, TypeVar, List, Union, Tuple, cast as cast_type, Sequence
 from ._exportable import AsExtern
 from ._store import Storelike
-from ._bindings import wasmtime_val_raw_t
+from ._bindings import wasmtime_val_raw_t, wasm_valtype_kind
+from ._ffi import (
+    WASMTIME_I32,
+    WASMTIME_I64,
+    WASMTIME_F32,
+    WASMTIME_F64,
+    WASMTIME_V128,
+    WASMTIME_FUNCREF,
+    WASMTIME_EXTERNREF,
+)
+
 
 T = TypeVar('T')
 FUNCTIONS: "Slab[Tuple]"
 LAST_EXCEPTION: Optional[Exception] = None
 
+val_id2attr = {
+    WASMTIME_I32.value: 'i32',
+    WASMTIME_I64.value: 'i64',
+    WASMTIME_F32.value: 'f32',
+    WASMTIME_F64.value: 'f64',
+    WASMTIME_V128.value: 'v128',
+    WASMTIME_FUNCREF.value: 'funcref',
+    WASMTIME_EXTERNREF.value: 'externref',
+}
+
+def get_valtype_attr(ty):
+    return val_id2attr[wasm_valtype_kind(ty._ptr)]
 
 class Func:
     _func: ffi.wasmtime_func_t
@@ -84,9 +106,9 @@ class Func:
         ty_results = ty.results
         params_n = len(ty_params)
         results_n = len(ty_results)
-        self._params_str = (str(i) for i in ty_params)
-        self._results_str = (str(i) for i in ty_results)
-        self._results_str0 = str(ty_results[0]) if results_n else None
+        self._params_str = (get_valtype_attr(i) for i in ty_params)
+        self._results_str = (get_valtype_attr(i) for i in ty_results)
+        self._results_str0 = get_valtype_attr(ty_results[0]) if results_n else None
         self._params_n = params_n
         self._results_n = results_n
         n = max(params_n, results_n)
