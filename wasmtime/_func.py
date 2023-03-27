@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 from ctypes import POINTER, byref, CFUNCTYPE, c_void_p, cast
 import ctypes
-from wasmtime import Store, FuncType, Val, IntoVal, Trap, WasmtimeError
+from wasmtime import Store, FuncType, Val, IntoVal, Trap, WasmtimeError, ValType
 from . import _ffi as ffi
 from ._extern import wrap_extern
 from typing import Callable, Optional, Generic, TypeVar, List, Union, Tuple, cast as cast_type, Sequence
@@ -33,7 +33,7 @@ val_id2attr = {
     WASMTIME_EXTERNREF.value: 'externref',
 }
 
-def get_valtype_attr(ty):
+def get_valtype_attr(ty: ValType):
     return val_id2attr[wasm_valtype_kind(ty._ptr)]
 
 class Func:
@@ -99,7 +99,7 @@ class Func:
         # we can use tuple construct, but I'm using list for compatability
         return [getattr(val_raw, ret_str) for val_raw, ret_str in zip(vals_raw, self._results_str)]
 
-    def _init_call(self, ty):
+    def _init_call(self, ty: FuncType):
         """init signature properties used by call"""
         self._ty = ty
         ty_params = ty.params
