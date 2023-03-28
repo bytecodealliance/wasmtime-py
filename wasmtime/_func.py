@@ -16,6 +16,8 @@ from ._ffi import (
     WASMTIME_V128,
     WASMTIME_FUNCREF,
     WASMTIME_EXTERNREF,
+    WASM_ANYREF,
+    WASM_FUNCREF,
 )
 
 
@@ -31,10 +33,25 @@ val_id2attr = {
     WASMTIME_V128.value: 'v128',
     WASMTIME_FUNCREF.value: 'funcref',
     WASMTIME_EXTERNREF.value: 'externref',
+    WASM_FUNCREF.value: 'funcref',
+    WASM_ANYREF.value: 'externref',
 }
 
 def get_valtype_attr(ty: ValType):
     return val_id2attr[wasm_valtype_kind(ty._ptr)]
+
+def val_setter(dst, attr, val):
+    if attr=='externref':
+        # TODO: handle None
+        v = Val.externref(val)
+        casted = ctypes.addressof(v._raw.of.externref)
+    elif isinstance(val, Func):
+        # TODO: handle null_funcref
+        # TODO: validate same val._func.store_id
+        casted = val._func.index
+    else:
+        casted = val
+    setattr(dst, attr, casted)
 
 class Func:
     _func: ffi.wasmtime_func_t
@@ -88,7 +105,7 @@ class Func:
     def _create_raw_vals(self, *params: IntoVal) -> ctypes.Array[wasmtime_val_raw_t]:
         raw = self._vals_raw_type()
         for i, param_str in enumerate(self._params_str):
-            setattr(raw[i], param_str, params[i])
+            val_setter(raw[i], param_str, params[i])
         return raw
     
     def _extract_return(self, vals_raw: ctypes.Array[wasmtime_val_raw_t]) -> Union[IntoVal, Sequence[IntoVal], None]:
