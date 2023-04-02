@@ -82,7 +82,10 @@ def val_setter(dst, attr, val):
         # TODO: validate same val._func.store_id
         casted = val._func.index
     else:
-        casted = val
+        if isinstance(val, Val):
+            casted = getattr(val._raw.of, attr)
+        else:
+            casted = val
     setattr(dst, attr, casted)
 
 class Func:
