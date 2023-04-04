@@ -63,14 +63,19 @@ def val_getter(store_id: int, val_raw: wasmtime_val_raw_t, attr: str) -> typing.
     return val
 
 
-def val_setter(dst: wasmtime_val_raw_t, attr: str, val: "IntoVal"):
+def val_setter(dst: wasmtime_val_raw_t, attr: str, val: "IntoVal") -> None:
+    casted: typing.Union[Any, int, float, None, wasmtime.Func]
     if attr == 'externref':
-        if isinstance(val, Val) and val._raw.kind == WASMTIME_EXTERNREF.value:
+        if isinstance(val, Val) and val._raw and val._raw.kind == WASMTIME_EXTERNREF.value:
             casted = ctypes.addressof(val._raw.of.externref)
         else:
-            casted = ctypes.addressof(Val.externref(val)._raw.of.externref)
+            ex = Val.externref(val)._raw
+            if ex:
+                casted = ctypes.addressof(ex.of.externref)
+            else:
+                casted = 0
     elif attr == 'funcref':
-        if isinstance(val, Val) and val._raw.kind == WASMTIME_FUNCREF.value:
+        if isinstance(val, Val) and val._raw and val._raw.kind == WASMTIME_FUNCREF.value:
             casted = val._raw.of.funcref.index
         elif isinstance(val, wasmtime.Func):
             # TODO: validate same val._func.store_id
@@ -79,7 +84,10 @@ def val_setter(dst: wasmtime_val_raw_t, attr: str, val: "IntoVal"):
             raise RuntimeError("foo")
     else:
         if isinstance(val, Val):
-            casted = getattr(val._raw.of, attr)
+            if val._raw:
+                casted = getattr(val._raw.of, attr)
+            else:
+                casted = 0
         else:
             casted = val
     setattr(dst, attr, casted)

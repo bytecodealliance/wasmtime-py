@@ -23,7 +23,7 @@ class Func:
     _params_str: list[str]
     _results_str: list[str]
     _results_str0: str
-    _vals_raw_type: ctypes.Array[wasmtime_val_raw_t]
+    _vals_raw_type: type[ctypes.Array[wasmtime_val_raw_t]]
 
     def __init__(self, store: Storelike, ty: FuncType, func: Callable, access_caller: bool = False):
         """
@@ -78,7 +78,7 @@ class Func:
         # we can use tuple construct, but I'm using list for compatability
         return [val_getter(self._func.store_id, val_raw, ret_str) for val_raw, ret_str in zip(vals_raw, self._results_str)]
 
-    def _init_call(self, ty: FuncType):
+    def _init_call(self, ty: FuncType) -> None:
         """init signature properties used by call"""
         self._ty = ty
         ty_params = ty.params
@@ -87,7 +87,7 @@ class Func:
         results_n = len(ty_results)
         self._params_str = [get_valtype_attr(i) for i in ty_params]
         self._results_str = [get_valtype_attr(i) for i in ty_results]
-        self._results_str0 = get_valtype_attr(ty_results[0]) if results_n else None
+        self._results_str0 = get_valtype_attr(ty_results[0]) if results_n else 'i32'
         self._params_n = params_n
         self._results_n = results_n
         n = max(params_n, results_n)
