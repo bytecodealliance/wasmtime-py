@@ -69,11 +69,11 @@ class Func:
         for i, param_str in enumerate(self._params_str):
             val_setter(raw[i], param_str, params[i])
         return raw
-    
+
     def _extract_return(self, vals_raw: ctypes.Array[wasmtime_val_raw_t]) -> Union[IntoVal, Sequence[IntoVal], None]:
-        if self._results_n==0:
+        if self._results_n == 0:
             return None
-        if self._results_n==1:
+        if self._results_n == 1:
             return val_getter(self._func.store_id, vals_raw[0], self._results_str0)
         # we can use tuple construct, but I'm using list for compatability
         return [val_getter(self._func.store_id, val_raw, ret_str) for val_raw, ret_str in zip(vals_raw, self._results_str)]
@@ -91,8 +91,7 @@ class Func:
         self._params_n = params_n
         self._results_n = results_n
         n = max(params_n, results_n)
-        self._vals_raw_type = wasmtime_val_raw_t*n
-
+        self._vals_raw_type = wasmtime_val_raw_t * n
 
     def __call__(self, store: Storelike, *params: IntoVal) -> Union[IntoVal, Sequence[IntoVal], None]:
         """

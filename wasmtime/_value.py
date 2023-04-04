@@ -16,6 +16,7 @@ val_id2attr = {
     WASM_ANYREF.value: 'externref',
 }
 
+
 @ctypes.CFUNCTYPE(None, c_void_p)
 def _externref_finalizer(extern_id: int) -> None:
     Val._id_to_ref_count[extern_id] -= 1
@@ -35,35 +36,41 @@ def _intern(obj: typing.Any) -> c_void_p:
 def _unintern(val: int) -> typing.Any:
     return Val._id_to_extern.get(val)
 
+
 def get_valtype_attr(ty: ValType) -> str:
     return val_id2attr[wasm_valtype_kind(ty._ptr)]
 
+
 def val_getter(store_id: int, val_raw: wasmtime_val_raw_t, attr: str) -> typing.Union[int, float, "wasmtime.Func", typing.Any]:
     val = getattr(val_raw, attr)
-    
-    if attr=='externref':
+
+    if attr == 'externref':
         ptr = ctypes.POINTER(wasmtime_externref_t)
-        if not val: return None
+        if not val:
+            return None
         ffi = ptr.from_address(val)
-        if not ffi: return None
+        if not ffi:
+            return None
         extern_id = wasmtime_externref_data(ffi)
         return _unintern(extern_id)
-    elif attr=='funcref':
-        if val==0: return None
+    elif attr == 'funcref':
+        if val == 0:
+            return None
         f = wasmtime_func_t()
         f.store_id = store_id
         f.index = val
         return wasmtime.Func._from_raw(f)
     return val
 
+
 def val_setter(dst: wasmtime_val_raw_t, attr: str, val: "IntoVal"):
-    if attr=='externref':
-        if isinstance(val, Val) and val._raw.kind==WASMTIME_EXTERNREF.value:
+    if attr == 'externref':
+        if isinstance(val, Val) and val._raw.kind == WASMTIME_EXTERNREF.value:
             casted = ctypes.addressof(val._raw.of.externref)
         else:
             casted = ctypes.addressof(Val.externref(val)._raw.of.externref)
-    elif attr=='funcref':
-        if isinstance(val, Val) and val._raw.kind==WASMTIME_FUNCREF.value:
+    elif attr == 'funcref':
+        if isinstance(val, Val) and val._raw.kind == WASMTIME_FUNCREF.value:
             casted = val._raw.of.funcref.index
         elif isinstance(val, wasmtime.Func):
             # TODO: validate same val._func.store_id

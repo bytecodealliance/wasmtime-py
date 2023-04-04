@@ -1,5 +1,7 @@
 import unittest
+import ctypes
 
+from functools import partial
 from wasmtime import *
 
 
@@ -16,6 +18,31 @@ class TestFunc(unittest.TestCase):
         ty = FuncType([ValType.i32(), ValType.i32()], [ValType.i32()])
         func = Func(store, ty, lambda a, b: a + b)
         self.assertEqual(func(store, 1, 2), 3)
+
+    def test_simd_i8x16_add(self):
+        # i8x16.add is SIMD 128-bit vector of i8 items of size 16
+        store = Store()
+        module = Module(
+            store.engine,
+            """
+        (module
+        (func $add_v128 (param $a v128) (param $b v128) (result v128)
+            local.get $a
+            local.get $b
+            i8x16.add
+        )
+        (export "add_v128" (func $add_v128))
+        )
+        """,
+        )
+
+        instance = Instance(store, module, [])
+        vector_type = ctypes.c_uint8 * 16
+        add_v128 = partial(instance.exports(store)["add_v128"], store)
+        a = vector_type(*(i for i in range(16)))
+        b = vector_type(*(40 + i for i in range(16)))
+        c = add_v128(a, b)
+        self.assertEqual([v for v in c], [i + j for i, j in zip(a, b)])
 
     def test_calls(self):
         store = Store()

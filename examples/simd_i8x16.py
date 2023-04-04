@@ -1,5 +1,5 @@
 """
-how to call v128 SMID operations
+how to call v128 SIMD operations
 for more details see https://github.com/WebAssembly/simd/blob/main/proposals/simd/SIMD.md#integer-addition
 """
 import ctypes
@@ -8,9 +8,10 @@ from functools import partial
 from wasmtime import Store, Module, Instance
 
 
-
 store = Store()
-module = Module(store.engine, """
+module = Module(
+    store.engine,
+    """
 (module
   (func $add_v128 (param $a v128) (param $b v128) (result v128)
     local.get $a
@@ -19,12 +20,14 @@ module = Module(store.engine, """
   )
   (export "add_v128" (func $add_v128))
 )
-""")
+""",
+)
 
 instance = Instance(store, module, [])
-vector_type = ctypes.c_uint8*16
+vector_type = ctypes.c_uint8 * 16
 add_v128 = partial(instance.exports(store)["add_v128"], store)
-a=vector_type(*(i for i in range(16)))
-b=vector_type(*(40+i for i in range(16)))
-c=add_v128(a, b)
+a = vector_type(*(i for i in range(16)))
+b = vector_type(*(40 + i for i in range(16)))
+c = add_v128(a, b)
 print([v for v in c])
+print([v for v in c] == [i + j for i, j in zip(a, b)])
