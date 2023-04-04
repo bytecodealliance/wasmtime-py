@@ -1,92 +1,19 @@
 from contextlib import contextmanager
 from ctypes import POINTER, byref, CFUNCTYPE, c_void_p, cast
 import ctypes
-from wasmtime import Store, FuncType, Val, IntoVal, Trap, WasmtimeError, ValType
+from wasmtime import Store, FuncType, Val, IntoVal, Trap, WasmtimeError
 from . import _ffi as ffi
 from ._extern import wrap_extern
 from typing import Callable, Optional, Generic, TypeVar, List, Union, Tuple, cast as cast_type, Sequence
 from ._exportable import AsExtern
 from ._store import Storelike
-from ._bindings import wasmtime_val_raw_t, wasm_valtype_kind, wasmtime_val_t, wasmtime_externref_t, wasmtime_func_t
-from ._value import _unintern
-from ._ffi import (
-    WASMTIME_I32,
-    WASMTIME_I64,
-    WASMTIME_F32,
-    WASMTIME_F64,
-    WASMTIME_V128,
-    WASMTIME_FUNCREF,
-    WASMTIME_EXTERNREF,
-    WASM_ANYREF,
-    WASM_FUNCREF,
-    wasmtime_externref_data,
-)
-
+from ._bindings import wasmtime_val_raw_t
+from ._value import get_valtype_attr, val_getter, val_setter
 
 T = TypeVar('T')
 FUNCTIONS: "Slab[Tuple]"
 LAST_EXCEPTION: Optional[Exception] = None
 
-val_id2attr = {
-    WASMTIME_I32.value: 'i32',
-    WASMTIME_I64.value: 'i64',
-    WASMTIME_F32.value: 'f32',
-    WASMTIME_F64.value: 'f64',
-    WASMTIME_V128.value: 'v128',
-    WASMTIME_FUNCREF.value: 'funcref',
-    WASMTIME_EXTERNREF.value: 'externref',
-    WASM_FUNCREF.value: 'funcref',
-    WASM_ANYREF.value: 'externref',
-}
-
-def get_valtype_attr(ty: ValType):
-    return val_id2attr[wasm_valtype_kind(ty._ptr)]
-
-from struct import Struct
-
-def val_getter(store_id, val_raw, attr):
-    val = getattr(val_raw, attr)
-    
-    if attr=='externref':
-        ptr = ctypes.POINTER(wasmtime_externref_t)
-        if not val: return None
-        ffi = ptr.from_address(val)
-        if not ffi: return
-        extern_id = wasmtime_externref_data(ffi)
-        ret = _unintern(extern_id)
-        return ret
-    elif attr=='funcref':
-        if val==0: return None
-        f=wasmtime_func_t()
-        f.store_id=store_id
-        f.index=val
-        ret=Func._from_raw(f)
-        return ret
-    return val
-
-def val_setter(dst, attr, val):
-    if attr=='externref':
-        if isinstance(val, Val) and val._raw.kind==WASMTIME_EXTERNREF.value:
-            if val._raw.of.externref:
-                extern_id = wasmtime_externref_data(val._raw.of.externref)
-            casted = ctypes.addressof(val._raw.of.externref)
-        else:
-            v = Val.externref(val)
-            casted = ctypes.addressof(v._raw.of.externref)
-    elif attr=='funcref':
-        if isinstance(val, Val) and val._raw.kind==WASMTIME_FUNCREF.value:
-            casted = val._raw.of.funcref.index
-        else: raise RuntimeError("foo")
-    elif isinstance(val, Func):
-        # TODO: handle null_funcref
-        # TODO: validate same val._func.store_id
-        casted = val._func.index
-    else:
-        if isinstance(val, Val):
-            casted = getattr(val._raw.of, attr)
-        else:
-            casted = val
-    setattr(dst, attr, casted)
 
 class Func:
     _func: ffi.wasmtime_func_t
@@ -147,8 +74,7 @@ class Func:
         if self._results_n==0:
             return None
         if self._results_n==1:
-            ret = val_getter(self._func.store_id, vals_raw[0], self._results_str0)
-            return ret
+            return val_getter(self._func.store_id, vals_raw[0], self._results_str0)
         # we can use tuple construct, but I'm using list for compatability
         return [val_getter(self._func.store_id, val_raw, ret_str) for val_raw, ret_str in zip(vals_raw, self._results_str)]
 

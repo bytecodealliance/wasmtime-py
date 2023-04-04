@@ -4,6 +4,17 @@ from ._types import ValType
 import ctypes
 import typing
 
+val_id2attr = {
+    WASMTIME_I32.value: 'i32',
+    WASMTIME_I64.value: 'i64',
+    WASMTIME_F32.value: 'f32',
+    WASMTIME_F64.value: 'f64',
+    WASMTIME_V128.value: 'v128',
+    WASMTIME_FUNCREF.value: 'funcref',
+    WASMTIME_EXTERNREF.value: 'externref',
+    WASM_FUNCREF.value: 'funcref',
+    WASM_ANYREF.value: 'externref',
+}
 
 @ctypes.CFUNCTYPE(None, c_void_p)
 def _externref_finalizer(extern_id: int) -> None:
@@ -23,6 +34,48 @@ def _intern(obj: typing.Any) -> c_void_p:
 
 def _unintern(val: int) -> typing.Any:
     return Val._id_to_extern.get(val)
+
+def get_valtype_attr(ty: ValType) -> str:
+    return val_id2attr[wasm_valtype_kind(ty._ptr)]
+
+def val_getter(store_id: int, val_raw: wasmtime_val_raw_t, attr: str) -> typing.Union[int, float, "wasmtime.Func", typing.Any]:
+    val = getattr(val_raw, attr)
+    
+    if attr=='externref':
+        ptr = ctypes.POINTER(wasmtime_externref_t)
+        if not val: return None
+        ffi = ptr.from_address(val)
+        if not ffi: return None
+        extern_id = wasmtime_externref_data(ffi)
+        return _unintern(extern_id)
+    elif attr=='funcref':
+        if val==0: return None
+        f = wasmtime_func_t()
+        f.store_id = store_id
+        f.index = val
+        return wasmtime.Func._from_raw(f)
+    return val
+
+def val_setter(dst: wasmtime_val_raw_t, attr: str, val: "IntoVal"):
+    if attr=='externref':
+        if isinstance(val, Val) and val._raw.kind==WASMTIME_EXTERNREF.value:
+            casted = ctypes.addressof(val._raw.of.externref)
+        else:
+            casted = ctypes.addressof(Val.externref(val)._raw.of.externref)
+    elif attr=='funcref':
+        if isinstance(val, Val) and val._raw.kind==WASMTIME_FUNCREF.value:
+            casted = val._raw.of.funcref.index
+        elif isinstance(val, wasmtime.Func):
+            # TODO: validate same val._func.store_id
+            casted = val._func.index
+        else:
+            raise RuntimeError("foo")
+    else:
+        if isinstance(val, Val):
+            casted = getattr(val._raw.of, attr)
+        else:
+            casted = val
+    setattr(dst, attr, casted)
 
 
 class Val:
