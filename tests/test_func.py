@@ -38,7 +38,8 @@ class TestFunc(unittest.TestCase):
 
         instance = Instance(store, module, [])
         vector_type = ctypes.c_uint8 * 16
-        add_v128 = partial(instance.exports(store)["add_v128"], store)
+        add_v128_f: Func = instance.exports(store)["add_v128"]
+        add_v128 = partial(add_v128_f, store)
         a = vector_type(*(i for i in range(16)))
         b = vector_type(*(40 + i for i in range(16)))
         c = add_v128(a, b)
