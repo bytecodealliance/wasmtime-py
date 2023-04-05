@@ -31,6 +31,6 @@ if not isinstance(add_v128_f, Func):
 add_v128 = partial(add_v128_f, store)
 a = vector_type(*(i for i in range(16)))
 b = vector_type(*(40 + i for i in range(16)))
-c = add_v128(a, b)
+c: list[int] = add_v128(a, b)  # type: ignore
 print([v for v in c])
 print([v for v in c] == [i + j for i, j in zip(a, b)])
