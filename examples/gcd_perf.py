@@ -1,13 +1,18 @@
-import wasmtime.loader
 import time
 from math import gcd as math_gcd
 from gcd import gcd_func as wasm_gcd
+
 
 def python_gcd(x, y):
     while y:
         x, y = y, x % y
     return abs(x)
 
+
+a = 16516842
+b = 154654684
+
+print(math_gcd(a, b), python_gcd(a, b), wasm_gcd(a, b))
 
 N = 1_000
 by_name = locals()
