@@ -81,7 +81,7 @@ def val_setter(dst: wasmtime_val_raw_t, attr: str, val: "IntoVal") -> None:
             # TODO: validate same val._func.store_id
             casted = val._func.index
         else:
-            raise RuntimeError("foo")
+            raise RuntimeError("expecting param of type funcref got " + type(val).__name__)
     else:
         if isinstance(val, Val):
             if val._raw:
