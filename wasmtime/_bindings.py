@@ -175,7 +175,7 @@ def wasm_valtype_new(arg0: Any) -> ctypes._Pointer:
 _wasm_valtype_kind = dll.wasm_valtype_kind
 _wasm_valtype_kind.restype = wasm_valkind_t
 _wasm_valtype_kind.argtypes = [POINTER(wasm_valtype_t)]
-def wasm_valtype_kind(arg0: Any) -> int:
+def wasm_valtype_kind(arg0: Any) -> wasm_valkind_t:
     return _wasm_valtype_kind(arg0)  # type: ignore
 
 class wasm_functype_t(Structure):
