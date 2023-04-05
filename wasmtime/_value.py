@@ -38,7 +38,7 @@ def _unintern(val: int) -> typing.Any:
 
 
 def get_valtype_attr(ty: ValType) -> str:
-    return val_id2attr[wasm_valtype_kind(ty._ptr)]
+    return val_id2attr[wasm_valtype_kind(ty._ptr)] # type: ignore
 
 
 def val_getter(store_id: int, val_raw: wasmtime_val_raw_t, attr: str) -> typing.Union[int, float, "wasmtime.Func", typing.Any]:
