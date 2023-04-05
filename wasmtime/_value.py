@@ -79,10 +79,10 @@ def val_setter(store_id: int, dst: wasmtime_val_raw_t, attr: str, val: "IntoVal"
             casted = val._raw.of.funcref.index
         elif isinstance(val, wasmtime.Func):
             if val._func.store_id != store_id:
-                raise TypeError("passed funcref does not belong to same store")
+                raise WasmtimeError("passed funcref does not belong to same store")
             casted = val._func.index
         else:
-            raise RuntimeError("expecting param of type funcref got " + type(val).__name__)
+            raise WasmtimeError("expecting param of type funcref got " + type(val).__name__)
     else:
         if isinstance(val, Val):
             if val._raw:

@@ -93,19 +93,52 @@ class Func:
         n = max(params_n, results_n)
         self._vals_raw_type = wasmtime_val_raw_t * n
 
-    def __call__(self, store: Storelike, *params: IntoVal) -> Union[IntoVal, Sequence[IntoVal], None]:
+    def _call_val(self, store: Storelike, *params: IntoVal) -> Union[IntoVal, Sequence[IntoVal], None]:
         """
-        Calls this function with the given parameters
+        internal implementation of calling a function that uses `wasmtime_func_call`
+        """
+        ty = self.type(store)
+        param_tys = ty.params
+        if len(params) > len(param_tys):
+            raise WasmtimeError("too many parameters provided: given %s, expected %s" %
+                                (len(params), len(param_tys)))
+        if len(params) < len(param_tys):
+            raise WasmtimeError("too few parameters provided: given %s, expected %s" %
+                                (len(params), len(param_tys)))
 
-        Parameters can either be a `Val` or a native python value which can be
-        converted to a `Val` of the corresponding correct type
+        param_vals = [Val._convert(ty, params[i]) for i, ty in enumerate(param_tys)]
+        params_ptr = (ffi.wasmtime_val_t * len(params))()
+        for i, val in enumerate(param_vals):
+            params_ptr[i] = val._unwrap_raw()
 
-        Returns `None` if this func has 0 return types
-        Returns a single value if the func has 1 return type
-        Returns a list if the func has more than 1 return type
+        result_tys = ty.results
+        results_ptr = (ffi.wasmtime_val_t * len(result_tys))()
 
-        Note that you can also use the `__call__` method and invoke a `Func` as
-        if it were a function directly.
+        with enter_wasm(store) as trap:
+            error = ffi.wasmtime_func_call(
+                store._context,
+                byref(self._func),
+                params_ptr,
+                len(params),
+                results_ptr,
+                len(result_tys),
+                trap)
+            if error:
+                raise WasmtimeError._from_ptr(error)
+
+        results = []
+        for i in range(0, len(result_tys)):
+            results.append(Val(results_ptr[i]).value)
+        if len(results) == 0:
+            return None
+        elif len(results) == 1:
+            return results[0]
+        else:
+            return results
+
+    def _call_raw(self, store: Storelike, *params: IntoVal) -> Union[IntoVal, Sequence[IntoVal], None]:
+        """
+        internal implementation of calling a function that uses `wasmtime_func_call_unchecked`
         """
         if getattr(self, "_ty", None) is None:
             self._init_call(self.type(store))
@@ -122,7 +155,7 @@ class Func:
         # it's safe to call wasmtime_func_call_unchecked because
         # - we allocate enough space to hold all the parameters and all the results
         # - we set proper types by reading types from ty
-        # - but not sure about "Values such as externref and funcref are valid within the store being called"
+        # - externref and funcref are valid within the store being called
         with enter_wasm(store) as trap:
             error = ffi.wasmtime_func_call_unchecked(
                 store._context,
@@ -132,6 +165,22 @@ class Func:
             if error:
                 raise WasmtimeError._from_ptr(error)
         return self._extract_return(vals_raw)
+
+    def __call__(self, store: Storelike, *params: IntoVal) -> Union[IntoVal, Sequence[IntoVal], None]:
+        """
+        Calls this function with the given parameters
+
+        Parameters can either be a `Val` or a native python value which can be
+        converted to a `Val` of the corresponding correct type
+
+        Returns `None` if this func has 0 return types
+        Returns a single value if the func has 1 return type
+        Returns a list if the func has more than 1 return type
+
+        Note that you can also use the `__call__` method and invoke a `Func` as
+        if it were a function directly.
+        """
+        return self._call_raw(store, *params)
 
     def _as_extern(self) -> ffi.wasmtime_extern_t:
         union = ffi.wasmtime_extern_union(func=self._func)

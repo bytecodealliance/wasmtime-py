@@ -1,6 +1,6 @@
 import time
 from math import gcd as math_gcd
-from gcd import gcd_func as wasm_gcd
+from gcd import gcd_func as wasm_gcd, gcd_func_val as wasm_gcd_old
 
 
 def python_gcd(x, y):
@@ -12,14 +12,14 @@ def python_gcd(x, y):
 a = 16516842
 b = 154654684
 
-print(math_gcd(a, b), python_gcd(a, b), wasm_gcd(a, b))
+print(math_gcd(a, b), python_gcd(a, b), wasm_gcd(a, b), wasm_gcd_old(a, b))
 
 N = 1_000
 by_name = locals()
-for name in "math_gcd", "python_gcd", "wasm_gcd":
+for name in "math_gcd", "python_gcd", "wasm_gcd", "wasm_gcd_old":
     gcdf = by_name[name]
     start_time = time.perf_counter()
     for _ in range(N):
-        g = gcdf(16516842, 154654684)
+        g = gcdf(a, b)
     total_time = time.perf_counter() - start_time
     print(total_time, "\t\t", name)
