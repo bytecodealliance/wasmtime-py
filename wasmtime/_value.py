@@ -63,7 +63,7 @@ def val_getter(store_id: int, val_raw: wasmtime_val_raw_t, attr: str) -> typing.
     return val
 
 
-def val_setter(dst: wasmtime_val_raw_t, attr: str, val: "IntoVal") -> None:
+def val_setter(store_id: int, dst: wasmtime_val_raw_t, attr: str, val: "IntoVal") -> None:
     casted: typing.Union[Any, int, float, None, wasmtime.Func]
     if attr == 'externref':
         if isinstance(val, Val) and val._raw and val._raw.kind == WASMTIME_EXTERNREF.value:
@@ -78,7 +78,8 @@ def val_setter(dst: wasmtime_val_raw_t, attr: str, val: "IntoVal") -> None:
         if isinstance(val, Val) and val._raw and val._raw.kind == WASMTIME_FUNCREF.value:
             casted = val._raw.of.funcref.index
         elif isinstance(val, wasmtime.Func):
-            # TODO: validate same val._func.store_id
+            if val._func.store_id != store_id:
+                raise TypeError("passed funcref does not belong to same store")
             casted = val._func.index
         else:
             raise RuntimeError("expecting param of type funcref got " + type(val).__name__)

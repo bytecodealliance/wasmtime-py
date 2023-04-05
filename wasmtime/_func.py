@@ -67,7 +67,7 @@ class Func:
     def _create_raw_vals(self, *params: IntoVal) -> ctypes.Array[wasmtime_val_raw_t]:
         raw = self._vals_raw_type()
         for i, param_str in enumerate(self._params_str):
-            val_setter(raw[i], param_str, params[i])
+            val_setter(self._func.store_id, raw[i], param_str, params[i])
         return raw
 
     def _extract_return(self, vals_raw: ctypes.Array[wasmtime_val_raw_t]) -> Union[IntoVal, Sequence[IntoVal], None]:
