@@ -44,7 +44,7 @@ class Global:
         raw = ffi.wasmtime_val_t()
         ffi.wasmtime_global_get(store._context, byref(self._global), byref(raw))
         val = Val(raw)
-        if val.value:
+        if val.value is not None:
             return val.value
         else:
             return val
