@@ -17,6 +17,15 @@ class TestGlobal(unittest.TestCase):
         self.assertEqual(g.value(store), 2)
         self.assertTrue(isinstance(g.type(store), GlobalType))
 
+    def test_falsy(self):
+        store = Store()
+        ty = GlobalType(ValType.i64(), True)
+        g = Global(store, ty, Val.i64(0))
+        val = g.value(store)
+
+        self.assertEqual(val, 0)
+        self.assertTrue(isinstance(val, int))
+
     def test_errors(self):
         store = Store()
         ty = GlobalType(ValType.i32(), True)
