@@ -66,8 +66,8 @@ jobs:
     - run: |
         git clean -fdx wasmtime build
         python ci/download-wasmtime.py darwin arm64
-        python setup.py bdist_wheel --plat-name macosx-11-0-arm64
         python ci/build-rust.py
+        python setup.py bdist_wheel --plat-name macosx-11-0-arm64
     - run: |
         git clean -fdx wasmtime build
         python ci/download-wasmtime.py win32 x86_64
