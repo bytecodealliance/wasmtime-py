@@ -164,6 +164,24 @@ impl WasmtimePy {
         }
     }
 
+    fn print_some(&mut self) {
+        if !self.all_intrinsics.insert("some_type") {
+            return;
+        }
+
+        self.types.pyimport("dataclasses", "dataclass");
+        self.types.pyimport("typing", "TypeVar");
+        self.types.pyimport("typing", "Generic");
+        self.types.push_str(
+            "
+                S = TypeVar('S')
+                @dataclass
+                class Some(Generic[S]):
+                    value: S
+            ",
+        );
+    }
+
     fn print_result(&mut self) {
         if !self.all_intrinsics.insert("result_type") {
             return;
@@ -850,6 +868,11 @@ impl InterfaceGenerator<'_> {
         self.import_shared_type("Result");
     }
 
+    fn import_some_type(&mut self) {
+        self.gen.print_some();
+        self.import_shared_type("Some");
+    }
+
     fn print_ty(&mut self, ty: &Type, forward_ref: bool) {
         match ty {
             Type::Bool => self.src.push_str("bool"),
@@ -905,9 +928,20 @@ impl InterfaceGenerator<'_> {
                         unreachable!()
                     }
                     TypeDefKind::Option(t) => {
+                        let nesting = is_option(self.resolve, *t);
+                        if nesting {
+                            self.import_some_type();
+                        }
+
                         self.src.pyimport("typing", "Optional");
                         self.src.push_str("Optional[");
+                        if nesting {
+                            self.src.push_str("Some[");
+                        }
                         self.print_ty(t, true);
+                        if nesting {
+                            self.src.push_str("]");
+                        }
                         self.src.push_str("]");
                     }
                     TypeDefKind::Result(r) => {
@@ -1173,7 +1207,7 @@ impl InterfaceGenerator<'_> {
     /// Appends a Python definition for the provided Union to the current `Source`.
     /// e.g. `MyUnion = Union[float, str, int]`
     fn type_union(&mut self, _id: TypeId, name: &str, union: &Union, docs: &Docs) {
-        match classify_union(union.cases.iter().map(|t| t.ty)) {
+        match classify_union(self.resolve, union.cases.iter().map(|t| t.ty)) {
             PyUnionRepresentation::Wrapped => {
                 self.print_union_wrapped(name, union, docs);
             }
@@ -1184,11 +1218,22 @@ impl InterfaceGenerator<'_> {
     }
 
     fn type_option(&mut self, _id: TypeId, name: &str, payload: &Type, docs: &Docs) {
+        let nesting = is_option(self.resolve, *payload);
+        if nesting {
+            self.import_some_type();
+        }
+
         self.src.pyimport("typing", "Optional");
         self.src.comment(docs);
         self.src.push_str(&name.to_upper_camel_case());
         self.src.push_str(" = Optional[");
+        if nesting {
+            self.src.push_str("Some[");
+        }
         self.print_ty(payload, true);
+        if nesting {
+            self.src.push_str("]");
+        }
         self.src.push_str("]\n\n");
     }
 
@@ -1967,7 +2012,8 @@ impl Bindgen for FunctionBindgen<'_, '_> {
                     results.push(self.locals.tmp("variant"));
                 }
 
-                let union_representation = classify_union(union.cases.iter().map(|c| c.ty));
+                let union_representation =
+                    classify_union(self.gen.resolve, union.cases.iter().map(|c| c.ty));
                 let op0 = &operands[0];
                 for (i, ((case, (block, block_results)), payload)) in
                     union.cases.iter().zip(blocks).zip(payloads).enumerate()
@@ -2022,7 +2068,8 @@ impl Bindgen for FunctionBindgen<'_, '_> {
                 uwrite!(self.gen.src, "{result}: ");
                 self.print_ty(&Type::Id(*ty));
                 self.gen.src.push_str("\n");
-                let union_representation = classify_union(union.cases.iter().map(|c| c.ty));
+                let union_representation =
+                    classify_union(self.gen.resolve, union.cases.iter().map(|c| c.ty));
                 let op0 = &operands[0];
                 for (i, (_case, (block, block_results))) in
                     union.cases.iter().zip(blocks).enumerate()
@@ -2058,8 +2105,15 @@ impl Bindgen for FunctionBindgen<'_, '_> {
 
             Instruction::OptionLower {
                 results: result_types,
+                ty,
                 ..
             } => {
+                let TypeDefKind::Option(some_type) = &self.gen.resolve.types[*ty].kind else { unreachable!() };
+                let nesting = is_option(self.gen.resolve, *some_type);
+                if nesting {
+                    self.gen.import_shared_type("Some");
+                }
+
                 let (some, some_results) = self.blocks.pop().unwrap();
                 let (none, none_results) = self.blocks.pop().unwrap();
                 let some_payload = self.payloads.pop().unwrap();
@@ -2080,7 +2134,11 @@ impl Bindgen for FunctionBindgen<'_, '_> {
                 self.gen.src.dedent();
                 self.gen.src.push_str("else:\n");
                 self.gen.src.indent();
-                uwriteln!(self.gen.src, "{some_payload} = {op0}");
+                uwriteln!(
+                    self.gen.src,
+                    "{some_payload} = {op0}{}",
+                    if nesting { ".value" } else { "" }
+                );
                 self.gen.src.push_str(&some);
                 for (dst, result) in results.iter().zip(&some_results) {
                     uwriteln!(self.gen.src, "{dst} = {result}");
@@ -2089,6 +2147,12 @@ impl Bindgen for FunctionBindgen<'_, '_> {
             }
 
             Instruction::OptionLift { ty, .. } => {
+                let TypeDefKind::Option(some_type) = &self.gen.resolve.types[*ty].kind else { unreachable!() };
+                let nesting = is_option(self.gen.resolve, *some_type);
+                if nesting {
+                    self.gen.import_shared_type("Some");
+                }
+
                 let (some, some_results) = self.blocks.pop().unwrap();
                 let (none, none_results) = self.blocks.pop().unwrap();
                 assert!(none_results.len() == 0);
@@ -2109,7 +2173,11 @@ impl Bindgen for FunctionBindgen<'_, '_> {
                 uwriteln!(self.gen.src, "elif {op0} == 1:");
                 self.gen.src.indent();
                 self.gen.src.push_str(&some);
-                uwriteln!(self.gen.src, "{result} = {some_result}");
+                if nesting {
+                    uwriteln!(self.gen.src, "{result} = Some({some_result})");
+                } else {
+                    uwriteln!(self.gen.src, "{result} = {some_result}");
+                }
                 self.gen.src.dedent();
 
                 self.gen.src.push_str("else:\n");
@@ -2445,7 +2513,26 @@ impl Bindgen for FunctionBindgen<'_, '_> {
     }
 }
 
-fn classify_union(types: impl Iterator<Item = Type>) -> PyUnionRepresentation {
+fn classify_union(resolve: &Resolve, types: impl Iterator<Item = Type>) -> PyUnionRepresentation {
+    // Raw unions can't contain options or other raw unions since that can create ambiguity:
+    fn allowed(resolve: &Resolve, ty: Type) -> bool {
+        if let Type::Id(id) = ty {
+            match &resolve.types[id].kind {
+                TypeDefKind::Union(un) => {
+                    matches!(
+                        classify_union(resolve, un.cases.iter().map(|c| c.ty)),
+                        PyUnionRepresentation::Wrapped
+                    )
+                }
+                TypeDefKind::Option(_) => false,
+                TypeDefKind::Type(ty) => allowed(resolve, *ty),
+                _ => true,
+            }
+        } else {
+            true
+        }
+    }
+
     #[derive(Debug, Hash, PartialEq, Eq)]
     enum PyTypeClass {
         Int,
@@ -2470,7 +2557,7 @@ fn classify_union(types: impl Iterator<Item = Type>) -> PyUnionRepresentation {
             Type::Char | Type::String => PyTypeClass::Str,
             Type::Id(_) => PyTypeClass::Custom,
         };
-        if !py_type_classes.insert(class) {
+        if !(allowed(resolve, ty) && py_type_classes.insert(class)) {
             // Some of the cases are not distinguishable
             return PyUnionRepresentation::Wrapped;
         }
@@ -2493,5 +2580,17 @@ fn wasm_ty_typing(ty: WasmType) -> &'static str {
         WasmType::I64 => "int",
         WasmType::F32 => "float",
         WasmType::F64 => "float",
+    }
+}
+
+fn is_option(resolve: &Resolve, ty: Type) -> bool {
+    if let Type::Id(id) = ty {
+        match &resolve.types[id].kind {
+            TypeDefKind::Option(_) => true,
+            TypeDefKind::Type(ty) => is_option(resolve, *ty),
+            _ => false,
+        }
+    } else {
+        false
     }
 }

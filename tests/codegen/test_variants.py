@@ -23,6 +23,10 @@ module = """
             (type $all-floats (union float32 float64))
             (type $duplicated-s32 (union s32 s32 s32))
             (type $distinguished (union s32 float32))
+            (export $distinguished' "distinguished" (type (eq $distinguished)))
+
+            (type $nested-union (union $distinguished' s32 float32))
+            (type $option-in-union (union (option s32) s32))
 
             (export $e1' "e1" (type (eq $e1)))
 
@@ -45,7 +49,8 @@ module = """
             (export $all-integers' "all-integers" (type (eq $all-integers)))
             (export $all-floats' "all-floats" (type (eq $all-floats)))
             (export $duplicated-s32' "duplicated-s32" (type (eq $duplicated-s32)))
-            (export $distinguished' "distinguished" (type (eq $distinguished)))
+            (export $nested-union' "nested-union" (type (eq $nested-union)))
+            (export $option-in-union' "option-in-union" (type (eq $option-in-union)))
 
             (export "roundtrip-option" (func (param "a" (option float32)) (result (option u8))))
             (export "roundtrip-result" (func
@@ -60,6 +65,9 @@ module = """
             (export "add-one-all-floats" (func (param "a" $all-floats') (result $all-floats')))
             (export "add-one-duplicated-s32" (func (param "a" $duplicated-s32') (result $duplicated-s32')))
             (export "add-one-distinguished" (func (param "a" $distinguished') (result $distinguished')))
+            (export "add-one-nested-union" (func (param "a" $nested-union') (result $nested-union')))
+            (export "add-one-option-in-union" (func (param "a" $option-in-union') (result $option-in-union')))
+            (export "add-one-option-in-option" (func (param "a" (option (option s32))) (result (option (option s32)))))
         ))
 
         (core module $libc (memory (export "m") 1))
@@ -74,6 +82,9 @@ module = """
         (core func $a-float (canon lower (func $i "add-one-all-floats") (memory $libc "m")))
         (core func $a-dup (canon lower (func $i "add-one-duplicated-s32") (memory $libc "m")))
         (core func $a-dist (canon lower (func $i "add-one-distinguished") (memory $libc "m")))
+        (core func $a-nest (canon lower (func $i "add-one-nested-union") (memory $libc "m")))
+        (core func $a-oinu (canon lower (func $i "add-one-option-in-union") (memory $libc "m")))
+        (core func $a-oino (canon lower (func $i "add-one-option-in-option") (memory $libc "m")))
 
         (core module $m
             (import "libc" "m" (memory 1))
@@ -90,6 +101,9 @@ module = """
             (import "" "a-float" (func $a-float (param i32 i64 i32)))
             (import "" "a-dup" (func $a-dup (param i32 i32 i32)))
             (import "" "a-dist" (func $a-dist (param i32 i32 i32)))
+            (import "" "a-nest" (func $a-nest (param i32 i32 i32 i32)))
+            (import "" "a-oinu" (func $a-oinu (param i32 i32 i32 i32)))
+            (import "" "a-oino" (func $a-oino (param i32 i32 i32 i32)))
 
             (func (export "r-opt") (param i32 f32) (result i32)
                 (call $r-opt (local.get 0) (local.get 1) (i32.const 100))
@@ -144,6 +158,15 @@ module = """
             (func (export "a-dist") (param i32 i32) (result i32)
                 (call $a-dist (local.get 0) (local.get 1) (i32.const 80))
                 i32.const 80)
+            (func (export "a-nest") (param i32 i32 i32) (result i32)
+                (call $a-nest (local.get 0) (local.get 1) (local.get 2) (i32.const 80))
+                i32.const 80)
+            (func (export "a-oinu") (param i32 i32 i32) (result i32)
+                (call $a-oinu (local.get 0) (local.get 1) (local.get 2) (i32.const 80))
+                i32.const 80)
+            (func (export "a-oino") (param i32 i32 i32) (result i32)
+                (call $a-oino (local.get 0) (local.get 1) (local.get 2) (i32.const 80))
+                i32.const 80)
         )
 
         (core instance $i (instantiate $m
@@ -158,6 +181,9 @@ module = """
                 (export "a-float" (func $a-float))
                 (export "a-dup" (func $a-dup))
                 (export "a-dist" (func $a-dist))
+                (export "a-nest" (func $a-nest))
+                (export "a-oinu" (func $a-oinu))
+                (export "a-oino" (func $a-oino))
             ))
         ))
 
@@ -181,6 +207,8 @@ module = """
         (type $all-floats (union float32 float64))
         (type $duplicated-s32 (union s32 s32 s32))
         (type $distinguished (union s32 float32))
+        (type $nested-union (union $distinguished s32 float32))
+        (type $option-in-union (union (option s32) s32))
 
         (func $roundtrip-option (param "a" (option float32)) (result (option u8))
             (canon lift (core func $i "r-opt") (memory $libc "m")))
@@ -203,6 +231,12 @@ module = """
             (canon lift (core func $i "a-dup") (memory $libc "m")))
         (func $add-one-distinguished (param "a" $distinguished) (result $distinguished)
             (canon lift (core func $i "a-dist") (memory $libc "m")))
+        (func $add-one-nested-union (param "a" $nested-union) (result $nested-union)
+            (canon lift (core func $i "a-nest") (memory $libc "m")))
+        (func $add-one-option-in-union (param "a" $option-in-union) (result $option-in-union)
+            (canon lift (core func $i "a-oinu") (memory $libc "m")))
+        (func $add-one-option-in-option (param "a" (option (option s32))) (result (option (option s32)))
+            (canon lift (core func $i "a-oino") (memory $libc "m")))
 
         (instance (export "e")
             (export "e1" (type $e1))
@@ -225,6 +259,8 @@ module = """
             (export "all-floats" (type $all-floats))
             (export "duplicated-s32" (type $duplicated-s32))
             (export "distinguished" (type $distinguished))
+            (export "nested-union" (type $nested-union))
+            (export "option-in-union" (type $option-in-union))
 
             (export "roundtrip-option" (func $roundtrip-option))
             (export "roundtrip-result" (func $roundtrip-result))
@@ -235,7 +271,9 @@ module = """
             (export "add-one-all-floats" (func $add-one-all-floats))
             (export "add-one-duplicated-s32" (func $add-one-duplicated-s32))
             (export "add-one-distinguished" (func $add-one-distinguished))
-
+            (export "add-one-nested-union" (func $add-one-nested-union))
+            (export "add-one-option-in-union" (func $add-one-option-in-union))
+            (export "add-one-option-in-option" (func $add-one-option-in-option))
         )
     )
 """
@@ -244,7 +282,7 @@ bindgen('variants', module)
 from .generated.variants import Variants, VariantsImports, imports
 from .generated.variants import e
 from .generated.variants.imports import host
-from .generated.variants.types import Result, Ok, Err
+from .generated.variants.types import Result, Ok, Err, Some
 
 
 class Host(imports.Host):
@@ -337,6 +375,38 @@ class Host(imports.Host):
 
     def add_one_distinguished(self, a: host.Distinguished) -> host.Distinguished:
         return a + 1
+
+    def add_one_nested_union(self, a: host.NestedUnion) -> host.NestedUnion:
+        if isinstance(a, host.NestedUnion0):
+            return host.NestedUnion0(a.value + 1)
+        if isinstance(a, host.NestedUnion1):
+            return host.NestedUnion1(a.value + 1)
+        if isinstance(a, host.NestedUnion2):
+            return host.NestedUnion2(a.value + 1)
+        else:
+            raise ValueError("Invalid input value!")
+
+    def add_one_option_in_union(self, a: host.OptionInUnion) -> host.OptionInUnion:
+        if isinstance(a, host.OptionInUnion0):
+            if a.value is None:
+                return host.OptionInUnion0(None)
+            else:
+                return host.OptionInUnion0(a.value + 1)
+        if isinstance(a, host.OptionInUnion1):
+            return host.OptionInUnion1(a.value + 1)
+        else:
+            raise ValueError("Invalid input value!")
+
+    def add_one_option_in_option(self, a: Optional[Some[Optional[int]]]) -> Optional[Some[Optional[int]]]:
+        if isinstance(a, Some):
+            if a.value is None:
+                return Some(None)
+            else:
+                return Some(a.value + 1)
+        if a is None:
+            return None
+        else:
+            raise ValueError("Invalid input value!")
 
 
 def test_bindings():
@@ -432,3 +502,16 @@ def test_bindings():
 
     assert exports.add_one_distinguished(store, 1) == 2
     assert exports.add_one_distinguished(store, 2.) == 3.
+
+    assert exports.add_one_nested_union(store, e.NestedUnion0(1)) == e.NestedUnion0(2)
+    assert exports.add_one_nested_union(store, e.NestedUnion0(2.)) == e.NestedUnion0(3.)
+    assert exports.add_one_nested_union(store, e.NestedUnion1(3)) == e.NestedUnion1(4)
+    assert exports.add_one_nested_union(store, e.NestedUnion2(4.)) == e.NestedUnion2(5.)
+
+    assert exports.add_one_option_in_union(store, e.OptionInUnion0(1)) == e.OptionInUnion0(2)
+    assert exports.add_one_option_in_union(store, e.OptionInUnion0(None)) == e.OptionInUnion0(None)
+    assert exports.add_one_option_in_union(store, e.OptionInUnion1(1)) == e.OptionInUnion1(2)
+
+    assert exports.add_one_option_in_option(store, Some(1)) == Some(2)
+    assert exports.add_one_option_in_option(store, Some(None)) == Some(None)
+    assert exports.add_one_option_in_option(store, None) is None
