@@ -22,7 +22,7 @@
 //! ```
 //!
 //! The top-level `__init__.py` contains a `class Foo` where `Foo` is the name
-//! fo the component. It contains top-level functions for all top-level exports
+//! of the component. It contains top-level functions for all top-level exports
 //! and exported instances are modeled as a method which returns a struct from
 //! `exports/*.py`.
 
