@@ -32,3 +32,5 @@ class TestConfig(unittest.TestCase):
         with self.assertRaises(WasmtimeError):
             config.profiler = "nonexistent-profiler"
         config.consume_fuel = True
+        config.wasm_relaxed_simd = True
+        config.wasm_relaxed_simd_deterministic = True

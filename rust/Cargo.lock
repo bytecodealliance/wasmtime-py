@@ -58,9 +58,9 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "cranelift-entity"
-version = "0.95.0"
+version = "0.96.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0a6319b1918ca95faef80f17a44b5394bb63facd899f5369a54fbcc23e67971a"
+checksum = "2e234fff84b1941dd25fa3e24c466283256b377997ccbd85f592066389251796"
 dependencies = [
  "serde",
 ]
@@ -406,17 +406,7 @@ dependencies = [
  "indexmap",
  "serde",
  "wasm-encoder",
- "wasmparser 0.103.0",
-]
-
-[[package]]
-name = "wasmparser"
-version = "0.102.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "48134de3d7598219ab9eaf6b91b15d8e50d31da76b8519fe4ecfcec2cf35104b"
-dependencies = [
- "indexmap",
- "url",
+ "wasmparser",
 ]
 
 [[package]]
@@ -436,20 +426,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "51befda9d7eefac615a2ef75f42d2f2bd243cdabaa141a8ea0f9ffa3fc79ccf4"
 dependencies = [
  "anyhow",
- "wasmparser 0.103.0",
+ "wasmparser",
 ]
 
 [[package]]
 name = "wasmtime-component-util"
-version = "8.0.0"
+version = "9.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e9c89418c99fed44b9081e09ec4a9c5a3843ad663c4b0beceb16cac7a70c31d"
+checksum = "dc936c2b0f6f14ebbda496be52f9944ebfd1576c9a5563d79b6a966de5ce2091"
 
 [[package]]
 name = "wasmtime-environ"
-version = "8.0.0"
+version = "9.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c2a2c8dcf2c4bacaa5bd29fbbc744769804377747940c6d5fe12b15bdfafe2c"
+checksum = "0845b63b90b1ca072734a15f1449b3b0f20dc9473156604c6bc2e352d0818d41"
 dependencies = [
  "anyhow",
  "cranelift-entity",
@@ -461,7 +451,7 @@ dependencies = [
  "target-lexicon",
  "thiserror",
  "wasm-encoder",
- "wasmparser 0.102.0",
+ "wasmparser",
  "wasmprinter",
  "wasmtime-component-util",
  "wasmtime-types",
@@ -469,14 +459,14 @@ dependencies = [
 
 [[package]]
 name = "wasmtime-types"
-version = "8.0.0"
+version = "9.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "efecff824b08f5c1da332a776ce01a928b200b27dbbb3ffd9374d7f2718671ea"
+checksum = "46e4b55ece22da0bcc07b3dbd4b830fbd061a3f92970fb550a7101709210d796"
 dependencies = [
  "cranelift-entity",
  "serde",
  "thiserror",
- "wasmparser 0.102.0",
+ "wasmparser",
 ]
 
 [[package]]
@@ -550,7 +540,7 @@ dependencies = [
  "url",
  "wasm-encoder",
  "wasm-metadata",
- "wasmparser 0.103.0",
+ "wasmparser",
  "wit-parser",
 ]
 

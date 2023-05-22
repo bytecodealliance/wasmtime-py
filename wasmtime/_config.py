@@ -122,6 +122,32 @@ class Config:
         ffi.wasmtime_config_wasm_memory64_set(self._ptr, enable)
 
     @setter_property
+    def wasm_relaxed_simd(self, enable: bool) -> None:
+        """
+        Configures whether the wasm [relaxed simd proposal] is enabled.
+
+        [relaxed simd proposal]: https://github.com/webassembly/relaxed-simd
+        """
+
+        if not isinstance(enable, bool):
+            raise TypeError('expected a bool')
+        ffi.wasmtime_config_wasm_relaxed_simd_set(self._ptr, enable)
+
+    @setter_property
+    def wasm_relaxed_simd_deterministic(self, enable: bool) -> None:
+        """
+        Configures whether the wasm [relaxed simd proposal] is deterministic
+        in is execution as opposed to having the most optimal implementation for
+        the current platform.
+
+        [relaxed simd proposal]: https://github.com/webassembly/relaxed-simd
+        """
+
+        if not isinstance(enable, bool):
+            raise TypeError('expected a bool')
+        ffi.wasmtime_config_wasm_relaxed_simd_deterministic_set(self._ptr, enable)
+
+    @setter_property
     def strategy(self, strategy: str) -> None:
         """
         Configures the compilation strategy used for wasm code.
