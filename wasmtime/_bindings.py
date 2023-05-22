@@ -2042,6 +2042,18 @@ _wasmtime_config_wasm_simd_set.argtypes = [POINTER(wasm_config_t), c_bool]
 def wasmtime_config_wasm_simd_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_wasm_simd_set(arg0, arg1)  # type: ignore
 
+_wasmtime_config_wasm_relaxed_simd_set = dll.wasmtime_config_wasm_relaxed_simd_set
+_wasmtime_config_wasm_relaxed_simd_set.restype = None
+_wasmtime_config_wasm_relaxed_simd_set.argtypes = [POINTER(wasm_config_t), c_bool]
+def wasmtime_config_wasm_relaxed_simd_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_wasm_relaxed_simd_set(arg0, arg1)  # type: ignore
+
+_wasmtime_config_wasm_relaxed_simd_deterministic_set = dll.wasmtime_config_wasm_relaxed_simd_deterministic_set
+_wasmtime_config_wasm_relaxed_simd_deterministic_set.restype = None
+_wasmtime_config_wasm_relaxed_simd_deterministic_set.argtypes = [POINTER(wasm_config_t), c_bool]
+def wasmtime_config_wasm_relaxed_simd_deterministic_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_wasm_relaxed_simd_deterministic_set(arg0, arg1)  # type: ignore
+
 _wasmtime_config_wasm_bulk_memory_set = dll.wasmtime_config_wasm_bulk_memory_set
 _wasmtime_config_wasm_bulk_memory_set.restype = None
 _wasmtime_config_wasm_bulk_memory_set.argtypes = [POINTER(wasm_config_t), c_bool]
@@ -2493,9 +2505,9 @@ def wasmtime_func_call(store: Any, func: Any, args: Any, nargs: Any, results: An
 
 _wasmtime_func_call_unchecked = dll.wasmtime_func_call_unchecked
 _wasmtime_func_call_unchecked.restype = POINTER(wasmtime_error_t)
-_wasmtime_func_call_unchecked.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_func_t), POINTER(wasmtime_val_raw_t), POINTER(POINTER(wasm_trap_t))]
-def wasmtime_func_call_unchecked(store: Any, func: Any, args_and_results: Any, trap: Any) -> ctypes._Pointer:
-    return _wasmtime_func_call_unchecked(store, func, args_and_results, trap)  # type: ignore
+_wasmtime_func_call_unchecked.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_func_t), POINTER(wasmtime_val_raw_t), c_size_t, POINTER(POINTER(wasm_trap_t))]
+def wasmtime_func_call_unchecked(store: Any, func: Any, args_and_results: Any, args_and_results_len: Any, trap: Any) -> ctypes._Pointer:
+    return _wasmtime_func_call_unchecked(store, func, args_and_results, args_and_results_len, trap)  # type: ignore
 
 _wasmtime_caller_export_get = dll.wasmtime_caller_export_get
 _wasmtime_caller_export_get.restype = c_bool
