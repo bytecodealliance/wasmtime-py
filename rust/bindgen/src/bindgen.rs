@@ -1308,6 +1308,24 @@ impl InterfaceGenerator<'_> {
         self.src.pyimport(&module, iface.as_str());
         format!("{iface}.{ty}")
     }
+
+    fn fqn_name(&mut self, name: &str, type_id: &TypeId) -> String {
+        let ty = &self.resolve.types[*type_id];
+        if let Some(name) = &ty.name {
+            let owner = match ty.owner {
+                TypeOwner::Interface(id) => id,
+                _ => unreachable!(),
+            };
+            if Some(owner) != self.interface {
+                let iface = match self.gen.imported_interfaces.get(&owner) {
+                    Some(name) => name,
+                    None => &self.gen.exported_interfaces[&owner],
+                };
+                return format!("{}.{}", iface.to_snake_case(), name.to_upper_camel_case());
+            }
+        };
+        self.name_of(name).to_string()
+    }
 }
 
 struct FunctionBindgen<'a, 'b> {
@@ -1832,8 +1850,9 @@ impl Bindgen for FunctionBindgen<'_, '_> {
                 }
             }
 
-            Instruction::RecordLift { name, .. } => {
-                results.push(format!("{}({})", self.name_of(name), operands.join(", ")));
+            Instruction::RecordLift { name, ty, .. } => {
+                let fqn_name = &self.gen.fqn_name(name, ty);
+                results.push(format!("{}({})", fqn_name, operands.join(", ")));
             }
             Instruction::TupleLower { tuple, .. } => {
                 if tuple.types.is_empty() {
@@ -1893,6 +1912,7 @@ impl Bindgen for FunctionBindgen<'_, '_> {
                 variant,
                 results: result_types,
                 name,
+                ty,
                 ..
             } => {
                 let blocks = self
@@ -1916,14 +1936,10 @@ impl Bindgen for FunctionBindgen<'_, '_> {
                     } else {
                         self.gen.src.push_str("elif ");
                     }
+                    uwrite!(self.gen.src, "isinstance({}, ", operands[0]);
+                    self.print_ty(&Type::Id(*ty));
+                    uwriteln!(self.gen.src, "{}):", case.name.to_upper_camel_case());
 
-                    let name = self.name_of(name);
-                    uwriteln!(
-                        self.gen.src,
-                        "isinstance({}, {name}{}):",
-                        operands[0],
-                        case.name.to_upper_camel_case()
-                    );
                     self.gen.src.indent();
                     if case.ty.is_some() {
                         uwriteln!(self.gen.src, "{payload} = {}.value", operands[0]);
@@ -1969,12 +1985,9 @@ impl Bindgen for FunctionBindgen<'_, '_> {
                     self.gen.src.indent();
                     self.gen.src.push_str(&block);
 
-                    let name = self.name_of(name);
-                    uwrite!(
-                        self.gen.src,
-                        "{result} = {name}{}(",
-                        case.name.to_upper_camel_case()
-                    );
+                    uwrite!(self.gen.src, "{result} = ");
+                    self.print_ty(&Type::Id(*ty));
+                    uwrite!(self.gen.src, "{}(", case.name.to_upper_camel_case());
                     if block_results.len() > 0 {
                         assert!(block_results.len() == 1);
                         self.gen.src.push_str(&block_results[0]);
@@ -2270,8 +2283,9 @@ impl Bindgen for FunctionBindgen<'_, '_> {
 
             Instruction::EnumLower { .. } => results.push(format!("({}).value", operands[0])),
 
-            Instruction::EnumLift { name, .. } => {
-                results.push(format!("{}({})", self.name_of(name), operands[0]));
+            Instruction::EnumLift { name, ty, .. } => {
+                let fqn_name = &self.gen.fqn_name(name, ty);
+                results.push(format!("{}({})", fqn_name, operands[0]));
             }
 
             Instruction::ListCanonLower { element, .. } => {
