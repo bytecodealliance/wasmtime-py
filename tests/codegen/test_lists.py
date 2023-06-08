@@ -73,7 +73,7 @@ module = """
 """.format(REALLOC)
 bindgen('lists', module)
 
-from .generated.lists import Lists, ListsImports, imports
+from .generated.lists import Root, RootImports, imports
 
 
 class Host(imports.Host):
@@ -92,7 +92,7 @@ class Host(imports.Host):
 
 def test_bindings():
     store = Store()
-    wasm = Lists(store, ListsImports(host=Host()))
+    wasm = Root(store, RootImports(host=Host()))
 
     assert wasm.strings(store, '') == ''
     assert wasm.strings(store, 'a') == 'a'

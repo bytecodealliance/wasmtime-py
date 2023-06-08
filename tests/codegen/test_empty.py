@@ -6,8 +6,8 @@ module = """
 """
 bindgen('empty', module)
 
-from .generated.empty import Empty
+from .generated.empty import Root
 
 
 def test_bindings(tmp_path):
-    Empty(Store())
+    Root(Store())

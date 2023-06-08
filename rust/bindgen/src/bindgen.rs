@@ -77,7 +77,7 @@ pub struct WasmtimePy {
 impl WasmtimePy {
     /// Generate bindings to load and instantiate the specific binary component
     /// provided.
-    pub fn generate(&mut self, name: &str, binary: &[u8], files: &mut Files) -> Result<()> {
+    pub fn generate(&mut self, _name: &str, binary: &[u8], files: &mut Files) -> Result<()> {
         // Use the `wit-component` crate here to parse `binary` and discover
         // the type-level descriptions and `Interface`s corresponding to the
         // component binary. This is effectively a step that infers a "world" of
@@ -85,7 +85,7 @@ impl WasmtimePy {
         // will likely change as worlds are iterated on in the component model
         // standard. Regardless though this is the step where types are learned
         // and `Interface`s are constructed for further code generation below.
-        let (resolve, id) = match wit_component::decode(name, binary)
+        let (resolve, id) = match wit_component::decode(binary)
             .context("failed to extract interface information from component")?
         {
             DecodedWasm::Component(resolve, world) => (resolve, world),
@@ -117,28 +117,42 @@ impl WasmtimePy {
         let (component, modules) = Translator::new(&tunables, &mut validator, &mut types, &scope)
             .translate(binary)
             .context("failed to parse the input component")?;
+        let world = &resolve.worlds[id];
 
         // Insert all core wasm modules into the generated `Files` which will
         // end up getting used in the `generate_instantiate` method.
         for (i, module) in modules.iter() {
-            files.push(&self.core_file_name(name, i.as_u32()), module.wasm);
+            files.push(&self.core_file_name(&world.name, i.as_u32()), module.wasm);
         }
 
         // With all that prep work delegate to `generate` here
         // to generate all the type-level descriptions for this component now
         // that the interfaces in/out are understood.
-        let world = &resolve.worlds[id];
-        for (name, import) in world.imports.iter() {
-            match import {
+        for (world_key, world_item) in world.imports.clone().into_iter() {
+            match world_item {
                 WorldItem::Function(_) => unimplemented!(),
-                WorldItem::Interface(id) => self.import_interface(&resolve, name, *id, files),
+                WorldItem::Interface(id) => {
+                    let interface = &resolve.interfaces[id];
+                    let iface_name = match world_key {
+                        WorldKey::Name(name) => name,
+                        WorldKey::Interface(_) => interface.name.as_ref().unwrap().to_string(),
+                    };
+                    self.import_interface(&resolve, &iface_name, id, files)
+                }
                 WorldItem::Type(_) => unimplemented!(),
             }
         }
-        for (name, export) in world.exports.iter() {
+        for (world_key, export) in world.exports.clone().into_iter() {
             match export {
                 WorldItem::Function(_) => {}
-                WorldItem::Interface(id) => self.export_interface(&resolve, name, *id, files),
+                WorldItem::Interface(id) => {
+                    let interface = &resolve.interfaces[id];
+                    let iface_name = match world_key {
+                        WorldKey::Name(name) => name,
+                        WorldKey::Interface(_) => interface.name.as_ref().unwrap().to_string(),
+                    };
+                    self.export_interface(&resolve, &iface_name, id, files)
+                }
                 WorldItem::Type(_) => unreachable!(),
             }
         }
@@ -149,7 +163,7 @@ impl WasmtimePy {
         // `wasmtime-environ` parsed.
         self.instantiate(&resolve, id, &component, &modules);
 
-        self.finish_component(name, files);
+        self.finish_component(&world.name, files);
 
         Ok(())
     }
@@ -256,7 +270,11 @@ impl WasmtimePy {
         i.gen.init.dedent();
 
         i.generate_lifts(&camel, None, &lifts);
-        for (name, lifts) in nested {
+        for (package_name, lifts) in nested {
+            let name = match package_name.find("/") {
+                Some(pos) => package_name.split_at(pos + 1).1,
+                None => &package_name,
+            };
             i.generate_lifts(&camel, Some(name), &lifts);
         }
         i.gen.init.dedent();
@@ -508,7 +526,8 @@ impl<'a> Instantiator<'a> {
         // where instances export functions.
         let (import_index, path) = &self.component.imports[import.import];
         let (import_name, _import_ty) = &self.component.import_types[*import_index];
-        let item = &self.resolve.worlds[self.world].imports[import_name.as_str()];
+        let index: usize = import_index.as_u32() as usize;
+        let item = &self.resolve.worlds[self.world].imports[index];
         let (func, interface) = match item {
             WorldItem::Function(f) => {
                 assert_eq!(path.len(), 0);
@@ -522,6 +541,11 @@ impl<'a> Instantiator<'a> {
         };
 
         let index = import.index.as_u32();
+        let import_name = import_name.replace(":", ".");
+        let import_name = match import_name.find("/") {
+            Some(pos) => import_name.split_at(pos + 1).1,
+            None => &import_name,
+        };
         let callee = format!(
             "import_object.{}.{}",
             import_name.to_snake_case(),
@@ -700,7 +724,6 @@ impl<'a> Instantiator<'a> {
         let mut nested = BTreeMap::new();
         for (name, export) in exports {
             let name = name.as_str();
-            let item = &self.resolve.worlds[self.world].exports[name];
             match export {
                 Export::LiftedFunction {
                     ty: _,
@@ -708,19 +731,28 @@ impl<'a> Instantiator<'a> {
                     options,
                 } => {
                     let callee = self.gen_lift_callee(func);
-                    let func = match item {
-                        WorldItem::Function(f) => f,
-                        WorldItem::Interface(_) | WorldItem::Type(_) => unreachable!(),
-                    };
-                    toplevel.push(Lift {
-                        callee,
-                        opts: options,
-                        func,
-                        interface: None,
-                    });
+                    if let Some((_, item)) = &self.resolve.worlds[self.world].exports.iter().find(
+                        |&(key, _)| match key {
+                            WorldKey::Name(function_name) => function_name == name,
+                            _ => false,
+                        },
+                    ) {
+                        let func = match item {
+                            WorldItem::Function(f) => f,
+                            WorldItem::Interface(_) | WorldItem::Type(_) => unreachable!(),
+                        };
+                        toplevel.push(Lift {
+                            callee,
+                            opts: options,
+                            func,
+                            interface: None,
+                        });
+                    }
                 }
 
                 Export::Instance(exports) => {
+                    let wid = self.world.index();
+                    let item = &self.resolve.worlds[self.world].exports[wid];
                     let id = match item {
                         WorldItem::Interface(id) => *id,
                         WorldItem::Function(_) | WorldItem::Type(_) => unreachable!(),
@@ -900,7 +932,10 @@ impl InterfaceGenerator<'_> {
                     } else {
                         let (module, iface) = match self.gen.imported_interfaces.get(&owner) {
                             Some(name) => ("imports", name),
-                            None => ("exports", &self.gen.exported_interfaces[&owner]),
+                            None => (
+                                "exports",
+                                self.gen.exported_interfaces.get(&owner).unwrap_or(name),
+                            ),
                         };
                         let module = if self.at_root {
                             format!(".{module}")
@@ -1302,7 +1337,7 @@ impl InterfaceGenerator<'_> {
         let id = self.interface.unwrap();
         let (module, iface) = match self.gen.imported_interfaces.get(&id) {
             Some(name) => (".imports", name),
-            None => (".exports", &self.gen.exported_interfaces[&id]),
+            None => (".exports", self.gen.exported_interfaces.get(&id).unwrap()),
         };
         let iface = iface.to_snake_case();
         self.src.pyimport(&module, iface.as_str());

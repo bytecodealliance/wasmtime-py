@@ -34,7 +34,7 @@ runs:
   # Install the `wasm-tools` binary with the `component` subcommand that is all
   # that's needed here.
   - run: |
-      echo WASM_TOOLS=wasm-tools-1.0.23 >> $GITHUB_ENV
+      echo WASM_TOOLS=wasm-tools-1.0.35 >> $GITHUB_ENV
       mkdir -p '${{ runner.tool_cache }}/wasm-tools'
       echo '${{ runner.tool_cache }}/wasm-tools' >> $GITHUB_PATH
     shell: bash

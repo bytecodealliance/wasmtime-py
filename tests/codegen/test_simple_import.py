@@ -21,7 +21,7 @@ module = """
 """
 bindgen('simple_import', module)
 
-from .generated.simple_import import SimpleImport, SimpleImportImports, imports
+from .generated.simple_import import Root, RootImports, imports
 
 
 class Host(imports.Host):
@@ -32,6 +32,6 @@ class Host(imports.Host):
 def test_bindings():
     store = Store()
     host = Host()
-    SimpleImport(store, SimpleImportImports(host=host))
+    Root(store, RootImports(host=host))
 
     assert host.hit

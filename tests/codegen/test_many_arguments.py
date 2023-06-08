@@ -79,7 +79,7 @@ module = """
 """
 bindgen('many_arguments', module)
 
-from .generated.many_arguments import ManyArguments, ManyArgumentsImports, imports
+from .generated.many_arguments import Root, RootImports, imports
 
 
 class MyImports(imports.Host):
@@ -120,5 +120,5 @@ class MyImports(imports.Host):
 
 def test_bindings():
     store = Store()
-    wasm = ManyArguments(store, ManyArgumentsImports(MyImports()))
+    wasm = Root(store, RootImports(MyImports()))
     wasm.many_arguments(store, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)

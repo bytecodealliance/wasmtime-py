@@ -15,11 +15,11 @@ module = """
 """
 bindgen('simple_export', module)
 
-from .generated.simple_export import SimpleExport
+from .generated.simple_export import Root
 
 
 def test_bindings():
     store = Store()
-    bindings = SimpleExport(store)
+    bindings = Root(store)
     result = bindings.get(store)
     assert result == 100

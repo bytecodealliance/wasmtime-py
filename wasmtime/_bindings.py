@@ -1970,6 +1970,12 @@ class wasmtime_error(Structure):
 
 wasmtime_error_t = wasmtime_error
 
+_wasmtime_error_new = dll.wasmtime_error_new
+_wasmtime_error_new.restype = POINTER(wasmtime_error_t)
+_wasmtime_error_new.argtypes = [POINTER(c_char)]
+def wasmtime_error_new(arg0: Any) -> ctypes._Pointer:
+    return _wasmtime_error_new(arg0)  # type: ignore
+
 _wasmtime_error_delete = dll.wasmtime_error_delete
 _wasmtime_error_delete.restype = None
 _wasmtime_error_delete.argtypes = [POINTER(wasmtime_error_t)]
@@ -2113,6 +2119,12 @@ _wasmtime_config_profiler_set.restype = None
 _wasmtime_config_profiler_set.argtypes = [POINTER(wasm_config_t), wasmtime_profiling_strategy_t]
 def wasmtime_config_profiler_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_profiler_set(arg0, arg1)  # type: ignore
+
+_wasmtime_config_static_memory_forced_set = dll.wasmtime_config_static_memory_forced_set
+_wasmtime_config_static_memory_forced_set.restype = None
+_wasmtime_config_static_memory_forced_set.argtypes = [POINTER(wasm_config_t), c_bool]
+def wasmtime_config_static_memory_forced_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_static_memory_forced_set(arg0, arg1)  # type: ignore
 
 _wasmtime_config_static_memory_maximum_size_set = dll.wasmtime_config_static_memory_maximum_size_set
 _wasmtime_config_static_memory_maximum_size_set.restype = None
@@ -2267,6 +2279,12 @@ _wasmtime_context_fuel_consumed.argtypes = [POINTER(wasmtime_context_t), POINTER
 def wasmtime_context_fuel_consumed(context: Any, fuel: Any) -> bool:
     return _wasmtime_context_fuel_consumed(context, fuel)  # type: ignore
 
+_wasmtime_context_fuel_remaining = dll.wasmtime_context_fuel_remaining
+_wasmtime_context_fuel_remaining.restype = c_bool
+_wasmtime_context_fuel_remaining.argtypes = [POINTER(wasmtime_context_t), POINTER(c_uint64)]
+def wasmtime_context_fuel_remaining(context: Any, fuel: Any) -> bool:
+    return _wasmtime_context_fuel_remaining(context, fuel)  # type: ignore
+
 _wasmtime_context_consume_fuel = dll.wasmtime_context_consume_fuel
 _wasmtime_context_consume_fuel.restype = POINTER(wasmtime_error_t)
 _wasmtime_context_consume_fuel.argtypes = [POINTER(wasmtime_context_t), c_uint64, POINTER(c_uint64)]
@@ -2284,6 +2302,12 @@ _wasmtime_context_set_epoch_deadline.restype = None
 _wasmtime_context_set_epoch_deadline.argtypes = [POINTER(wasmtime_context_t), c_uint64]
 def wasmtime_context_set_epoch_deadline(context: Any, ticks_beyond_current: Any) -> None:
     return _wasmtime_context_set_epoch_deadline(context, ticks_beyond_current)  # type: ignore
+
+_wasmtime_store_epoch_deadline_callback = dll.wasmtime_store_epoch_deadline_callback
+_wasmtime_store_epoch_deadline_callback.restype = None
+_wasmtime_store_epoch_deadline_callback.argtypes = [POINTER(wasmtime_store_t), CFUNCTYPE(c_size_t, POINTER(wasmtime_context_t), c_void_p, POINTER(c_uint64)), c_void_p]
+def wasmtime_store_epoch_deadline_callback(store: Any, func: Any, data: Any) -> None:
+    return _wasmtime_store_epoch_deadline_callback(store, func, data)  # type: ignore
 
 class wasmtime_func(Structure):
     _fields_ = [
@@ -2394,12 +2418,12 @@ def wasmtime_externref_delete(ref: Any) -> None:
 
 _wasmtime_externref_from_raw = dll.wasmtime_externref_from_raw
 _wasmtime_externref_from_raw.restype = POINTER(wasmtime_externref_t)
-_wasmtime_externref_from_raw.argtypes = [POINTER(wasmtime_context_t), c_size_t]
+_wasmtime_externref_from_raw.argtypes = [POINTER(wasmtime_context_t), c_void_p]
 def wasmtime_externref_from_raw(context: Any, raw: Any) -> ctypes._Pointer:
     return _wasmtime_externref_from_raw(context, raw)  # type: ignore
 
 _wasmtime_externref_to_raw = dll.wasmtime_externref_to_raw
-_wasmtime_externref_to_raw.restype = c_size_t
+_wasmtime_externref_to_raw.restype = c_void_p
 _wasmtime_externref_to_raw.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_externref_t)]
 def wasmtime_externref_to_raw(context: Any, ref: Any) -> int:
     return _wasmtime_externref_to_raw(context, ref)  # type: ignore
@@ -2435,16 +2459,16 @@ class wasmtime_val_raw(Union):
         ("f32", c_float),
         ("f64", c_double),
         ("v128", wasmtime_v128),
-        ("funcref", c_size_t),
-        ("externref", c_size_t),
+        ("funcref", c_void_p),
+        ("externref", c_void_p),
     ]
     i32: int
     i64: int
     f32: float
     f64: float
     v128: wasmtime_v128  # type: ignore
-    funcref: int
-    externref: int
+    funcref: ctypes._Pointer
+    externref: ctypes._Pointer
 
 wasmtime_val_raw_t = wasmtime_val_raw
 
@@ -2523,12 +2547,12 @@ def wasmtime_caller_context(caller: Any) -> ctypes._Pointer:
 
 _wasmtime_func_from_raw = dll.wasmtime_func_from_raw
 _wasmtime_func_from_raw.restype = None
-_wasmtime_func_from_raw.argtypes = [POINTER(wasmtime_context_t), c_size_t, POINTER(wasmtime_func_t)]
+_wasmtime_func_from_raw.argtypes = [POINTER(wasmtime_context_t), c_void_p, POINTER(wasmtime_func_t)]
 def wasmtime_func_from_raw(context: Any, raw: Any, ret: Any) -> None:
     return _wasmtime_func_from_raw(context, raw, ret)  # type: ignore
 
 _wasmtime_func_to_raw = dll.wasmtime_func_to_raw
-_wasmtime_func_to_raw.restype = c_size_t
+_wasmtime_func_to_raw.restype = c_void_p
 _wasmtime_func_to_raw.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_func_t)]
 def wasmtime_func_to_raw(context: Any, func: Any) -> int:
     return _wasmtime_func_to_raw(context, func)  # type: ignore
