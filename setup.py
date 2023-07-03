@@ -6,7 +6,7 @@ import os
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-version = "9.0.0"
+version = "10.0.0"
 
 # Give unique version numbers to all commits so our publication-on-each commit
 # works on main

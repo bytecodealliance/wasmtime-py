@@ -37,11 +37,11 @@ pub use files::Files;
 mod bindings {
     wit_bindgen::generate!("bindgen" in "../bindgen.wit");
 
-    export_wasmtime_py!(PythonBindings);
+    export_bindgen!(PythonBindings);
 
     struct PythonBindings;
 
-    impl WasmtimePy for PythonBindings {
+    impl crate::bindings::Bindgen for PythonBindings {
         fn generate(name: String, component: Vec<u8>) -> Result<Vec<(String, Vec<u8>)>, String> {
             let mut gen = crate::WasmtimePy::default();
             let mut files = Default::default();

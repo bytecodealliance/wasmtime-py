@@ -1,28 +1,106 @@
-from .generated import Bindgen, BindgenImports, Err
-from typing import Mapping, Tuple
+from .generated import Root, RootImports, Err
+from .generated.imports import Exit
+from .generated.imports import Random
+from .generated.imports import Stdin
+from .generated.imports import Stdout
+from .generated.imports import Stderr
+from .generated.imports import streams
+from .generated.imports import Preopens
+from .generated.imports import Environment
+from .generated.imports import Filesystem
+from .generated.imports.filesystem import Descriptor, Filesize, ErrorCode, DescriptorType
+from .generated import types as core_types
+from typing import Mapping, Tuple, List
+
 import sys
+import os
 from wasmtime import Store
 
 
-class Imports:
-    def print(self, list: bytes) -> None:
-        sys.stdout.buffer.write(list)
-
-    def eprint(self, list: bytes) -> None:
-        sys.stderr.buffer.write(list)
+class WasiRandom(Random):
+    def get_random_bytes(self, len: int) -> bytes:
+        return os.urandom(len)
 
 
-bindgen = None
+class WasiStdin(Stdin):
+    def get_stdin(self) -> streams.InputStream:
+        return sys.stdin.fileno()
+
+
+class WasiStdout(Stdout):
+    def get_stdout(self) -> streams.OutputStream:
+        return sys.stdout.fileno()
+
+
+class WasiStderr(Stderr):
+    def get_stderr(self) -> streams.OutputStream:
+        return sys.stderr.fileno()
+
+
+class WasiPreopens(Preopens):
+    def get_directories(self) -> List[Tuple[Descriptor, str]]:
+        return []
+
+
+class WasiStreams(streams.Streams):
+    def drop_input_stream(self, this: streams.InputStream) -> None:
+        return None
+
+    def write(self, this: streams.OutputStream, buf: bytes) -> core_types.Result[int, streams.StreamError]:
+        sys.stdout.buffer.write(buf)
+        return core_types.Ok(len(buf))
+
+    def blocking_write(self, this: streams.OutputStream, buf: bytes) -> core_types.Result[int, streams.StreamError]:
+        sys.stdout.buffer.write(buf)
+        return core_types.Ok(len(buf))
+
+    def drop_output_stream(self, this: streams.OutputStream) -> None:
+        return None
+
+
+class WasiEnvironment(Environment):
+    def get_environment(self) -> List[Tuple[str, str]]:
+        return []
+
+
+class WasiFilesystem(Filesystem):
+    def write_via_stream(self, this: Descriptor, offset: Filesize) -> core_types.Result[streams.OutputStream, ErrorCode]:
+        raise NotImplementedError
+
+    def append_via_stream(self, this: Descriptor) -> core_types.Result[streams.OutputStream, ErrorCode]:
+        raise NotImplementedError
+
+    def get_type(self, this: Descriptor) -> core_types.Result[DescriptorType, ErrorCode]:
+        raise NotImplementedError
+
+    def drop_descriptor(self, this: Descriptor) -> None:
+        raise NotImplementedError
+
+
+class WasiExit(Exit):
+    def exit(self, status: core_types.Result[None, None]) -> None:
+        raise NotImplementedError
+
+
+root = None
 store = None
 
 
-def init() -> Tuple[Bindgen, Store]:
+def init() -> Tuple[Root, Store]:
     global store
-    global bindgen
-    if bindgen is None:
+    global root
+    if root is None:
         store = Store()
-        bindgen = Bindgen(store, BindgenImports(python=Imports()))
-    return bindgen, store
+        root = Root(store, RootImports(WasiStreams(),
+                                       WasiFilesystem(),
+                                       WasiRandom(),
+                                       WasiEnvironment(),
+                                       WasiPreopens(),
+                                       WasiExit(),
+                                       WasiStdin(),
+                                       WasiStdout(),
+                                       WasiStderr()))
+    return root, store
 
 
 # Generates Python bindings for the given component.
@@ -34,8 +112,8 @@ def init() -> Tuple[Bindgen, Store]:
 # This function returns a mapping of filename to contents of files that are
 # generated to represent the Python bindings here.
 def generate(name: str, component: bytes) -> Mapping[str, bytes]:
-    bindgen, store = init()
-    result = bindgen.generate(store, name, component)
+    root, store = init()
+    result = root.generate(store, name, component)
     if isinstance(result, Err):
         raise RuntimeError(result.value)
     ret = {}

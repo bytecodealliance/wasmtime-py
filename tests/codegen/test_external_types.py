@@ -65,7 +65,7 @@ module = """
 """.format(REALLOC)
 bindgen('external_types', module)
 
-from .generated.external_types import ExternalTypes, ExternalTypesImports, imports
+from .generated.external_types import Root, RootImports, imports
 from .generated.external_types.imports import host
 from .generated.external_types import e
 
@@ -78,7 +78,7 @@ class Host(imports.Host):
 
 def test_bindings(tmp_path):
     store = Store()
-    wasm = ExternalTypes(store, ExternalTypesImports(None, host=Host()))
+    wasm = Root(store, RootImports(None, host=Host()))
 
     exports = wasm.e()
     rt_id = exports.some_fn(store, e.RuntimeValueId('1234'))

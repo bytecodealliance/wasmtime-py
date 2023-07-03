@@ -119,7 +119,7 @@ module = """
 """
 bindgen('scalars', module)
 
-from .generated.scalars import Scalars, ScalarsImports, imports
+from .generated.scalars import Root, RootImports, imports
 
 
 class Host(imports.Host):
@@ -178,7 +178,7 @@ class Host(imports.Host):
 
 def test_bindings():
     store = Store()
-    bindings = Scalars(store, ScalarsImports(host=Host()))
+    bindings = Root(store, RootImports(host=Host()))
 
     assert bindings.roundtrip_u8(store, 0) == 0
     assert bindings.roundtrip_u8(store, (1 << 8) - 1) == (1 << 8) - 1

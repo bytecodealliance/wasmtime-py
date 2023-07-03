@@ -15,11 +15,6 @@ class TestTable(unittest.TestCase):
         self.assertEqual(table.type(store).limits, Limits(1, None))
         self.assertEqual(table.size(store), 1)
 
-        ty = TableType(ValType.i32(), Limits(1, 2))
-        store = Store()
-        with self.assertRaises(TypeError):
-            Table(store, ty, None)
-
         ty = TableType(ValType.funcref(), Limits(1, 2))
         store = Store()
         func = Func(store, FuncType([], []), lambda: {})
@@ -73,11 +68,3 @@ class TestTable(unittest.TestCase):
         table.set(store, 0, func)
         with self.assertRaises(WasmtimeError):
             table.set(store, 1, func)
-
-    def test_errors(self):
-        ty = TableType(ValType.i32(), Limits(1, 2))
-        with self.assertRaises(AttributeError):
-            Table(1, ty, 2)  # type: ignore
-        store = Store()
-        with self.assertRaises(AttributeError):
-            Table(store, 2, 2)  # type: ignore

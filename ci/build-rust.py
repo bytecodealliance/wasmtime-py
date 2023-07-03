@@ -13,7 +13,6 @@
 # remains the same.
 
 import subprocess
-import os
 
 
 def main():
@@ -24,24 +23,14 @@ def main():
         cwd='rust'
     ).check_returncode()
 
-    print('======================= Building wasi_snapshot_preview1.wasm ======')
-
-    env = os.environ.copy()
-    env['RUSTFLAGS'] = '-Clink-arg=--import-memory -Clink-arg=-zstack-size=0'
-    subprocess.run(
-        ['cargo', 'build', '--release', '--target', 'wasm32-unknown-unknown', '-p', 'wasi_snapshot_preview1'],
-        cwd='rust',
-        env=env,
-    ).check_returncode()
-
     core = 'rust/target/wasm32-wasi/release/bindgen.wasm'
-    wasi = 'rust/target/wasm32-unknown-unknown/release/wasi_snapshot_preview1.wasm'
+    wasi = 'ci/wasi_preview1_component_adapter.wasm'
     component = 'rust/target/component.wasm'
 
     print('======================= Building component.wasm ===================')
 
     subprocess.run(
-        ['wasm-tools', 'component', 'new', core, '--adapt', wasi, '-o', component],
+        ['wasm-tools', 'component', 'new', core, '--adapt', f'wasi_snapshot_preview1={wasi}', '-o', component],
     ).check_returncode()
 
     print('======================= Bootstrapping with native platform ========')

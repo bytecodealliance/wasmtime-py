@@ -279,7 +279,7 @@ module = """
 """
 bindgen('variants', module)
 
-from .generated.variants import Variants, VariantsImports, imports
+from .generated.variants import Root, RootImports, imports
 from .generated.variants import e
 from .generated.variants.imports import host
 from .generated.variants.types import Result, Ok, Err, Some
@@ -411,7 +411,7 @@ class Host(imports.Host):
 
 def test_bindings():
     store = Store()
-    wasm = Variants(store, VariantsImports(host=Host()))
+    wasm = Root(store, RootImports(host=Host()))
 
     exports = wasm.e()
     assert exports.roundtrip_option(store, 1.) == 1

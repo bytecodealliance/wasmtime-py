@@ -172,7 +172,7 @@ module = """
 """
 bindgen('records', module)
 
-from .generated.records import Records, RecordsImports, imports
+from .generated.records import Root, RootImports, imports
 from .generated.records.exports.e import Flag1, Flag2, Flag8, Flag16, Flag32, Flag64, R1
 from .generated.records.imports import host
 
@@ -212,7 +212,7 @@ class Host(imports.Host):
 
 def test_bindings():
     store = Store()
-    bindings = Records(store, RecordsImports(host=Host()))
+    bindings = Root(store, RootImports(host=Host()))
 
     assert bindings.e().multiple_results(store) == (1, 2)
     assert bindings.e().swap(store, (3, 4)) == (4, 3)
