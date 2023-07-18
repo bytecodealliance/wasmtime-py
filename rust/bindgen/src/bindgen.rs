@@ -722,6 +722,11 @@ impl<'a> Instantiator<'a> {
     ) -> (Vec<Lift<'a>>, BTreeMap<&'a str, Vec<Lift<'a>>>) {
         let mut toplevel = Vec::new();
         let mut nested = BTreeMap::new();
+        let world_exports_by_string = self.resolve.worlds[self.world]
+            .exports
+            .iter()
+            .map(|(k, v)| (self.resolve.name_world_key(k), v))
+            .collect::<HashMap<_, _>>();
         for (name, export) in exports {
             let name = name.as_str();
             match export {
@@ -731,29 +736,20 @@ impl<'a> Instantiator<'a> {
                     options,
                 } => {
                     let callee = self.gen_lift_callee(func);
-                    if let Some((_, item)) = &self.resolve.worlds[self.world].exports.iter().find(
-                        |&(key, _)| match key {
-                            WorldKey::Name(function_name) => function_name == name,
-                            _ => false,
-                        },
-                    ) {
-                        let func = match item {
-                            WorldItem::Function(f) => f,
-                            WorldItem::Interface(_) | WorldItem::Type(_) => unreachable!(),
-                        };
-                        toplevel.push(Lift {
-                            callee,
-                            opts: options,
-                            func,
-                            interface: None,
-                        });
-                    }
+                    let func = match world_exports_by_string[name] {
+                        WorldItem::Function(f) => f,
+                        WorldItem::Interface(_) | WorldItem::Type(_) => unreachable!(),
+                    };
+                    toplevel.push(Lift {
+                        callee,
+                        opts: options,
+                        func,
+                        interface: None,
+                    });
                 }
 
                 Export::Instance(exports) => {
-                    let wid = self.world.index();
-                    let item = &self.resolve.worlds[self.world].exports[wid];
-                    let id = match item {
+                    let id = match world_exports_by_string[name] {
                         WorldItem::Interface(id) => *id,
                         WorldItem::Function(_) | WorldItem::Type(_) => unreachable!(),
                     };

@@ -24,17 +24,17 @@ class WasiRandom(Random):
 
 class WasiStdin(Stdin):
     def get_stdin(self) -> streams.InputStream:
-        return sys.stdin.fileno()
+        return 0
 
 
 class WasiStdout(Stdout):
     def get_stdout(self) -> streams.OutputStream:
-        return sys.stdout.fileno()
+        return 1
 
 
 class WasiStderr(Stderr):
     def get_stderr(self) -> streams.OutputStream:
-        return sys.stderr.fileno()
+        return 2
 
 
 class WasiPreopens(Preopens):
@@ -47,12 +47,16 @@ class WasiStreams(streams.Streams):
         return None
 
     def write(self, this: streams.OutputStream, buf: bytes) -> core_types.Result[int, streams.StreamError]:
-        sys.stdout.buffer.write(buf)
+        if this == 1:
+            sys.stdout.buffer.write(buf)
+        elif this == 2:
+            sys.stderr.buffer.write(buf)
+        else:
+            raise NotImplementedError
         return core_types.Ok(len(buf))
 
     def blocking_write(self, this: streams.OutputStream, buf: bytes) -> core_types.Result[int, streams.StreamError]:
-        sys.stdout.buffer.write(buf)
-        return core_types.Ok(len(buf))
+        return self.write(this, buf)
 
     def drop_output_stream(self, this: streams.OutputStream) -> None:
         return None
