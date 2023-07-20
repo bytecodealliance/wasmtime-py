@@ -2,7 +2,7 @@
 members = ['bindgen', 'wasi_snapshot_preview1']
 
 [workspace.dependencies]
-wit-bindgen = { version = "0.8.0", default-features = false, features = ['macros'] }
+wit-bindgen = { version = "0.9.0", default-features = false, features = ['macros'] }
 
 [profile.release]
 strip = 'debuginfo'
