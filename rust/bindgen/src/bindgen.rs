@@ -996,6 +996,7 @@ impl InterfaceGenerator<'_> {
                         self.print_optional_ty(s.end.as_ref(), true);
                         self.src.push_str("]");
                     }
+                    TypeDefKind::Resource | TypeDefKind::Handle(_) => unimplemented!(),
                     TypeDefKind::Unknown => unreachable!(),
                 }
             }
@@ -1146,6 +1147,7 @@ impl InterfaceGenerator<'_> {
                 TypeDefKind::Type(t) => self.type_alias(id, name, t, &ty.docs),
                 TypeDefKind::Future(_) => todo!("generate for future"),
                 TypeDefKind::Stream(_) => todo!("generate for stream"),
+                TypeDefKind::Resource | TypeDefKind::Handle(_) => unimplemented!(),
                 TypeDefKind::Unknown => unreachable!(),
             }
         }
@@ -2507,6 +2509,11 @@ impl Bindgen for FunctionBindgen<'_, '_> {
                         self.gen
                             .src
                             .push_str(&format!("{}({})", self.callee, operands.join(", "),));
+                    }
+                    FunctionKind::Method(_)
+                    | FunctionKind::Static(_)
+                    | FunctionKind::Constructor(_) => {
+                        unimplemented!()
                     }
                 }
                 self.gen.src.push_str("\n");
