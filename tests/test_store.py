@@ -25,17 +25,29 @@ class TestStore(unittest.TestCase):
         config.epoch_interruption = True
         engine = Engine(config)
         store = Store(engine)
+        store.set_epoch_deadline(1)
 
         module = Module(store.engine, """
-            (import "" "" (func))
-            (func
-                call 0
+            (import "" "hit" (func $hit))
+            (import "" "interrupt" (func $interrupt))
+            (func $start
+                call $hit
+                call $interrupt
                 (loop br 0))
-            (start 1)
+            (start $start)
         """)
         interrupt = Func(store, FuncType([], []), lambda: engine.increment_epoch())
+
+        was_hit = False
+
+        def hit_callback():
+            nonlocal was_hit
+            was_hit = True
+        hit = Func(store, FuncType([], []), hit_callback)
+
         with self.assertRaises(Trap):
-            Instance(store, module, [interrupt])
+            Instance(store, module, [hit, interrupt])
+        self.assertTrue(was_hit)
 
     def test_fuel(self):
         store = Store()
