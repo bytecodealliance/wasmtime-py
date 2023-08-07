@@ -1,4 +1,4 @@
-# This is an example of working with mulit-value modules and dealing with
+# This is an example of working with multi-value modules and dealing with
 # multi-value functions.
 
 from wasmtime import Config, Store, Engine, Module, FuncType, Func, ValType, Instance
