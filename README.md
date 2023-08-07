@@ -45,10 +45,10 @@ macOS, and Linux.
 released every month. As with Wasmtime itself, new major versions of `wasmtime-py`
 can contain changes that break code written against the previous major version.
 
-Since every installed Python package needs to agree on a single version of 
+Since every installed Python package needs to agree on a single version of
 `wasmtime-py`, to use the upper bound on the major version in the dependency
 requirement should be bumped reguarly, ideally as soon as a new `wasmtime-py`
-version is released. To automate this process it is possible to use 
+version is released. To automate this process it is possible to use
 the [whitequark/track-pypi-dependency-version][] script. [YoWASP/runtime][] is
 an example of a project that automatically publishes releases on PyPI once a new
 version of `wasmtime-py` is released if it passes the testsuite.
@@ -138,21 +138,21 @@ example with this core wasm module at `demo.wat`:
 and with this [`*.wit`] interface at `demo.wit`:
 
 ```text
+package my:demo
+
 world demo {
   import python: interface {
     print: func(s: string)
   }
 
-  default export interface {
-    run: func()
-  }
+  export run: func()
 }
 ```
 
 And this `demo.py` script
 
 ```python
-from demo import Demo, DemoImports, imports
+from demo import Root, RootImports, imports
 from wasmtime import Store
 
 class Host(imports.Python):
@@ -161,7 +161,7 @@ class Host(imports.Python):
 
 def main():
     store = Store()
-    demo = Demo(store, DemoImports(Host()))
+    demo = Root(store, RootImports(Host()))
     demo.run(store)
 
 if __name__ == '__main__':
@@ -169,8 +169,9 @@ if __name__ == '__main__':
 ```
 
 ```sh
-$ wasm-tools component new demo.wat --wit demo.wit -o demo.wasm
-$ python -m wasmtime.bindgen demo.wasm --out-dir demo
+$ wasm-tools component embed demo.wit demo.wat -o demo.wasm
+$ wasm-tools component new demo.wasm -o demo.component.wasm
+$ python -m wasmtime.bindgen demo.component.wasm --out-dir demo
 $ python demo.py
 Hello, world!
 ```
