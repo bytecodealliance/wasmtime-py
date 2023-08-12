@@ -37,7 +37,7 @@ $ pip install wasmtime
 ```
 
 The package currently supports 64-bit builds of Python 3.6+ on x86\_64 Windows,
-macOS, and Linux.
+macOS, and Linux, as well as on arm64 macOS and Linux.
 
 ## Versioning
 
