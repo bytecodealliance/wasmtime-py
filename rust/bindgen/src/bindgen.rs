@@ -231,7 +231,7 @@ impl WasmtimePy {
         self.init.pyimport("wasmtime", None);
 
         let world = &resolve.worlds[id];
-        let camel = world.name.to_upper_camel_case();
+        let camel = world.name.to_upper_camel_case().escape();
         let imports = if !component.import_types.is_empty() {
             self.init
                 .pyimport(".imports", format!("{camel}Imports").as_str());
@@ -296,7 +296,7 @@ impl WasmtimePy {
         }
 
         for (name, src) in self.exports.iter() {
-            let snake = name.to_snake_case();
+            let snake = name.to_snake_case().escape();
             files.push(&format!("exports/{snake}.py"), src.finish().as_bytes());
         }
         if !self.exports.is_empty() {
@@ -321,8 +321,8 @@ impl WasmtimePy {
         // Generate a "protocol" class which I'm led to believe is the rough
         // equivalent of a Rust trait in Python for this imported interface.
         // This will be referenced in the constructor for the main component.
-        let camel = name.to_upper_camel_case();
-        let snake = name.to_snake_case();
+        let camel = name.to_upper_camel_case().escape();
+        let snake = name.to_snake_case().escape();
         gen.src.pyimport("typing", "Protocol");
         uwriteln!(gen.src, "class {camel}(Protocol):");
         gen.src.indent();
@@ -367,14 +367,14 @@ impl WasmtimePy {
 
     fn finish_interfaces(&mut self, world: &World, _files: &mut Files) {
         if !self.imports.is_empty() {
-            let camel = world.name.to_upper_camel_case();
+            let camel = world.name.to_upper_camel_case().escape();
             self.imports_init.pyimport("dataclasses", "dataclass");
             uwriteln!(self.imports_init, "@dataclass");
             uwriteln!(self.imports_init, "class {camel}Imports:");
             self.imports_init.indent();
             for import in self.imports.iter() {
-                let snake = import.to_snake_case();
-                let camel = import.to_upper_camel_case();
+                let snake = import.to_snake_case().escape();
+                let camel = import.to_upper_camel_case().escape();
                 self.imports_init
                     .pyimport(&format!(".{snake}"), camel.as_str());
                 uwriteln!(self.imports_init, "{snake}: {camel}");
@@ -548,8 +548,8 @@ impl<'a> Instantiator<'a> {
         };
         let callee = format!(
             "import_object.{}.{}",
-            import_name.to_snake_case(),
-            func.name.to_snake_case()
+            import_name.to_snake_case().escape(),
+            func.name.to_snake_case().escape()
         );
 
         // Generate an inline function "closure" which will capture the
@@ -808,8 +808,8 @@ impl<'a> Instantiator<'a> {
         // well to return the nested instance.
         if let Some(ns) = ns {
             let src = self.gen.exports.get_mut(ns).unwrap();
-            let camel = ns.to_upper_camel_case();
-            let snake = ns.to_snake_case();
+            let camel = ns.to_upper_camel_case().escape();
+            let snake = ns.to_snake_case().escape();
             uwriteln!(src, "class {camel}:");
             src.indent();
             src.typing_import("..", camel_component);
@@ -938,12 +938,12 @@ impl InterfaceGenerator<'_> {
                         } else {
                             format!("..{module}")
                         };
-                        let iface = iface.to_snake_case();
+                        let iface = iface.to_snake_case().escape();
                         self.src.pyimport(&module, iface.as_str());
                         uwrite!(
                             self.src,
                             "{iface}.{name}",
-                            name = name.to_upper_camel_case()
+                            name = name.to_upper_camel_case().escape()
                         )
                     }
                     return;
@@ -1039,7 +1039,7 @@ impl InterfaceGenerator<'_> {
 
     fn print_sig(&mut self, func: &Function, in_import: bool) -> Vec<String> {
         self.src.push_str("def ");
-        self.src.push_str(&func.name.to_snake_case());
+        self.src.push_str(&func.name.to_snake_case().escape());
         if in_import {
             self.src.push_str("(self");
         } else {
@@ -1049,8 +1049,8 @@ impl InterfaceGenerator<'_> {
         let mut params = Vec::new();
         for (param, ty) in func.params.iter() {
             self.src.push_str(", ");
-            self.src.push_str(&param.to_snake_case());
-            params.push(param.to_snake_case());
+            self.src.push_str(&param.to_snake_case().escape());
+            params.push(param.to_snake_case().escape());
             self.src.push_str(": ");
             self.print_ty(ty, true);
         }
@@ -1089,7 +1089,7 @@ impl InterfaceGenerator<'_> {
     pub fn print_union_wrapped(&mut self, name: &str, union: &Union, docs: &Docs) {
         self.src.pyimport("dataclasses", "dataclass");
         let mut cases = Vec::new();
-        let name = name.to_upper_camel_case();
+        let name = name.to_upper_camel_case().escape();
         for (i, case) in union.cases.iter().enumerate() {
             self.src.push_str("@dataclass\n");
             let name = format!("{name}{i}");
@@ -1117,7 +1117,7 @@ impl InterfaceGenerator<'_> {
         for case in union.cases.iter() {
             self.src.comment(&case.docs);
         }
-        self.src.push_str(&name.to_upper_camel_case());
+        self.src.push_str(&name.to_upper_camel_case().escape());
         self.src.push_str(" = Union[");
         let mut first = true;
         for case in union.cases.iter() {
@@ -1157,12 +1157,12 @@ impl InterfaceGenerator<'_> {
         self.src.pyimport("dataclasses", "dataclass");
         self.src.push_str("@dataclass\n");
         self.src
-            .push_str(&format!("class {}:\n", name.to_upper_camel_case()));
+            .push_str(&format!("class {}:\n", name.to_upper_camel_case().escape()));
         self.src.indent();
         self.src.docstring(docs);
         for field in record.fields.iter() {
             self.src.comment(&field.docs);
-            let field_name = field.name.to_snake_case();
+            let field_name = field.name.to_snake_case().escape();
             self.src.push_str(&format!("{field_name}: "));
             self.print_ty(&field.ty, true);
             self.src.push_str("\n");
@@ -1177,7 +1177,7 @@ impl InterfaceGenerator<'_> {
     fn type_tuple(&mut self, _id: TypeId, name: &str, tuple: &Tuple, docs: &Docs) {
         self.src.comment(docs);
         self.src
-            .push_str(&format!("{} = ", name.to_upper_camel_case()));
+            .push_str(&format!("{} = ", name.to_upper_camel_case().escape()));
         self.print_tuple(tuple);
         self.src.push_str("\n");
     }
@@ -1185,8 +1185,10 @@ impl InterfaceGenerator<'_> {
     fn type_flags(&mut self, _id: TypeId, name: &str, flags: &Flags, docs: &Docs) {
         self.src.pyimport("enum", "Flag");
         self.src.pyimport("enum", "auto");
-        self.src
-            .push_str(&format!("class {}(Flag):\n", name.to_upper_camel_case()));
+        self.src.push_str(&format!(
+            "class {}(Flag):\n",
+            name.to_upper_camel_case().escape()
+        ));
         self.src.indent();
         self.src.docstring(docs);
         for flag in flags.flags.iter() {
@@ -1209,8 +1211,8 @@ impl InterfaceGenerator<'_> {
             self.src.push_str("@dataclass\n");
             let case_name = format!(
                 "{}{}",
-                name.to_upper_camel_case(),
-                case.name.to_upper_camel_case()
+                name.to_upper_camel_case().escape(),
+                case.name.to_upper_camel_case().escape()
             );
             self.src.push_str(&format!("class {case_name}:\n"));
             self.src.indent();
@@ -1231,7 +1233,7 @@ impl InterfaceGenerator<'_> {
         self.src.comment(docs);
         self.src.push_str(&format!(
             "{} = Union[{}]\n",
-            name.to_upper_camel_case(),
+            name.to_upper_camel_case().escape(),
             cases.join(", "),
         ));
         self.src.push_str("\n");
@@ -1258,7 +1260,7 @@ impl InterfaceGenerator<'_> {
 
         self.src.pyimport("typing", "Optional");
         self.src.comment(docs);
-        self.src.push_str(&name.to_upper_camel_case());
+        self.src.push_str(&name.to_upper_camel_case().escape());
         self.src.push_str(" = Optional[");
         if nesting {
             self.src.push_str("Some[");
@@ -1274,8 +1276,10 @@ impl InterfaceGenerator<'_> {
         self.import_result_type();
 
         self.src.comment(docs);
-        self.src
-            .push_str(&format!("{} = Result[", name.to_upper_camel_case()));
+        self.src.push_str(&format!(
+            "{} = Result[",
+            name.to_upper_camel_case().escape()
+        ));
         self.print_optional_ty(result.ok.as_ref(), true);
         self.src.push_str(", ");
         self.print_optional_ty(result.err.as_ref(), true);
@@ -1284,8 +1288,10 @@ impl InterfaceGenerator<'_> {
 
     fn type_enum(&mut self, _id: TypeId, name: &str, enum_: &Enum, docs: &Docs) {
         self.src.pyimport("enum", "Enum");
-        self.src
-            .push_str(&format!("class {}(Enum):\n", name.to_upper_camel_case()));
+        self.src.push_str(&format!(
+            "class {}(Enum):\n",
+            name.to_upper_camel_case().escape()
+        ));
         self.src.indent();
         self.src.docstring(docs);
         for (i, case) in enum_.cases.iter().enumerate() {
@@ -1309,7 +1315,7 @@ impl InterfaceGenerator<'_> {
     fn type_alias(&mut self, _id: TypeId, name: &str, ty: &Type, docs: &Docs) {
         self.src.comment(docs);
         self.src
-            .push_str(&format!("{} = ", name.to_upper_camel_case()));
+            .push_str(&format!("{} = ", name.to_upper_camel_case().escape()));
         self.print_ty(ty, false);
         self.src.push_str("\n");
     }
@@ -1317,7 +1323,7 @@ impl InterfaceGenerator<'_> {
     fn type_list(&mut self, _id: TypeId, name: &str, ty: &Type, docs: &Docs) {
         self.src.comment(docs);
         self.src
-            .push_str(&format!("{} = ", name.to_upper_camel_case()));
+            .push_str(&format!("{} = ", name.to_upper_camel_case().escape()));
         self.print_list(ty);
         self.src.push_str("\n");
     }
@@ -1328,7 +1334,7 @@ impl InterfaceGenerator<'_> {
     }
 
     fn name_of(&mut self, ty: &str) -> String {
-        let ty = ty.to_upper_camel_case();
+        let ty = ty.to_upper_camel_case().escape();
         if !self.at_root {
             return ty;
         }
@@ -1337,7 +1343,7 @@ impl InterfaceGenerator<'_> {
             Some(name) => (".imports", name),
             None => (".exports", self.gen.exported_interfaces.get(&id).unwrap()),
         };
-        let iface = iface.to_snake_case();
+        let iface = iface.to_snake_case().escape();
         self.src.pyimport(&module, iface.as_str());
         format!("{iface}.{ty}")
     }
@@ -1354,7 +1360,11 @@ impl InterfaceGenerator<'_> {
                     Some(name) => name,
                     None => &self.gen.exported_interfaces[&owner],
                 };
-                return format!("{}.{}", iface.to_snake_case(), name.to_upper_camel_case());
+                return format!(
+                    "{}.{}",
+                    iface.to_snake_case().escape(),
+                    name.to_upper_camel_case().escape()
+                );
             }
         };
         self.name_of(name).to_string()
@@ -1877,7 +1887,7 @@ impl Bindgen for FunctionBindgen<'_, '_> {
                     uwriteln!(
                         self.gen.src,
                         "{name} = {tmp}.{}",
-                        field.name.to_snake_case(),
+                        field.name.to_snake_case().escape(),
                     );
                     results.push(name);
                 }
@@ -1971,7 +1981,11 @@ impl Bindgen for FunctionBindgen<'_, '_> {
                     }
                     uwrite!(self.gen.src, "isinstance({}, ", operands[0]);
                     self.print_ty(&Type::Id(*ty));
-                    uwriteln!(self.gen.src, "{}):", case.name.to_upper_camel_case());
+                    uwriteln!(
+                        self.gen.src,
+                        "{}):",
+                        case.name.to_upper_camel_case().escape()
+                    );
 
                     self.gen.src.indent();
                     if case.ty.is_some() {
@@ -1984,7 +1998,7 @@ impl Bindgen for FunctionBindgen<'_, '_> {
                     }
                     self.gen.src.dedent();
                 }
-                let variant_name = name.to_upper_camel_case();
+                let variant_name = name.to_upper_camel_case().escape();
                 self.gen.src.push_str("else:\n");
                 self.gen.src.indent();
                 uwriteln!(
@@ -2020,7 +2034,11 @@ impl Bindgen for FunctionBindgen<'_, '_> {
 
                     uwrite!(self.gen.src, "{result} = ");
                     self.print_ty(&Type::Id(*ty));
-                    uwrite!(self.gen.src, "{}(", case.name.to_upper_camel_case());
+                    uwrite!(
+                        self.gen.src,
+                        "{}(",
+                        case.name.to_upper_camel_case().escape()
+                    );
                     if block_results.len() > 0 {
                         assert!(block_results.len() == 1);
                         self.gen.src.push_str(&block_results[0]);
@@ -2030,7 +2048,7 @@ impl Bindgen for FunctionBindgen<'_, '_> {
                 }
                 self.gen.src.push_str("else:\n");
                 self.gen.src.indent();
-                let variant_name = name.to_upper_camel_case();
+                let variant_name = name.to_upper_camel_case().escape();
                 uwriteln!(
                     self.gen.src,
                     "raise TypeError(\"invalid variant discriminant for {variant_name}\")",
@@ -2644,5 +2662,25 @@ fn is_option(resolve: &Resolve, ty: Type) -> bool {
         }
     } else {
         false
+    }
+}
+
+trait Escape: ToOwned {
+    fn escape(&self) -> Self::Owned;
+}
+
+impl Escape for str {
+    fn escape(&self) -> String {
+        // Escape Python keywords
+        // Source: https://docs.python.org/3/reference/lexical_analysis.html#keywords
+        match self {
+            "False" | "None" | "True" | "and" | "as" | "assert" | "async" | "await" | "break"
+            | "class" | "continue" | "def" | "del" | "elif" | "else" | "except" | "finally"
+            | "for" | "from" | "global" | "if" | "import" | "in" | "is" | "lambda" | "nonlocal"
+            | "not" | "or" | "pass" | "raise" | "return" | "try" | "while" | "with" | "yield" => {
+                format!("{self}_")
+            }
+            _ => self.to_owned(),
+        }
     }
 }
