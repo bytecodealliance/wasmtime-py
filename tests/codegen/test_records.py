@@ -177,7 +177,7 @@ from .generated.records.exports.e import Flag1, Flag2, Flag8, Flag16, Flag32, Fl
 from .generated.records.imports import host
 
 
-class Host(imports.Host):
+class Host(imports.HostHost):
     def multiple_results(self) -> Tuple[int, int]:
         return 1, 2
 

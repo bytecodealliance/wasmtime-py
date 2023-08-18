@@ -285,7 +285,7 @@ from .generated.variants.imports import host
 from .generated.variants.types import Result, Ok, Err, Some
 
 
-class Host(imports.Host):
+class Host(imports.HostHost):
     def roundtrip_option(self, a: Optional[float]) -> Optional[int]:
         if a:
             return int(a)

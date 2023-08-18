@@ -76,7 +76,7 @@ bindgen('lists', module)
 from .generated.lists import Root, RootImports, imports
 
 
-class Host(imports.Host):
+class Host(imports.HostHost):
     def strings(self, a: str) -> str:
         return a
 

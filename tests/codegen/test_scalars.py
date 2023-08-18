@@ -122,7 +122,7 @@ bindgen('scalars', module)
 from .generated.scalars import Root, RootImports, imports
 
 
-class Host(imports.Host):
+class Host(imports.HostHost):
     def roundtrip_u8(self, val: int) -> int:
         assert val >= 0
         assert val <= (1 << 8) - 1

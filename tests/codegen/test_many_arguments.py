@@ -82,7 +82,7 @@ bindgen('many_arguments', module)
 from .generated.many_arguments import Root, RootImports, imports
 
 
-class MyImports(imports.Host):
+class MyImports(imports.HostHost):
     def many_arguments(self,
                        a1: int,
                        a2: int,
