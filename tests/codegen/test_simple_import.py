@@ -24,7 +24,7 @@ bindgen('simple_import', module)
 from .generated.simple_import import Root, RootImports, imports
 
 
-class Host(imports.Host):
+class Host(imports.HostHost):
     def thunk(self):
         self.hit = True
 

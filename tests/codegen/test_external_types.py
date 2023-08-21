@@ -70,8 +70,7 @@ from .generated.external_types.imports import host
 from .generated.external_types import e
 
 
-class Host(imports.Host):
-
+class Host(imports.HostHost):
     def some_fn(self, v: host.RuntimeValue) -> host.RuntimeValue:
         return v
 

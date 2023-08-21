@@ -321,7 +321,7 @@ impl WasmtimePy {
         // Generate a "protocol" class which I'm led to believe is the rough
         // equivalent of a Rust trait in Python for this imported interface.
         // This will be referenced in the constructor for the main component.
-        let camel = name.to_upper_camel_case().escape();
+        let camel = format!("Host{}", name.to_upper_camel_case()).escape();
         let snake = name.to_snake_case().escape();
         gen.src.pyimport("typing", "Protocol");
         uwriteln!(gen.src, "class {camel}(Protocol):");
@@ -374,7 +374,7 @@ impl WasmtimePy {
             self.imports_init.indent();
             for import in self.imports.iter() {
                 let snake = import.to_snake_case().escape();
-                let camel = import.to_upper_camel_case().escape();
+                let camel = format!("Host{}", import.to_upper_camel_case()).escape();
                 self.imports_init
                     .pyimport(&format!(".{snake}"), camel.as_str());
                 uwriteln!(self.imports_init, "{snake}: {camel}");

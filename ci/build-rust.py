@@ -24,7 +24,7 @@ def main():
     ).check_returncode()
 
     core = 'rust/target/wasm32-wasi/release/bindgen.wasm'
-    wasi = 'ci/wasi_preview1_component_adapter.wasm'
+    wasi = 'ci/wasi_snapshot_preview1.reactor.wasm'
     component = 'rust/target/component.wasm'
 
     print('======================= Building component.wasm ===================')

@@ -62,7 +62,7 @@ from .generated.keywords import for_
 from .generated.keywords.imports import false
 
 
-class Host(imports.False_):
+class Host(imports.HostFalse):
     def as_(self, import_):
         if isinstance(import_, false.None_Break):
             return import_.value + 1

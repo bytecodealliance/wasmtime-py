@@ -1,14 +1,8 @@
-from .generated import Root, RootImports, Err
-from .generated.imports import Exit
-from .generated.imports import Random
-from .generated.imports import Stdin
-from .generated.imports import Stdout
-from .generated.imports import Stderr
+from .generated import Root, RootImports, Err, imports
 from .generated.imports import streams
-from .generated.imports import Preopens
-from .generated.imports import Environment
-from .generated.imports import Filesystem
-from .generated.imports.filesystem import Descriptor, Filesize, ErrorCode, DescriptorType
+from .generated.imports.types import Descriptor, Filesize, ErrorCode, DescriptorType
+from .generated.imports.terminal_input import TerminalInput
+from .generated.imports.terminal_output import TerminalOutput
 from .generated import types as core_types
 from typing import Mapping, Tuple, List
 
@@ -17,57 +11,57 @@ import os
 from wasmtime import Store
 
 
-class WasiRandom(Random):
+class WasiRandom(imports.HostRandom):
     def get_random_bytes(self, len: int) -> bytes:
         return os.urandom(len)
 
 
-class WasiStdin(Stdin):
+class WasiStdin(imports.HostStdin):
     def get_stdin(self) -> streams.InputStream:
         return 0
 
 
-class WasiStdout(Stdout):
+class WasiStdout(imports.HostStdout):
     def get_stdout(self) -> streams.OutputStream:
         return 1
 
 
-class WasiStderr(Stderr):
+class WasiStderr(imports.HostStderr):
     def get_stderr(self) -> streams.OutputStream:
         return 2
 
 
-class WasiPreopens(Preopens):
+class WasiPreopens(imports.HostPreopens):
     def get_directories(self) -> List[Tuple[Descriptor, str]]:
         return []
 
 
-class WasiStreams(streams.Streams):
+class WasiStreams(imports.HostStreams):
     def drop_input_stream(self, this: streams.InputStream) -> None:
         return None
 
-    def write(self, this: streams.OutputStream, buf: bytes) -> core_types.Result[int, streams.StreamError]:
+    def write(self, this: streams.OutputStream, buf: bytes) -> core_types.Result[Tuple[int, streams.StreamStatus], None]:
         if this == 1:
             sys.stdout.buffer.write(buf)
         elif this == 2:
             sys.stderr.buffer.write(buf)
         else:
             raise NotImplementedError
-        return core_types.Ok(len(buf))
+        return core_types.Ok((len(buf), streams.StreamStatus.OPEN))
 
-    def blocking_write(self, this: streams.OutputStream, buf: bytes) -> core_types.Result[int, streams.StreamError]:
+    def blocking_write(self, this: streams.OutputStream, buf: bytes) -> core_types.Result[Tuple[int, streams.StreamStatus], None]:
         return self.write(this, buf)
 
     def drop_output_stream(self, this: streams.OutputStream) -> None:
         return None
 
 
-class WasiEnvironment(Environment):
+class WasiEnvironment(imports.HostEnvironment):
     def get_environment(self) -> List[Tuple[str, str]]:
         return []
 
 
-class WasiFilesystem(Filesystem):
+class WasiTypes(imports.HostTypes):
     def write_via_stream(self, this: Descriptor, offset: Filesize) -> core_types.Result[streams.OutputStream, ErrorCode]:
         raise NotImplementedError
 
@@ -81,8 +75,33 @@ class WasiFilesystem(Filesystem):
         raise NotImplementedError
 
 
-class WasiExit(Exit):
+class WasiExit(imports.HostExit):
     def exit(self, status: core_types.Result[None, None]) -> None:
+        raise NotImplementedError
+
+
+class WasiTerminalInput(imports.HostTerminalInput):
+    def drop_terminal_input(self, this: TerminalInput) -> None:
+        raise NotImplementedError
+
+
+class WasiTerminalOutput(imports.HostTerminalOutput):
+    def drop_terminal_output(self, this: TerminalOutput) -> None:
+        raise NotImplementedError
+
+
+class WasiTerminalStdin(imports.HostTerminalStdin):
+    def get_terminal_stdin(self) -> None:
+        raise NotImplementedError
+
+
+class WasiTerminalStdout(imports.HostTerminalStdout):
+    def get_terminal_stdout(self) -> None:
+        raise NotImplementedError
+
+
+class WasiTerminalStderr(imports.HostTerminalStderr):
+    def get_terminal_stderr(self) -> None:
         raise NotImplementedError
 
 
@@ -96,14 +115,19 @@ def init() -> Tuple[Root, Store]:
     if root is None:
         store = Store()
         root = Root(store, RootImports(WasiStreams(),
-                                       WasiFilesystem(),
+                                       WasiTypes(),
+                                       WasiPreopens(),
                                        WasiRandom(),
                                        WasiEnvironment(),
-                                       WasiPreopens(),
                                        WasiExit(),
                                        WasiStdin(),
                                        WasiStdout(),
-                                       WasiStderr()))
+                                       WasiStderr(),
+                                       WasiTerminalInput(),
+                                       WasiTerminalOutput(),
+                                       WasiTerminalStdin(),
+                                       WasiTerminalStdout(),
+                                       WasiTerminalStderr()))
     return root, store
 
 

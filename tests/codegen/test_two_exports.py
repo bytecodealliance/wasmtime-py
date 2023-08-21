@@ -23,7 +23,7 @@ bindgen('two_exports', module)
 from .generated.two_exports import Root, RootImports, imports
 
 
-class Host(imports.I):
+class Host(imports.HostI):
     def f1(self) -> None:
         self.f1_hit = True
 
