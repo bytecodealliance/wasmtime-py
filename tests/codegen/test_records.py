@@ -47,8 +47,6 @@ module = """
             (export "roundtrip-flag32" (func (param "a" $f32) (result $f32)))
             (export "roundtrip-flag64" (func (param "a" $f64) (result $f64)))
 
-            (export "empty-tuple" (func (param "a" (tuple)) (result (tuple))))
-
             (type $r1 (record (field "a" u8) (field "b" $f1)))
             (export $r1' "r1" (type (eq $r1)))
             (export "roundtrip-r1" (func (param "a" $r1') (result $r1')))
@@ -67,7 +65,6 @@ module = """
         (core func $r-flag16 (canon lower (func $i "roundtrip-flag16")))
         (core func $r-flag32 (canon lower (func $i "roundtrip-flag32")))
         (core func $r-flag64 (canon lower (func $i "roundtrip-flag64") (memory $libc "mem")))
-        (core func $r-empty (canon lower (func $i "empty-tuple")))
         (core func $r-r1 (canon lower (func $i "roundtrip-r1") (memory $libc "mem")))
 
         (core module $m
@@ -79,7 +76,6 @@ module = """
             (import "" "r-flag64" (func $r-flag64 (param i32 i32 i32)))
             (import "" "multi" (func $multi (param i32)))
             (import "" "swap" (func $swap (param i32 i32 i32)))
-            (import "" "r-empty" (func $r-empty))
             (import "" "r-r1" (func $r-r1 (param i32 i32 i32)))
 
             (import "libc" "mem" (memory 1))
@@ -105,7 +101,6 @@ module = """
             (func (export "r-flag64") (param i32 i32) (result i32)
                 (call $r-flag64 (local.get 0) (local.get 1) (i32.const 100))
                 i32.const 100)
-            (func (export "r-empty") (call $r-empty))
             (func (export "r-r1") (param i32 i32) (result i32)
                 (call $r-r1 (local.get 0) (local.get 1) (i32.const 100))
                 i32.const 100)
@@ -122,7 +117,6 @@ module = """
                 (export "r-flag16" (func $r-flag16))
                 (export "r-flag32" (func $r-flag32))
                 (export "r-flag64" (func $r-flag64))
-                (export "r-empty" (func $r-empty))
                 (export "r-r1" (func $r-r1))
             ))
         ))
@@ -143,8 +137,6 @@ module = """
             (canon lift (core func $i "r-flag32")))
         (func $roundtrip-flag64 (param "a" $flag64) (result "a" $flag64)
             (canon lift (core func $i "r-flag64") (memory $libc "mem")))
-        (func $empty-tuple (param "a" (tuple)) (result "a" (tuple))
-            (canon lift (core func $i "r-empty")))
         (func $roundtrip-r1 (param "a" $r1) (result "b" $r1)
             (canon lift (core func $i "r-r1") (memory $libc "mem")))
 
@@ -165,7 +157,6 @@ module = """
             (export "roundtrip-flag16" (func $roundtrip-flag16))
             (export "roundtrip-flag32" (func $roundtrip-flag32))
             (export "roundtrip-flag64" (func $roundtrip-flag64))
-            (export "empty-tuple" (func $empty-tuple))
             (export "roundtrip-r1" (func $roundtrip-r1))
         )
     )
@@ -203,9 +194,6 @@ class Host(imports.HostHost):
     def roundtrip_flag64(self, f: host.Flag64) -> host.Flag64:
         return f
 
-    def empty_tuple(self, f: None) -> None:
-        return f
-
     def roundtrip_r1(self, f: host.R1) -> host.R1:
         return f
 
@@ -235,8 +223,6 @@ def test_bindings():
     assert bindings.e().roundtrip_flag64(store, Flag64(0)) == Flag64(0)
     for f64 in Flag64:
         assert bindings.e().roundtrip_flag64(store, f64) == f64
-
-    bindings.e().empty_tuple(store, None)
 
     r = bindings.e().roundtrip_r1(store, R1(8, Flag1(0)))
     assert r.a == 8
