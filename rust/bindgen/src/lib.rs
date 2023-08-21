@@ -35,9 +35,13 @@ pub use files::Files;
 
 #[cfg(target_arch = "wasm32")]
 mod bindings {
-    wit_bindgen::generate!("bindgen" in "../bindgen.wit");
-
-    export_bindgen!(PythonBindings);
+    wit_bindgen::generate!({
+        world: "bindgen",
+        path: "../bindgen.wit",
+        exports: {
+            world: PythonBindings,
+        }
+    });
 
     struct PythonBindings;
 

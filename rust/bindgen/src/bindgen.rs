@@ -37,16 +37,14 @@ use std::fmt::Write;
 use std::mem;
 use wasmtime_environ::component::{
     CanonicalOptions, Component, ComponentTypesBuilder, CoreDef, CoreExport, Export, ExportItem,
-    GlobalInitializer, InstantiateModule, LowerImport, RuntimeInstanceIndex, StaticModuleIndex,
-    StringEncoding, Translator,
+    GlobalInitializer, InstantiateModule, LoweredIndex, RuntimeImportIndex, RuntimeInstanceIndex,
+    StaticModuleIndex, StringEncoding, Trampoline, TrampolineIndex, Translator, TypeFuncIndex,
 };
 use wasmtime_environ::wasmparser::{Validator, WasmFeatures};
 use wasmtime_environ::{EntityIndex, ModuleTranslation, PrimaryMap, ScopeVec, Tunables};
+use wit_bindgen_core::abi::{self, AbiVariant, Bindgen, Bitcast, Instruction, LiftLower, WasmType};
 use wit_component::DecodedWasm;
-use wit_parser::{
-    abi::{AbiVariant, Bindgen, Bitcast, Instruction, LiftLower, WasmType},
-    *,
-};
+use wit_parser::*;
 
 #[derive(Default)]
 pub struct WasmtimePy {
@@ -72,6 +70,8 @@ pub struct WasmtimePy {
 
     imported_interfaces: HashMap<InterfaceId, String>,
     exported_interfaces: HashMap<InterfaceId, String>,
+
+    lowerings: PrimaryMap<LoweredIndex, (TrampolineIndex, TypeFuncIndex, CanonicalOptions)>,
 }
 
 impl WasmtimePy {
@@ -158,10 +158,34 @@ impl WasmtimePy {
         }
         self.finish_interfaces(&world, files);
 
+        for (trampoline_index, trampoline) in component.trampolines.iter() {
+            match trampoline {
+                Trampoline::LowerImport {
+                    index,
+                    lower_ty,
+                    options,
+                } => {
+                    let i = self
+                        .lowerings
+                        .push((trampoline_index, *lower_ty, options.clone()));
+                    assert_eq!(i, *index);
+                }
+                Trampoline::Transcoder { .. } => unimplemented!(),
+                Trampoline::AlwaysTrap => unimplemented!(),
+                Trampoline::ResourceNew(_) => unimplemented!(),
+                Trampoline::ResourceRep(_) => unimplemented!(),
+                Trampoline::ResourceDrop(_) => unimplemented!(),
+                Trampoline::ResourceEnterCall => unimplemented!(),
+                Trampoline::ResourceExitCall => unimplemented!(),
+                Trampoline::ResourceTransferOwn => unimplemented!(),
+                Trampoline::ResourceTransferBorrow => unimplemented!(),
+            }
+        }
+
         // And finally generate the code necessary to instantiate the given
         // component to this method using the `Component` that
         // `wasmtime-environ` parsed.
-        self.instantiate(&resolve, id, &component, &modules);
+        self.instantiate(&resolve, id, &component.component, &modules);
 
         self.finish_component(&world.name, files);
 
@@ -436,8 +460,6 @@ impl<'a> Instantiator<'a> {
                 InstantiateModule::Import(..) => unimplemented!(),
             },
 
-            GlobalInitializer::LowerImport(i) => self.lower_import(i),
-
             GlobalInitializer::ExtractMemory(m) => {
                 let def = self.core_export(&m.export);
                 let i = m.index.as_u32();
@@ -469,23 +491,9 @@ impl<'a> Instantiator<'a> {
                 uwriteln!(self.gen.init, "self._post_return{i} = post_return{i}",);
             }
 
-            // This is only used for a "degenerate component" which internally
-            // has a function that always traps. While this should be trivial to
-            // implement (generate a JS function that always throws) there's no
-            // way to test this at this time so leave this unimplemented.
-            GlobalInitializer::AlwaysTrap(_) => unimplemented!(),
+            GlobalInitializer::LowerImport { index, import } => self.lower_import(*index, *import),
 
-            // This is only used when the component exports core wasm modules,
-            // but that's not possible to test right now so leave these as
-            // unimplemented.
-            GlobalInitializer::SaveStaticModule(_) => unimplemented!(),
-            GlobalInitializer::SaveModuleImport(_) => unimplemented!(),
-
-            // This is required when strings pass between components within a
-            // component and may change encodings. This is left unimplemented
-            // for now since it can't be tested and additionally JS doesn't
-            // support multi-memory which transcoders rely on anyway.
-            GlobalInitializer::Transcoder(_) => unimplemented!(),
+            GlobalInitializer::Resource(_) => unimplemented!(),
         }
     }
 
@@ -520,14 +528,19 @@ impl<'a> Instantiator<'a> {
         uwriteln!(self.gen.init, "]).exports(store)");
     }
 
-    fn lower_import(&mut self, import: &LowerImport) {
+    fn lower_import(
+        &mut self,
+        index: LoweredIndex,
+        import: RuntimeImportIndex,
+        // lower_ty: TypeFuncIndex,
+        // options: CanonicalOptions,
+    ) {
         // Determine the `Interface` that this import corresponds to. At this
         // time `wit-component` only supports root-level imports of instances
         // where instances export functions.
-        let (import_index, path) = &self.component.imports[import.import];
+        let (import_index, path) = &self.component.imports[import];
         let (import_name, _import_ty) = &self.component.import_types[*import_index];
-        let index: usize = import_index.as_u32() as usize;
-        let item = &self.resolve.worlds[self.world].imports[index];
+        let item = &self.resolve.worlds[self.world].imports[import_index.as_u32() as usize];
         let (func, interface) = match item {
             WorldItem::Function(f) => {
                 assert_eq!(path.len(), 0);
@@ -540,7 +553,9 @@ impl<'a> Instantiator<'a> {
             WorldItem::Type(_) => unimplemented!(),
         };
 
-        let index = import.index.as_u32();
+        let (trampoline_index, _ty, options) = self.gen.lowerings[index].clone();
+        let trampoline_index = trampoline_index.as_u32();
+        let index = index.as_u32();
         let import_name = import_name.replace(":", ".");
         let import_name = match import_name.find("/") {
             Some(pos) => import_name.split_at(pos + 1).1,
@@ -580,7 +595,7 @@ impl<'a> Instantiator<'a> {
         self.bindgen(
             params,
             callee,
-            &import.options,
+            &options,
             func,
             AbiVariant::GuestImport,
             "self",
@@ -604,7 +619,7 @@ impl<'a> Instantiator<'a> {
         self.gen.init.push_str("])\n");
         uwriteln!(
             self.gen.init,
-            "lowering{index} = wasmtime.Func(store, lowering{index}_ty, lowering{index}_callee, access_caller = True)"
+            "trampoline{trampoline_index} = wasmtime.Func(store, lowering{index}_ty, lowering{index}_callee, access_caller = True)"
         );
     }
 
@@ -663,7 +678,8 @@ impl<'a> Instantiator<'a> {
             params,
             post_return,
         };
-        self.resolve.call(
+        abi::call(
+            self.resolve,
             abi,
             match abi {
                 AbiVariant::GuestImport => LiftLower::LiftArgsLowerResults,
@@ -682,10 +698,8 @@ impl<'a> Instantiator<'a> {
     fn core_def(&self, def: &CoreDef) -> String {
         match def {
             CoreDef::Export(e) => self.core_export(e),
-            CoreDef::Lowered(i) => format!("lowering{}", i.as_u32()),
-            CoreDef::AlwaysTrap(_) => unimplemented!(),
+            CoreDef::Trampoline(i) => format!("trampoline{}", i.as_u32()),
             CoreDef::InstanceFlags(_) => unimplemented!(),
-            CoreDef::Transcoder(_) => unimplemented!(),
         }
     }
 
@@ -758,7 +772,9 @@ impl<'a> Instantiator<'a> {
                         let (callee, options) = match export {
                             Export::LiftedFunction { func, options, .. } => (func, options),
                             Export::Type(_) => continue,
-                            Export::Module(_) | Export::Instance(_) => unreachable!(),
+                            Export::ModuleStatic(_)
+                            | Export::ModuleImport(_)
+                            | Export::Instance(_) => unreachable!(),
                         };
                         let callee = self.gen_lift_callee(callee);
                         let func = &self.resolve.interfaces[id].functions[name];
@@ -778,7 +794,7 @@ impl<'a> Instantiator<'a> {
                 Export::Type(_) => {}
 
                 // This can't be tested at this time so leave it unimplemented
-                Export::Module(_) => unimplemented!(),
+                Export::ModuleStatic(_) | Export::ModuleImport(_) => unimplemented!(),
             }
         }
         (toplevel, nested)
