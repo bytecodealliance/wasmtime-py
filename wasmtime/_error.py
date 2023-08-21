@@ -22,6 +22,7 @@ class WasmtimeError(Exception):
         if ffi.wasmtime_error_exit_status(ptr, byref(exit_code)):
             exit_trap: ExitTrap = ExitTrap.__new__(ExitTrap)
             exit_trap._ptr = ptr
+            exit_trap._message = None
             exit_trap.code = exit_code.value
             return exit_trap
 

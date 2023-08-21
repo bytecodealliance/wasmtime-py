@@ -21,12 +21,11 @@ class TestTrap(unittest.TestCase):
             )
         """)
         i = Instance(store, module, [])
-        try:
+        with self.assertRaises(Trap) as exn:
             e = i.exports(store)[0]
             assert(isinstance(e, Func))
             e(store)
-        except Trap as e:
-            trap = e
+        trap = exn.exception
 
         frames = trap.frames
         self.assertEqual(len(frames), 3)
@@ -61,12 +60,11 @@ Caused by:
             )
         """)
         i = Instance(store, module, [])
-        try:
+        with self.assertRaises(Trap) as exn:
             e = i.exports(store)[0]
             assert(isinstance(e, Func))
             e(store)
-        except Trap as e:
-            trap = e
+        trap = exn.exception
 
         frames = trap.frames
         self.assertEqual(len(frames), 1)
@@ -92,14 +90,11 @@ Caused by:
         exit = instance.exports(store)["exit"]
         assert(isinstance(exit, Func))
 
-        try:
+        with self.assertRaises(ExitTrap) as exn:
             exit(store, 0)
-            assert(False)
-        except ExitTrap as e:
-            assert(e.code == 0)
+        self.assertEqual(exn.exception.code, 0)
+        self.assertRegex(str(exn.exception), 'Exited with i32 exit status 0')
 
-        try:
+        with self.assertRaises(ExitTrap) as exn:
             exit(store, 1)
-            assert(False)
-        except ExitTrap as e:
-            assert(e.code == 1)
+        self.assertEqual(exn.exception.code, 1)
