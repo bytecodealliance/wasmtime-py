@@ -128,9 +128,10 @@ impl WasmtimePy {
         // With all that prep work delegate to `generate` here
         // to generate all the type-level descriptions for this component now
         // that the interfaces in/out are understood.
+        let mut root_functions = Vec::new();
         for (world_key, world_item) in world.imports.clone().into_iter() {
             match world_item {
-                WorldItem::Function(_) => unimplemented!(),
+                WorldItem::Function(function) => root_functions.push(function),
                 WorldItem::Interface(id) => {
                     let interface = &resolve.interfaces[id];
                     let iface_name = match world_key {
@@ -142,6 +143,10 @@ impl WasmtimePy {
                 WorldItem::Type(_) => unimplemented!(),
             }
         }
+        if !root_functions.is_empty() {
+            self.import_functions(&resolve, "host", &root_functions);
+        }
+
         for (world_key, export) in world.exports.clone().into_iter() {
             match export {
                 WorldItem::Function(_) => {}
@@ -156,7 +161,7 @@ impl WasmtimePy {
                 WorldItem::Type(_) => unreachable!(),
             }
         }
-        self.finish_interfaces(&world, files);
+        self.finish_interfaces(&world, !root_functions.is_empty(), files);
 
         for (trampoline_index, trampoline) in component.trampolines.iter() {
             match trampoline {
@@ -370,6 +375,29 @@ impl WasmtimePy {
         self.imports.push(name.to_string());
     }
 
+    fn import_functions(&mut self, resolve: &Resolve, world_name: &str, functions: &[Function]) {
+        let mut gen = self.interface(resolve);
+
+        let camel = world_name.to_upper_camel_case().escape();
+        uwriteln!(gen.src, "class {camel}(Protocol):");
+        gen.src.indent();
+        for func in functions.iter() {
+            gen.src.push_str("@abstractmethod\n");
+            gen.print_sig(func, true);
+            gen.src.push_str(":\n");
+            gen.src.indent();
+            gen.src.push_str("raise NotImplementedError\n");
+            gen.src.dedent();
+        }
+        gen.src.dedent();
+        gen.src.push_str("\n");
+
+        let src = gen.src;
+        self.imports_init.pyimport("typing", "Protocol");
+        self.imports_init.pyimport("abc", "abstractmethod");
+        self.imports_init.push_src(src);
+    }
+
     fn export_interface(
         &mut self,
         resolve: &Resolve,
@@ -389,13 +417,16 @@ impl WasmtimePy {
         self.exports.insert(name.to_string(), src);
     }
 
-    fn finish_interfaces(&mut self, world: &World, _files: &mut Files) {
-        if !self.imports.is_empty() {
+    fn finish_interfaces(&mut self, world: &World, has_root_imports: bool, _files: &mut Files) {
+        if has_root_imports || !self.imports.is_empty() {
             let camel = world.name.to_upper_camel_case().escape();
             self.imports_init.pyimport("dataclasses", "dataclass");
             uwriteln!(self.imports_init, "@dataclass");
             uwriteln!(self.imports_init, "class {camel}Imports:");
             self.imports_init.indent();
+            if has_root_imports {
+                self.imports_init.push_str("host: Host\n");
+            }
             for import in self.imports.iter() {
                 let snake = import.to_snake_case().escape();
                 let camel = format!("Host{}", import.to_upper_camel_case()).escape();
@@ -539,16 +570,27 @@ impl<'a> Instantiator<'a> {
         // time `wit-component` only supports root-level imports of instances
         // where instances export functions.
         let (import_index, path) = &self.component.imports[import];
-        let (import_name, _import_ty) = &self.component.import_types[*import_index];
         let item = &self.resolve.worlds[self.world].imports[import_index.as_u32() as usize];
-        let (func, interface) = match item {
+        let (func, interface, import_name) = match item {
             WorldItem::Function(f) => {
                 assert_eq!(path.len(), 0);
-                (f, None)
+                (f, None, "host".to_owned())
             }
             WorldItem::Interface(i) => {
                 assert_eq!(path.len(), 1);
-                (&self.resolve.interfaces[*i].functions[&path[0]], Some(*i))
+                let (import_name, _import_ty) = &self.component.import_types[*import_index];
+                let import_name = import_name.replace(":", ".");
+                let import_name = match import_name.find("/") {
+                    Some(pos) => import_name.split_at(pos + 1).1,
+                    None => &import_name,
+                }
+                .to_snake_case()
+                .escape();
+                (
+                    &self.resolve.interfaces[*i].functions[&path[0]],
+                    Some(*i),
+                    import_name,
+                )
             }
             WorldItem::Type(_) => unimplemented!(),
         };
@@ -556,14 +598,8 @@ impl<'a> Instantiator<'a> {
         let (trampoline_index, _ty, options) = self.gen.lowerings[index].clone();
         let trampoline_index = trampoline_index.as_u32();
         let index = index.as_u32();
-        let import_name = import_name.replace(":", ".");
-        let import_name = match import_name.find("/") {
-            Some(pos) => import_name.split_at(pos + 1).1,
-            None => &import_name,
-        };
         let callee = format!(
-            "import_object.{}.{}",
-            import_name.to_snake_case().escape(),
+            "import_object.{import_name}.{}",
             func.name.to_snake_case().escape()
         );
 

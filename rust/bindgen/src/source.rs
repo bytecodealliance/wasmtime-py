@@ -138,6 +138,12 @@ impl Source {
     pub fn replace_body(&mut self, body: Body) -> String {
         mem::replace(&mut self.body, body).contents
     }
+
+    pub fn push_src(&mut self, src: Source) {
+        assert!(self.body.indent == src.body.indent);
+        self.imports.merge(src.imports);
+        self.body.contents.push_str(&src.body.contents);
+    }
 }
 
 impl Write for Source {
