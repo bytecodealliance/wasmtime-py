@@ -19,28 +19,6 @@ impl PyImports {
         push(&mut self.typing_imports, module, name.into())
     }
 
-    pub fn merge(&mut self, imports: PyImports) {
-        for (module, names) in imports.pyimports {
-            if let Some(names) = names {
-                for name in names {
-                    self.pyimport(&module, Some(name.as_str()));
-                }
-            } else {
-                self.pyimport(&module, None);
-            }
-        }
-
-        for (module, names) in imports.typing_imports {
-            if let Some(names) = names {
-                for name in names {
-                    self.typing_import(&module, Some(name.as_str()));
-                }
-            } else {
-                self.typing_import(&module, None);
-            }
-        }
-    }
-
     pub fn is_empty(&self) -> bool {
         self.pyimports.is_empty()
     }

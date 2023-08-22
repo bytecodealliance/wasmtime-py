@@ -46,6 +46,10 @@ use wit_bindgen_core::abi::{self, AbiVariant, Bindgen, Bitcast, Instruction, Lif
 use wit_component::DecodedWasm;
 use wit_parser::*;
 
+/// The name under which to group "bare" host functions (i.e. those imported
+/// directly by the world rather than via an interface).
+const BARE_FUNCTION_NAMESPACE: &str = "host";
+
 #[derive(Default)]
 pub struct WasmtimePy {
     // `$out_dir/__init__.py`
@@ -144,7 +148,7 @@ impl WasmtimePy {
             }
         }
         if !root_functions.is_empty() {
-            self.import_functions(&resolve, "host", &root_functions);
+            self.import_functions(&resolve, &root_functions);
         }
 
         for (world_key, export) in world.exports.clone().into_iter() {
@@ -375,10 +379,14 @@ impl WasmtimePy {
         self.imports.push(name.to_string());
     }
 
-    fn import_functions(&mut self, resolve: &Resolve, world_name: &str, functions: &[Function]) {
+    fn import_functions(&mut self, resolve: &Resolve, functions: &[Function]) {
+        let src = mem::take(&mut self.imports_init);
         let mut gen = self.interface(resolve);
+        gen.src = src;
 
-        let camel = world_name.to_upper_camel_case().escape();
+        let camel = BARE_FUNCTION_NAMESPACE.to_upper_camel_case();
+        gen.src.pyimport("typing", "Protocol");
+        gen.src.pyimport("abc", "abstractmethod");
         uwriteln!(gen.src, "class {camel}(Protocol):");
         gen.src.indent();
         for func in functions.iter() {
@@ -392,10 +400,7 @@ impl WasmtimePy {
         gen.src.dedent();
         gen.src.push_str("\n");
 
-        let src = gen.src;
-        self.imports_init.pyimport("typing", "Protocol");
-        self.imports_init.pyimport("abc", "abstractmethod");
-        self.imports_init.push_src(src);
+        self.imports_init = gen.src;
     }
 
     fn export_interface(
@@ -425,7 +430,9 @@ impl WasmtimePy {
             uwriteln!(self.imports_init, "class {camel}Imports:");
             self.imports_init.indent();
             if has_root_imports {
-                self.imports_init.push_str("host: Host\n");
+                let camel = BARE_FUNCTION_NAMESPACE.to_upper_camel_case();
+                let snake = BARE_FUNCTION_NAMESPACE.to_snake_case();
+                uwriteln!(self.imports_init, "{snake}: {camel}");
             }
             for import in self.imports.iter() {
                 let snake = import.to_snake_case().escape();
@@ -574,7 +581,7 @@ impl<'a> Instantiator<'a> {
         let (func, interface, import_name) = match item {
             WorldItem::Function(f) => {
                 assert_eq!(path.len(), 0);
-                (f, None, "host".to_owned())
+                (f, None, BARE_FUNCTION_NAMESPACE.to_snake_case())
             }
             WorldItem::Interface(i) => {
                 assert_eq!(path.len(), 1);
