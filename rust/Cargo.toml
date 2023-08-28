@@ -1,5 +1,6 @@
 [workspace]
 members = ['bindgen', 'wasi_snapshot_preview1']
+resolver = "2"
 
 [workspace.dependencies]
 wit-bindgen = { version = "0.10.0", default-features = false, features = ['macros'] }
