@@ -2,6 +2,7 @@ import unittest
 import tempfile
 
 from wasmtime import *
+from pathlib import Path
 
 
 class TestWasi(unittest.TestCase):
@@ -14,10 +15,13 @@ class TestWasi(unittest.TestCase):
 
         with tempfile.NamedTemporaryFile() as f:
             config.stdin_file = f.name
+            config.stdin_file = Path(f.name)
             config.inherit_stdin()
             config.stdout_file = f.name
+            config.stdout_file = Path(f.name)
             config.inherit_stdout()
             config.stderr_file = f.name
+            config.stderr_file = Path(f.name)
             config.inherit_stderr()
 
         with self.assertRaises(WasmtimeError):
