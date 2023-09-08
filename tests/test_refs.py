@@ -58,6 +58,25 @@ class TestExternRef(unittest.TestCase):
             result = f(store, ref)
             self.assertEqual(result, extern)
 
+    def test_int_to_externref(self):
+        wat = """
+            (module
+                 (import "env" "int_to_ref" (func $int_to_ref (param $a i32) (result externref)))
+                 (export "test" (func $int_to_ref))
+            )
+            """
+        config = Config()
+        config.wasm_reference_types = True
+        engine = Engine(config)
+        store = Store(engine)
+        module = Module(store.engine, wat)
+        linker = Linker(engine)
+        ftype = FuncType([ValType.i32()], [ValType.externref()])
+        linker.define_func("env", "int_to_ref", ftype, lambda x:x)
+        instance = linker.instantiate(store, module)
+        instance.exports(store).get("test")(store, 5)
+        instance.exports(store).get("test")(store, 5.7)
+
     def test_externref_tables(self):
         store = ref_types_store()
         ty = TableType(ValType.externref(), Limits(10, None))
