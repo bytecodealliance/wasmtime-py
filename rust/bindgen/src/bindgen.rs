@@ -538,11 +538,11 @@ impl<'a> Instantiator<'a> {
     fn instantiate_static_module(&mut self, idx: StaticModuleIndex, args: &[CoreDef]) {
         let i = self.instances.push(idx);
         let core_file_name = self.gen.core_file_name(&self.name, idx.as_u32());
-        self.gen.init.pyimport("os", None);
+        self.gen.init.pyimport("pathlib", None);
 
         uwriteln!(
             self.gen.init,
-            "path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '{}')",
+            "path = pathlib.Path(__file__).parent / ('{}')",
             core_file_name,
         );
         uwriteln!(

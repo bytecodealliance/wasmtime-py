@@ -1,5 +1,5 @@
 from ctypes import *
-import os
+from pathlib import Path
 import ctypes
 import sys
 import platform
@@ -25,10 +25,10 @@ if machine == 'arm64':
 if machine != 'x86_64' and machine != 'aarch64':
     raise RuntimeError("unsupported architecture for wasmtime: {}".format(machine))
 
-filename = os.path.join(os.path.dirname(__file__), sys.platform + '-' + machine, libname)
-if not os.path.exists(filename):
+filename = Path(__file__).parent / (sys.platform + '-' + machine) / libname
+if not filename.exists():
     raise RuntimeError("precompiled wasmtime binary not found at `{}`".format(filename))
-dll = cdll.LoadLibrary(filename)
+dll = cdll.LoadLibrary(str(filename))
 
 WASM_I32 = c_uint8(0)
 WASM_I64 = c_uint8(1)

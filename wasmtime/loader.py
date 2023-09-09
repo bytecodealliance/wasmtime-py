@@ -10,7 +10,7 @@ can `import your_wasm_file` which will automatically compile and instantiate
 from wasmtime import Module, Linker, Store, WasiConfig
 from wasmtime import Func, Table, Global, Memory
 import sys
-import os.path
+from pathlib import Path
 import importlib
 
 from importlib.abc import Loader, MetaPathFinder
@@ -33,21 +33,22 @@ linker.allow_shadowing = True
 class _WasmtimeMetaFinder(MetaPathFinder):
     def find_spec(self, fullname, path, target=None):  # type: ignore
         if path is None or path == "":
-            path = [os.getcwd()]  # top level import --
+            path = [Path.cwd()]  # top level import --
             path.extend(sys.path)
         if "." in fullname:
             *parents, name = fullname.split(".")
         else:
             name = fullname
         for entry in path:
-            py = os.path.join(str(entry), name + ".py")
-            if os.path.exists(py):
+            entry = Path(entry)
+            py = entry / (name + ".py")
+            if py.exists():
                 continue
-            wasm = os.path.join(str(entry), name + ".wasm")
-            if os.path.exists(wasm):
+            wasm = entry / (name + ".wasm")
+            if wasm.exists():
                 return spec_from_file_location(fullname, wasm, loader=_WasmtimeLoader(wasm))
-            wat = os.path.join(str(entry), name + ".wat")
-            if os.path.exists(wat):
+            wat = entry / (name + ".wat")
+            if wat.exists():
                 return spec_from_file_location(fullname, wat, loader=_WasmtimeLoader(wat))
 
         return None

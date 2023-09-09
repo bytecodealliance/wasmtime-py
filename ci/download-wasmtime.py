@@ -2,13 +2,13 @@
 # current platform. Currently always downloads the dev release of wasmtime.
 
 import io
-import os
 import platform
 import shutil
 import sys
 import tarfile
 import urllib.request
 import zipfile
+from pathlib import Path
 
 WASMTIME_VERSION = "v12.0.0"
 
@@ -37,17 +37,17 @@ def main(platform, arch):
     url += filename
     print('Download', url)
     dirname = '{}-{}'.format(platform, arch)
-    dst = os.path.join('wasmtime', dirname, libname)
+    dst = Path('wasmtime') / dirname / libname
     try:
-        shutil.rmtree(os.path.dirname(dst))
+        shutil.rmtree(dst.parent)
     except Exception:
         pass
     try:
-        shutil.rmtree(os.path.join('wasmtime', 'include'))
+        shutil.rmtree(Path('wasmtime/include'))
     except Exception:
         pass
-    os.makedirs(os.path.dirname(dst))
-    os.makedirs(os.path.join('wasmtime', 'include', 'wasmtime'))
+    Path(dst).parent.mkdir(parents=True)
+    (Path('wasmtime') / 'include/wasmtime').mkdir(parents=True)
 
     with urllib.request.urlopen(url) as f:
         contents = f.read()
@@ -56,7 +56,7 @@ def main(platform, arch):
         parts = name.split('include/')
         print(parts)
         if len(parts) > 1 and name.endswith('.h'):
-            return os.path.join('wasmtime', 'include', parts[1])
+            return Path('wasmtime') / 'include' / parts[1]
         elif name.endswith('.dll') or name.endswith('.so') or name.endswith('.dylib'):
             return dst
         else:
@@ -81,7 +81,7 @@ def main(platform, arch):
             with open(loc, "wb") as f:
                 f.write(contents)
 
-    if not os.path.exists(dst):
+    if not dst.exists():
         raise RuntimeError("failed to find dynamic library")
 
 
