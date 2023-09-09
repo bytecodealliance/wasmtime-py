@@ -1,4 +1,5 @@
 import unittest
+from typing import cast
 
 from wasmtime import *
 
@@ -61,7 +62,7 @@ class TestExternRef(unittest.TestCase):
     def test_int_to_externref(self):
         wat = """
             (module
-                 (import "env" "int_to_ref" (func $int_to_ref (param $a i32) (result externref)))
+                 (import "env" "int_to_ref" (func $int_to_ref (param $a externref) (result externref)))
                  (export "test" (func $int_to_ref))
             )
             """
@@ -71,11 +72,14 @@ class TestExternRef(unittest.TestCase):
         store = Store(engine)
         module = Module(store.engine, wat)
         linker = Linker(engine)
-        ftype = FuncType([ValType.i32()], [ValType.externref()])
-        linker.define_func("env", "int_to_ref", ftype, lambda x:x)
+        ftype = FuncType([ValType.externref()], [ValType.externref()])
+        linker.define_func("env", "int_to_ref", ftype, lambda x: x)
         instance = linker.instantiate(store, module)
-        instance.exports(store).get("test")(store, 5)
-        instance.exports(store).get("test")(store, 5.7)
+        f: Func
+        f = cast(Func, instance.exports(store).get("test"))
+        f(store, 5)
+        f = cast(Func, instance.exports(store).get("test"))
+        f(store, 5.7)
 
     def test_externref_tables(self):
         store = ref_types_store()
