@@ -81,7 +81,7 @@ class _WasmtimeLoader(Loader):
         res = linker.instantiate(store, wasm_module)
         exports = res.exports(store)
         for i, export in enumerate(wasm_module.exports):
-            item = exports[i]
+            item = exports.by_index[i]
             # Calling a function requires a `Store`, so bind the first argument
             # to our loader's store
             if isinstance(item, Func):

@@ -22,7 +22,7 @@ class TestTrap(unittest.TestCase):
         """)
         i = Instance(store, module, [])
         with self.assertRaises(Trap) as exn:
-            e = i.exports(store)[0]
+            e = i.exports(store).by_index[0]
             assert(isinstance(e, Func))
             e(store)
         trap = exn.exception
@@ -61,7 +61,7 @@ Caused by:
         """)
         i = Instance(store, module, [])
         with self.assertRaises(Trap) as exn:
-            e = i.exports(store)[0]
+            e = i.exports(store).by_index[0]
             assert(isinstance(e, Func))
             e(store)
         trap = exn.exception
