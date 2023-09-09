@@ -4,6 +4,17 @@ from wasmtime import WasmtimeError
 from . import _ffi as ffi
 from ._config import setter_property
 from typing import List, Iterable
+from os import PathLike
+
+
+def _encode_path(path: str | bytes | PathLike) -> bytes:
+    if isinstance(path, (bytes, str)):
+        path2 = path
+    else:
+        path2 = path.__fspath__()
+    if isinstance(path2, bytes):
+        return path2
+    return path2.encode('utf8')
 
 
 class WasiConfig:
@@ -49,7 +60,7 @@ class WasiConfig:
         ffi.wasi_config_inherit_env(self._ptr)
 
     @setter_property
-    def stdin_file(self, path: str) -> None:
+    def stdin_file(self, path: str | bytes | PathLike) -> None:
         """
         Configures a file to be used as the stdin stream of this WASI
         configuration.
@@ -59,8 +70,9 @@ class WasiConfig:
         The file must already exist on the filesystem. If it cannot be
         opened then `WasmtimeError` is raised.
         """
+
         res = ffi.wasi_config_set_stdin_file(
-            self._ptr, c_char_p(path.encode('utf-8')))
+            self._ptr, c_char_p(_encode_path(path)))
         if not res:
             raise WasmtimeError("failed to set stdin file")
 
@@ -86,7 +98,7 @@ class WasiConfig:
         cannot be opened for writing then `WasmtimeError` is raised.
         """
         res = ffi.wasi_config_set_stdout_file(
-            self._ptr, c_char_p(path.encode('utf-8')))
+            self._ptr, c_char_p(_encode_path(path)))
         if not res:
             raise WasmtimeError("failed to set stdout file")
 
@@ -112,7 +124,7 @@ class WasiConfig:
         cannot be opened for writing then `WasmtimeError` is raised.
         """
         res = ffi.wasi_config_set_stderr_file(
-            self._ptr, c_char_p(path.encode('utf-8')))
+            self._ptr, c_char_p(_encode_path(path)))
         if not res:
             raise WasmtimeError("failed to set stderr file")
 
