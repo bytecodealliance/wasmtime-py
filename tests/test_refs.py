@@ -1,4 +1,5 @@
 import unittest
+from typing import cast
 
 from wasmtime import *
 
@@ -57,6 +58,28 @@ class TestExternRef(unittest.TestCase):
             # extern data.
             result = f(store, ref)
             self.assertEqual(result, extern)
+
+    def test_int_to_externref(self):
+        wat = """
+            (module
+                 (import "env" "int_to_ref" (func $int_to_ref (param $a externref) (result externref)))
+                 (export "test" (func $int_to_ref))
+            )
+            """
+        config = Config()
+        config.wasm_reference_types = True
+        engine = Engine(config)
+        store = Store(engine)
+        module = Module(store.engine, wat)
+        linker = Linker(engine)
+        ftype = FuncType([ValType.externref()], [ValType.externref()])
+        linker.define_func("env", "int_to_ref", ftype, lambda x: x)
+        instance = linker.instantiate(store, module)
+        f: Func
+        f = cast(Func, instance.exports(store).get("test"))
+        f(store, 5)
+        f = cast(Func, instance.exports(store).get("test"))
+        f(store, 5.7)
 
     def test_externref_tables(self):
         store = ref_types_store()

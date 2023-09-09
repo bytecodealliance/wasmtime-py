@@ -132,7 +132,9 @@ class Val:
             if ty != val.type:
                 raise TypeError("wrong type of `Val` provided")
             return val
-        elif isinstance(val, int):
+        if ty == ValType.externref():
+            return Val.externref(val)
+        if isinstance(val, int):
             if ty == ValType.i32():
                 return Val.i32(val)
             if ty == ValType.i64():
@@ -149,8 +151,6 @@ class Val:
                 return Val.externref(None)
             if ty == ValType.funcref():
                 return Val.funcref(None)
-        elif ty == ValType.externref():
-            return Val.externref(val)
         raise TypeError("don't know how to convert %r to %s" % (val, ty))
 
     def _into_raw(self) -> wasmtime_val_t:
