@@ -65,10 +65,19 @@ class TestInstance(unittest.TestCase):
             )
         """)
         instance = Instance(store, module, [])
-        self.assertEqual(len(instance.exports(store)), 3)
-        assert(isinstance(instance.exports(store).by_index[0], Func))
-        assert(isinstance(instance.exports(store).by_index[1], Func))
-        assert(isinstance(instance.exports(store).by_index[2], Global))
+        exports = instance.exports(store)
+        self.assertEqual(len(exports), 3)
+        assert isinstance(exports.by_index[0], Func)
+        assert isinstance(exports.by_index[1], Func)
+        assert isinstance(exports.by_index[2], Global)
+        # Test that exports acts like a normal map
+        assert "a" in exports
+        assert "b" in exports
+        assert "d" not in exports
+        assert set(exports) == {"a", "b", "c"}
+        assert set(exports.values()) == set(exports.by_index)
+        assert exports.get("d", 7) == 7
+        assert isinstance(exports.get("b", 7), Func)
 
     def test_import_func(self):
         store = Store()
