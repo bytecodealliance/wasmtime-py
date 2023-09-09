@@ -2,6 +2,7 @@
 
 import setuptools
 import os
+import subprocess
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -11,9 +12,8 @@ version = "12.0.0"
 # Give unique version numbers to all commits so our publication-on-each commit
 # works on main
 if 'PROD' not in os.environ:
-    stream = os.popen('git rev-list HEAD --count')
-    output = stream.read()
-    version += '.dev' + output.strip()
+    res = subprocess.run(['git', 'rev-list', 'HEAD', '--count'], capture_output=True, encoding="utf8")
+    version += '.dev' + res.stdout.strip()
 
 setuptools.setup(
     name="wasmtime",
