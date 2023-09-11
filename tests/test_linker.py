@@ -21,7 +21,7 @@ class TestLinker(unittest.TestCase):
         module = Module(store.engine, """
             (module (table (export "") 1 funcref))
         """)
-        table = Instance(store, module, []).exports(store)[0]
+        table = Instance(store, module, []).exports(store).by_index[0]
         linker.define(store, "", "g", table)
 
         with self.assertRaises(WasmtimeError):

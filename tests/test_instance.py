@@ -14,7 +14,7 @@ class TestInstance(unittest.TestCase):
         module = Module(store.engine, '(module (func (export "")))')
         instance = Instance(store, module, [])
         self.assertEqual(len(instance.exports(store)), 1)
-        extern = instance.exports(store)[0]
+        extern = instance.exports(store).by_index[0]
         assert(isinstance(extern, Func))
         assert(isinstance(extern.type(store), FuncType))
 
@@ -24,9 +24,8 @@ class TestInstance(unittest.TestCase):
         with self.assertRaises(KeyError):
             instance.exports(store)['x']
         with self.assertRaises(IndexError):
-            instance.exports(store)[100]
+            instance.exports(store).by_index[100]
         assert(instance.exports(store).get('x') is None)
-        assert(instance.exports(store).get(2) is None)
 
     def test_export_global(self):
         store = Store()
@@ -34,7 +33,7 @@ class TestInstance(unittest.TestCase):
             store.engine, '(module (global (export "") i32 (i32.const 3)))')
         instance = Instance(store, module, [])
         self.assertEqual(len(instance.exports(store)), 1)
-        extern = instance.exports(store)[0]
+        extern = instance.exports(store).by_index[0]
         assert(isinstance(extern, Global))
         self.assertEqual(extern.value(store), 3)
         assert(isinstance(extern.type(store), GlobalType))
@@ -44,7 +43,7 @@ class TestInstance(unittest.TestCase):
         module = Module(store.engine, '(module (memory (export "") 1))')
         instance = Instance(store, module, [])
         self.assertEqual(len(instance.exports(store)), 1)
-        extern = instance.exports(store)[0]
+        extern = instance.exports(store).by_index[0]
         assert(isinstance(extern, Memory))
         self.assertEqual(extern.size(store), 1)
 
@@ -53,7 +52,7 @@ class TestInstance(unittest.TestCase):
         module = Module(store.engine, '(module (table (export "") 1 funcref))')
         instance = Instance(store, module, [])
         self.assertEqual(len(instance.exports(store)), 1)
-        extern = instance.exports(store)[0]
+        extern = instance.exports(store).by_index[0]
         assert(isinstance(extern, Table))
 
     def test_multiple_exports(self):
@@ -66,10 +65,19 @@ class TestInstance(unittest.TestCase):
             )
         """)
         instance = Instance(store, module, [])
-        self.assertEqual(len(instance.exports(store)), 3)
-        assert(isinstance(instance.exports(store)[0], Func))
-        assert(isinstance(instance.exports(store)[1], Func))
-        assert(isinstance(instance.exports(store)[2], Global))
+        exports = instance.exports(store)
+        self.assertEqual(len(exports), 3)
+        assert isinstance(exports.by_index[0], Func)
+        assert isinstance(exports.by_index[1], Func)
+        assert isinstance(exports.by_index[2], Global)
+        # Test that exports acts like a normal map
+        assert "a" in exports
+        assert "b" in exports
+        assert "d" not in exports
+        assert set(exports) == {"a", "b", "c"}
+        assert set(exports.values()) == set(exports.by_index)
+        assert exports.get("d", 7) == 7
+        assert isinstance(exports.get("b", 7), Func)
 
     def test_import_func(self):
         store = Store()
@@ -100,7 +108,7 @@ class TestInstance(unittest.TestCase):
         """)
         g = Global(store, GlobalType(ValType.i32(), True), 2)
         instance = Instance(store, module, [g])
-        f = instance.exports(store)[0]
+        f = instance.exports(store).by_index[0]
         assert(isinstance(f, Func))
 
         self.assertEqual(f(store), 2)
@@ -108,12 +116,12 @@ class TestInstance(unittest.TestCase):
         self.assertEqual(f(store), 4)
 
         instance2 = Instance(store, module, [g])
-        f2 = instance2.exports(store)[0]
+        f2 = instance2.exports(store).by_index[0]
         assert(isinstance(f2, Func))
         self.assertEqual(f(store), 4)
         self.assertEqual(f2(store), 4)
 
-        update = instance.exports(store)[1]
+        update = instance.exports(store).by_index[1]
         assert(isinstance(update, Func))
         update(store)
         self.assertEqual(f(store), 5)
@@ -136,7 +144,7 @@ class TestInstance(unittest.TestCase):
                 (table (export "") 1 funcref)
             )
         """)
-        table = Instance(store, module, []).exports(store)[0]
+        table = Instance(store, module, []).exports(store).by_index[0]
 
         module = Module(store.engine, """
             (module

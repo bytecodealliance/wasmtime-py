@@ -3,7 +3,8 @@ from ctypes import POINTER, byref
 from wasmtime import Module, WasmtimeError
 from ._extern import wrap_extern, get_extern_ptr
 from ._exportable import AsExtern
-from typing import Sequence, Union, Optional, Mapping, Iterable
+from typing import Sequence, Optional, Iterator
+from collections.abc import Mapping
 from ._store import Storelike
 from ._func import enter_wasm
 
@@ -67,14 +68,14 @@ class Instance:
         return ffi.wasmtime_extern_t(ffi.WASMTIME_EXTERN_INSTANCE, union)
 
 
-class InstanceExports:
-    _extern_list: Sequence[AsExtern]
+class InstanceExports(Mapping[str, AsExtern]):
+    _extern_seq: Sequence[AsExtern]
     _extern_map: Mapping[str, AsExtern]
 
     def __init__(self, store: Storelike, instance: Instance):
-        self._extern_list = []
         self._extern_map = {}
 
+        extern_list = []
         i = 0
         item = ffi.wasmtime_extern_t()
         name_ptr = POINTER(ffi.c_char)()
@@ -88,29 +89,21 @@ class InstanceExports:
                 byref(item)):
             name = ffi.to_str_raw(name_ptr, name_len.value)
             extern = wrap_extern(item)
-            self._extern_list.append(extern)
+            extern_list.append(extern)
             self._extern_map[name] = extern
             i += 1
             item = ffi.wasmtime_extern_t()
+        self._extern_seq = tuple(extern_list)
 
-    def __getitem__(self, idx: Union[int, str]) -> AsExtern:
-        ret = self.get(idx)
-        if ret is None:
-            msg = "failed to find export {}".format(idx)
-            if isinstance(idx, str):
-                raise KeyError(msg)
-            raise IndexError(msg)
-        return ret
+    @property
+    def by_index(self) -> Sequence[AsExtern]:
+        return self._extern_seq
+
+    def __getitem__(self, idx: str) -> AsExtern:
+        return self._extern_map[idx]
 
     def __len__(self) -> int:
-        return len(self._extern_list)
+        return len(self.by_index)
 
-    def __iter__(self) -> Iterable[AsExtern]:
-        return iter(self._extern_list)
-
-    def get(self, idx: Union[int, str]) -> Optional[AsExtern]:
-        if isinstance(idx, str):
-            return self._extern_map.get(idx)
-        if idx < len(self._extern_list):
-            return self._extern_list[idx]
-        return None
+    def __iter__(self) -> Iterator[str]:
+        return iter(self._extern_map)
