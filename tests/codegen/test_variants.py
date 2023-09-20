@@ -19,14 +19,32 @@ module = """
             (type $z3 (variant (case "a" float32) (case "b")))
             (type $z4 (variant (case "a" float64) (case "b")))
 
-            (type $all-integers (union bool u8 u16 u32 u64 s8 s16 s32 s64))
-            (type $all-floats (union float32 float64))
-            (type $duplicated-s32 (union s32 s32 s32))
-            (type $distinguished (union s32 float32))
+            (type $all-integers (variant
+                (case "bool" bool)
+                (case "u8" u8)
+                (case "u16" u16)
+                (case "u32" u32)
+                (case "u64" u64)
+                (case "s8" s8)
+                (case "s16" s16)
+                (case "s32" s32)
+                (case "s64" s64)
+            ))
+            (type $all-floats (variant (case "f32" float32) (case "f64" float64)))
+            (type $duplicated-s32 (variant
+                (case "c1" s32)
+                (case "c2" s32)
+                (case "c3" s32)
+            ))
+            (type $distinguished (variant (case "s32" s32) (case "float32" float32)))
             (export $distinguished' "distinguished" (type (eq $distinguished)))
 
-            (type $nested-union (union $distinguished' s32 float32))
-            (type $option-in-union (union (option s32) s32))
+            (type $nested-union (variant
+                (case "d" $distinguished')
+                (case "s32" s32)
+                (case "float32" float32)
+            ))
+            (type $option-in-union (variant (case "o" (option s32)) (case "i" s32)))
 
             (export $e1' "e1" (type (eq $e1)))
 
@@ -203,12 +221,30 @@ module = """
         (type $z4 (variant (case "a" float64) (case "b")))
         (type $zeros (tuple $z1 $z2 $z3 $z4))
 
-        (type $all-integers (union bool u8 u16 u32 u64 s8 s16 s32 s64))
-        (type $all-floats (union float32 float64))
-        (type $duplicated-s32 (union s32 s32 s32))
-        (type $distinguished (union s32 float32))
-        (type $nested-union (union $distinguished s32 float32))
-        (type $option-in-union (union (option s32) s32))
+        (type $all-integers (variant
+            (case "bool" bool)
+            (case "u8" u8)
+            (case "u16" u16)
+            (case "u32" u32)
+            (case "u64" u64)
+            (case "s8" s8)
+            (case "s16" s16)
+            (case "s32" s32)
+            (case "s64" s64)
+        ))
+        (type $all-floats (variant (case "f32" float32) (case "f64" float64)))
+        (type $duplicated-s32 (variant
+            (case "c1" s32)
+            (case "c2" s32)
+            (case "c3" s32)
+        ))
+        (type $distinguished (variant (case "s32" s32) (case "float32" float32)))
+        (type $nested-union (variant
+            (case "d" $distinguished)
+            (case "s32" s32)
+            (case "float32" float32)
+        ))
+        (type $option-in-union (variant (case "o" (option s32)) (case "i" s32)))
 
         (func $roundtrip-option (param "a" (option float32)) (result (option u8))
             (canon lift (core func $i "r-opt") (memory $libc "m")))
@@ -307,93 +343,95 @@ class Host(imports.HostHost):
 
     def add_one_all_integers(self, num: host.AllIntegers) -> host.AllIntegers:
         # Bool
-        if isinstance(num, host.AllIntegers0):
+        if isinstance(num, host.AllIntegersBool):
             assert num.value in (True, False)
-            return host.AllIntegers0(not num.value)
+            return host.AllIntegersBool(not num.value)
         # The unsigned numbers
-        elif isinstance(num, host.AllIntegers1):
+        elif isinstance(num, host.AllIntegersU8):
             lower_limit = 0
             upper_limit = 2**8
             assert lower_limit <= num.value < upper_limit
-            return host.AllIntegers1((num.value + 1) % upper_limit)
-        elif isinstance(num, host.AllIntegers2):
+            return host.AllIntegersU8((num.value + 1) % upper_limit)
+        elif isinstance(num, host.AllIntegersU16):
             lower_limit = 0
             upper_limit = 2**16
             assert lower_limit <= num.value < upper_limit
-            return host.AllIntegers2((num.value + 1) % upper_limit)
-        elif isinstance(num, host.AllIntegers3):
+            return host.AllIntegersU16((num.value + 1) % upper_limit)
+        elif isinstance(num, host.AllIntegersU32):
             lower_limit = 0
             upper_limit = 2**32
             assert lower_limit <= num.value < upper_limit
-            return host.AllIntegers3((num.value + 1) % upper_limit)
-        elif isinstance(num, host.AllIntegers4):
+            return host.AllIntegersU32((num.value + 1) % upper_limit)
+        elif isinstance(num, host.AllIntegersU64):
             lower_limit = 0
             upper_limit = 2**64
             assert lower_limit <= num.value < upper_limit
-            return host.AllIntegers4((num.value + 1) % upper_limit)
+            return host.AllIntegersU64((num.value + 1) % upper_limit)
         # The signed numbers
-        elif isinstance(num, host.AllIntegers5):
+        elif isinstance(num, host.AllIntegersS8):
             lower_limit = -2**7
             upper_limit = 2**7
             assert lower_limit <= num.value < upper_limit
-            return host.AllIntegers5(num.value + 1)
-        elif isinstance(num, host.AllIntegers6):
+            return host.AllIntegersS8(num.value + 1)
+        elif isinstance(num, host.AllIntegersS16):
             lower_limit = -2**15
             upper_limit = 2**15
             assert lower_limit <= num.value < upper_limit
-            return host.AllIntegers6(num.value + 1)
-        elif isinstance(num, host.AllIntegers7):
+            return host.AllIntegersS16(num.value + 1)
+        elif isinstance(num, host.AllIntegersS32):
             lower_limit = -2**31
             upper_limit = 2**31
             assert lower_limit <= num.value < upper_limit
-            return host.AllIntegers7(num.value + 1)
-        elif isinstance(num, host.AllIntegers8):
+            return host.AllIntegersS32(num.value + 1)
+        elif isinstance(num, host.AllIntegersS64):
             lower_limit = -2**63
             upper_limit = 2**63
             assert lower_limit <= num.value < upper_limit
-            return host.AllIntegers8(num.value + 1)
+            return host.AllIntegersS64(num.value + 1)
         else:
             raise ValueError("Invalid input value!")
 
     def add_one_all_floats(self, num: host.AllFloats) -> host.AllFloats:
-        if isinstance(num, host.AllFloats0):
-            return host.AllFloats0(num.value + 1)
-        if isinstance(num, host.AllFloats1):
-            return host.AllFloats1(num.value + 1)
+        if isinstance(num, host.AllFloatsF32):
+            return host.AllFloatsF32(num.value + 1)
+        if isinstance(num, host.AllFloatsF64):
+            return host.AllFloatsF64(num.value + 1)
         else:
             raise ValueError("Invalid input value!")
 
     def add_one_duplicated_s32(self, num: host.DuplicatedS32) -> host.DuplicatedS32:
-        if isinstance(num, host.DuplicatedS320):
-            return host.DuplicatedS320(num.value + 1)
-        if isinstance(num, host.DuplicatedS321):
-            return host.DuplicatedS321(num.value + 1)
-        if isinstance(num, host.DuplicatedS322):
-            return host.DuplicatedS322(num.value + 1)
+        if isinstance(num, host.DuplicatedS32C1):
+            return host.DuplicatedS32C1(num.value + 1)
+        if isinstance(num, host.DuplicatedS32C2):
+            return host.DuplicatedS32C2(num.value + 1)
+        if isinstance(num, host.DuplicatedS32C3):
+            return host.DuplicatedS32C3(num.value + 1)
         else:
             raise ValueError("Invalid input value!")
 
     def add_one_distinguished(self, a: host.Distinguished) -> host.Distinguished:
-        return a + 1
+        a.value += 1
+        return a
 
     def add_one_nested_union(self, a: host.NestedUnion) -> host.NestedUnion:
-        if isinstance(a, host.NestedUnion0):
-            return host.NestedUnion0(a.value + 1)
-        if isinstance(a, host.NestedUnion1):
-            return host.NestedUnion1(a.value + 1)
-        if isinstance(a, host.NestedUnion2):
-            return host.NestedUnion2(a.value + 1)
+        if isinstance(a, host.NestedUnionD):
+            a.value.value += 1
+            return host.NestedUnionD(a.value)
+        if isinstance(a, host.NestedUnionS32):
+            return host.NestedUnionS32(a.value + 1)
+        if isinstance(a, host.NestedUnionFloat32):
+            return host.NestedUnionFloat32(a.value + 1)
         else:
             raise ValueError("Invalid input value!")
 
     def add_one_option_in_union(self, a: host.OptionInUnion) -> host.OptionInUnion:
-        if isinstance(a, host.OptionInUnion0):
+        if isinstance(a, host.OptionInUnionO):
             if a.value is None:
-                return host.OptionInUnion0(None)
+                return host.OptionInUnionO(None)
             else:
-                return host.OptionInUnion0(a.value + 1)
-        if isinstance(a, host.OptionInUnion1):
-            return host.OptionInUnion1(a.value + 1)
+                return host.OptionInUnionO(a.value + 1)
+        if isinstance(a, host.OptionInUnionI):
+            return host.OptionInUnionI(a.value + 1)
         else:
             raise ValueError("Invalid input value!")
 
@@ -468,49 +506,49 @@ def test_bindings():
 
     # All-Integers
     # Booleans
-    assert exports.add_one_all_integers(store, e.AllIntegers0(False)) == e.AllIntegers0(True)
-    assert exports.add_one_all_integers(store, e.AllIntegers0(True)) == e.AllIntegers0(False)
+    assert exports.add_one_all_integers(store, e.AllIntegersBool(False)) == e.AllIntegersBool(True)
+    assert exports.add_one_all_integers(store, e.AllIntegersBool(True)) == e.AllIntegersBool(False)
     # Unsigned integers
-    assert exports.add_one_all_integers(store, e.AllIntegers1(0)) == e.AllIntegers1(1)
-    assert exports.add_one_all_integers(store, e.AllIntegers1(2**8 - 1)) == e.AllIntegers1(0)
-    assert exports.add_one_all_integers(store, e.AllIntegers2(0)) == e.AllIntegers2(1)
-    assert exports.add_one_all_integers(store, e.AllIntegers2(2**16 - 1)) == e.AllIntegers2(0)
-    assert exports.add_one_all_integers(store, e.AllIntegers3(0)) == e.AllIntegers3(1)
-    assert exports.add_one_all_integers(store, e.AllIntegers3(2**32 - 1)) == e.AllIntegers3(0)
-    assert exports.add_one_all_integers(store, e.AllIntegers4(0)) == e.AllIntegers4(1)
-    assert exports.add_one_all_integers(store, e.AllIntegers4(2**64 - 1)) == e.AllIntegers4(0)
+    assert exports.add_one_all_integers(store, e.AllIntegersU8(0)) == e.AllIntegersU8(1)
+    assert exports.add_one_all_integers(store, e.AllIntegersU8(2**8 - 1)) == e.AllIntegersU8(0)
+    assert exports.add_one_all_integers(store, e.AllIntegersU16(0)) == e.AllIntegersU16(1)
+    assert exports.add_one_all_integers(store, e.AllIntegersU16(2**16 - 1)) == e.AllIntegersU16(0)
+    assert exports.add_one_all_integers(store, e.AllIntegersU32(0)) == e.AllIntegersU32(1)
+    assert exports.add_one_all_integers(store, e.AllIntegersU32(2**32 - 1)) == e.AllIntegersU32(0)
+    assert exports.add_one_all_integers(store, e.AllIntegersU64(0)) == e.AllIntegersU64(1)
+    assert exports.add_one_all_integers(store, e.AllIntegersU64(2**64 - 1)) == e.AllIntegersU64(0)
     # Signed integers
-    assert exports.add_one_all_integers(store, e.AllIntegers5(0)) == e.AllIntegers5(1)
-    assert exports.add_one_all_integers(store, e.AllIntegers5(2**7 - 2)) == e.AllIntegers5(2**7 - 1)
-    assert exports.add_one_all_integers(store, e.AllIntegers5(-8)) == e.AllIntegers5(-7)
-    assert exports.add_one_all_integers(store, e.AllIntegers6(0)) == e.AllIntegers6(1)
-    assert exports.add_one_all_integers(store, e.AllIntegers6(2**15 - 2)) == e.AllIntegers6(2**15 - 1)
-    assert exports.add_one_all_integers(store, e.AllIntegers6(-8)) == e.AllIntegers6(-7)
-    assert exports.add_one_all_integers(store, e.AllIntegers7(0)) == e.AllIntegers7(1)
-    assert exports.add_one_all_integers(store, e.AllIntegers7(2**31 - 2)) == e.AllIntegers7(2**31 - 1)
-    assert exports.add_one_all_integers(store, e.AllIntegers7(-8)) == e.AllIntegers7(-7)
-    assert exports.add_one_all_integers(store, e.AllIntegers8(0)) == e.AllIntegers8(1)
-    assert exports.add_one_all_integers(store, e.AllIntegers8(2**63 - 2)) == e.AllIntegers8(2**63 - 1)
-    assert exports.add_one_all_integers(store, e.AllIntegers8(-8)) == e.AllIntegers8(-7)
+    assert exports.add_one_all_integers(store, e.AllIntegersS8(0)) == e.AllIntegersS8(1)
+    assert exports.add_one_all_integers(store, e.AllIntegersS8(2**7 - 2)) == e.AllIntegersS8(2**7 - 1)
+    assert exports.add_one_all_integers(store, e.AllIntegersS8(-8)) == e.AllIntegersS8(-7)
+    assert exports.add_one_all_integers(store, e.AllIntegersS16(0)) == e.AllIntegersS16(1)
+    assert exports.add_one_all_integers(store, e.AllIntegersS16(2**15 - 2)) == e.AllIntegersS16(2**15 - 1)
+    assert exports.add_one_all_integers(store, e.AllIntegersS16(-8)) == e.AllIntegersS16(-7)
+    assert exports.add_one_all_integers(store, e.AllIntegersS32(0)) == e.AllIntegersS32(1)
+    assert exports.add_one_all_integers(store, e.AllIntegersS32(2**31 - 2)) == e.AllIntegersS32(2**31 - 1)
+    assert exports.add_one_all_integers(store, e.AllIntegersS32(-8)) == e.AllIntegersS32(-7)
+    assert exports.add_one_all_integers(store, e.AllIntegersS64(0)) == e.AllIntegersS64(1)
+    assert exports.add_one_all_integers(store, e.AllIntegersS64(2**63 - 2)) == e.AllIntegersS64(2**63 - 1)
+    assert exports.add_one_all_integers(store, e.AllIntegersS64(-8)) == e.AllIntegersS64(-7)
 
-    assert exports.add_one_all_floats(store, e.AllFloats0(0.0)) == e.AllFloats0(1.0)
-    assert exports.add_one_all_floats(store, e.AllFloats1(0.0)) == e.AllFloats1(1.0)
+    assert exports.add_one_all_floats(store, e.AllFloatsF32(0.0)) == e.AllFloatsF32(1.0)
+    assert exports.add_one_all_floats(store, e.AllFloatsF64(0.0)) == e.AllFloatsF64(1.0)
 
-    assert exports.add_one_duplicated_s32(store, e.DuplicatedS320(0)) == e.DuplicatedS320(1)
-    assert exports.add_one_duplicated_s32(store, e.DuplicatedS321(1)) == e.DuplicatedS321(2)
-    assert exports.add_one_duplicated_s32(store, e.DuplicatedS322(2)) == e.DuplicatedS322(3)
+    assert exports.add_one_duplicated_s32(store, e.DuplicatedS32C1(0)) == e.DuplicatedS32C1(1)
+    assert exports.add_one_duplicated_s32(store, e.DuplicatedS32C2(1)) == e.DuplicatedS32C2(2)
+    assert exports.add_one_duplicated_s32(store, e.DuplicatedS32C3(2)) == e.DuplicatedS32C3(3)
 
-    assert exports.add_one_distinguished(store, 1) == 2
-    assert exports.add_one_distinguished(store, 2.) == 3.
+    assert exports.add_one_distinguished(store, e.DistinguishedS32(1)) == e.DistinguishedS32(2)
+    assert exports.add_one_distinguished(store, e.DistinguishedFloat32(2.)) == e.DistinguishedFloat32(3.)
 
-    assert exports.add_one_nested_union(store, e.NestedUnion0(1)) == e.NestedUnion0(2)
-    assert exports.add_one_nested_union(store, e.NestedUnion0(2.)) == e.NestedUnion0(3.)
-    assert exports.add_one_nested_union(store, e.NestedUnion1(3)) == e.NestedUnion1(4)
-    assert exports.add_one_nested_union(store, e.NestedUnion2(4.)) == e.NestedUnion2(5.)
+    assert exports.add_one_nested_union(store, e.NestedUnionD(e.DistinguishedS32(1))) == e.NestedUnionD(e.DistinguishedS32(2))
+    assert exports.add_one_nested_union(store, e.NestedUnionD(e.DistinguishedFloat32(2.))) == e.NestedUnionD(e.DistinguishedFloat32(3.))
+    assert exports.add_one_nested_union(store, e.NestedUnionS32(3)) == e.NestedUnionS32(4)
+    assert exports.add_one_nested_union(store, e.NestedUnionFloat32(4.)) == e.NestedUnionFloat32(5.)
 
-    assert exports.add_one_option_in_union(store, e.OptionInUnion0(1)) == e.OptionInUnion0(2)
-    assert exports.add_one_option_in_union(store, e.OptionInUnion0(None)) == e.OptionInUnion0(None)
-    assert exports.add_one_option_in_union(store, e.OptionInUnion1(1)) == e.OptionInUnion1(2)
+    assert exports.add_one_option_in_union(store, e.OptionInUnionO(1)) == e.OptionInUnionO(2)
+    assert exports.add_one_option_in_union(store, e.OptionInUnionO(None)) == e.OptionInUnionO(None)
+    assert exports.add_one_option_in_union(store, e.OptionInUnionI(1)) == e.OptionInUnionI(2)
 
     assert exports.add_one_option_in_option(store, Some(1)) == Some(2)
     assert exports.add_one_option_in_option(store, Some(None)) == Some(None)

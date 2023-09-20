@@ -32,7 +32,7 @@ use crate::source::{self, Source};
 use anyhow::{bail, Context, Result};
 use heck::*;
 use indexmap::IndexMap;
-use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::Write;
 use std::mem;
 use wasmtime_environ::component::{
@@ -941,14 +941,6 @@ struct InterfaceGenerator<'a> {
     at_root: bool,
 }
 
-#[derive(Debug, Clone, Copy)]
-enum PyUnionRepresentation {
-    /// A union whose inner types are used directly
-    Raw,
-    /// A union whose inner types have been wrapped in dataclasses
-    Wrapped,
-}
-
 impl InterfaceGenerator<'_> {
     fn import_result_type(&mut self) {
         self.gen.print_result();
@@ -1013,8 +1005,7 @@ impl InterfaceGenerator<'_> {
                     TypeDefKind::Record(_)
                     | TypeDefKind::Flags(_)
                     | TypeDefKind::Enum(_)
-                    | TypeDefKind::Variant(_)
-                    | TypeDefKind::Union(_) => {
+                    | TypeDefKind::Variant(_) => {
                         unreachable!()
                     }
                     TypeDefKind::Option(t) => {
@@ -1132,63 +1123,6 @@ impl InterfaceGenerator<'_> {
         params
     }
 
-    /// Print a wrapped union definition.
-    /// e.g.
-    /// ```py
-    /// @dataclass
-    /// class Foo0:
-    ///     value: int
-    ///
-    /// @dataclass
-    /// class Foo1:
-    ///     value: int
-    ///
-    /// Foo = Union[Foo0, Foo1]
-    /// ```
-    pub fn print_union_wrapped(&mut self, name: &str, union: &Union, docs: &Docs) {
-        self.src.pyimport("dataclasses", "dataclass");
-        let mut cases = Vec::new();
-        let name = name.to_upper_camel_case().escape();
-        for (i, case) in union.cases.iter().enumerate() {
-            self.src.push_str("@dataclass\n");
-            let name = format!("{name}{i}");
-            self.src.push_str(&format!("class {name}:\n"));
-            self.src.indent();
-            self.src.docstring(&case.docs);
-            self.src.push_str("value: ");
-            self.print_ty(&case.ty, true);
-            self.src.newline();
-            self.src.dedent();
-            self.src.newline();
-            cases.push(name);
-        }
-
-        self.src.pyimport("typing", "Union");
-        self.src.comment(docs);
-        self.src
-            .push_str(&format!("{name} = Union[{}]\n", cases.join(", ")));
-        self.src.newline();
-    }
-
-    pub fn print_union_raw(&mut self, name: &str, union: &Union, docs: &Docs) {
-        self.src.pyimport("typing", "Union");
-        self.src.comment(docs);
-        for case in union.cases.iter() {
-            self.src.comment(&case.docs);
-        }
-        self.src.push_str(&name.to_upper_camel_case().escape());
-        self.src.push_str(" = Union[");
-        let mut first = true;
-        for case in union.cases.iter() {
-            if !first {
-                self.src.push_str(",");
-            }
-            self.print_ty(&case.ty, true);
-            first = false;
-        }
-        self.src.push_str("]\n\n");
-    }
-
     fn types(&mut self, interface: InterfaceId) {
         for (name, id) in self.resolve.interfaces[interface].types.iter() {
             let id = *id;
@@ -1201,7 +1135,6 @@ impl InterfaceGenerator<'_> {
                 TypeDefKind::Variant(variant) => self.type_variant(id, name, variant, &ty.docs),
                 TypeDefKind::Option(t) => self.type_option(id, name, t, &ty.docs),
                 TypeDefKind::Result(r) => self.type_result(id, name, r, &ty.docs),
-                TypeDefKind::Union(u) => self.type_union(id, name, u, &ty.docs),
                 TypeDefKind::List(t) => self.type_list(id, name, t, &ty.docs),
                 TypeDefKind::Type(t) => self.type_alias(id, name, t, &ty.docs),
                 TypeDefKind::Future(_) => todo!("generate for future"),
@@ -1296,19 +1229,6 @@ impl InterfaceGenerator<'_> {
             cases.join(", "),
         ));
         self.src.push_str("\n");
-    }
-
-    /// Appends a Python definition for the provided Union to the current `Source`.
-    /// e.g. `MyUnion = Union[float, str, int]`
-    fn type_union(&mut self, _id: TypeId, name: &str, union: &Union, docs: &Docs) {
-        match classify_union(self.resolve, union.cases.iter().map(|t| t.ty)) {
-            PyUnionRepresentation::Wrapped => {
-                self.print_union_wrapped(name, union, docs);
-            }
-            PyUnionRepresentation::Raw => {
-                self.print_union_raw(name, union, docs);
-            }
-        }
     }
 
     fn type_option(&mut self, _id: TypeId, name: &str, payload: &Type, docs: &Docs) {
@@ -2116,122 +2036,14 @@ impl Bindgen for FunctionBindgen<'_, '_> {
                 results.push(result);
             }
 
-            Instruction::UnionLower {
-                union,
-                results: result_types,
-                name,
-                ..
-            } => {
-                let blocks = self
-                    .blocks
-                    .drain(self.blocks.len() - union.cases.len()..)
-                    .collect::<Vec<_>>();
-                let payloads = self
-                    .payloads
-                    .drain(self.payloads.len() - union.cases.len()..)
-                    .collect::<Vec<_>>();
-
-                for _ in 0..result_types.len() {
-                    results.push(self.locals.tmp("variant"));
-                }
-
-                let union_representation =
-                    classify_union(self.gen.resolve, union.cases.iter().map(|c| c.ty));
-                let op0 = &operands[0];
-                for (i, ((case, (block, block_results)), payload)) in
-                    union.cases.iter().zip(blocks).zip(payloads).enumerate()
-                {
-                    self.gen.src.push_str(if i == 0 { "if " } else { "elif " });
-                    uwrite!(self.gen.src, "isinstance({op0}, ");
-                    match union_representation {
-                        // Prints the Python type for this union case
-                        PyUnionRepresentation::Raw => self.print_ty(&case.ty),
-                        // Prints the name of this union cases dataclass
-                        PyUnionRepresentation::Wrapped => {
-                            let name = self.name_of(name);
-                            uwrite!(self.gen.src, "{name}{i}");
-                        }
-                    }
-                    uwriteln!(self.gen.src, "):");
-                    self.gen.src.indent();
-                    match union_representation {
-                        // Uses the value directly
-                        PyUnionRepresentation::Raw => {
-                            uwriteln!(self.gen.src, "{payload} = {op0}")
-                        }
-                        // Uses this union case dataclass's inner value
-                        PyUnionRepresentation::Wrapped => {
-                            uwriteln!(self.gen.src, "{payload} = {op0}.value")
-                        }
-                    }
-                    self.gen.src.push_str(&block);
-                    for (i, result) in block_results.iter().enumerate() {
-                        uwriteln!(self.gen.src, "{} = {result}", results[i]);
-                    }
-                    self.gen.src.dedent();
-                }
-                self.gen.src.push_str("else:\n");
-                self.gen.src.indent();
-                uwriteln!(
-                    self.gen.src,
-                    "raise TypeError(\"invalid variant specified for {name}\")"
-                );
-                self.gen.src.dedent();
-            }
-
-            Instruction::UnionLift {
-                union, name, ty, ..
-            } => {
-                let blocks = self
-                    .blocks
-                    .drain(self.blocks.len() - union.cases.len()..)
-                    .collect::<Vec<_>>();
-
-                let result = self.locals.tmp("variant");
-                uwrite!(self.gen.src, "{result}: ");
-                self.print_ty(&Type::Id(*ty));
-                self.gen.src.push_str("\n");
-                let union_representation =
-                    classify_union(self.gen.resolve, union.cases.iter().map(|c| c.ty));
-                let op0 = &operands[0];
-                for (i, (_case, (block, block_results))) in
-                    union.cases.iter().zip(blocks).enumerate()
-                {
-                    self.gen.src.push_str(if i == 0 { "if " } else { "elif " });
-                    uwriteln!(self.gen.src, "{op0} == {i}:");
-                    self.gen.src.indent();
-                    self.gen.src.push_str(&block);
-                    assert!(block_results.len() == 1);
-                    let block_result = &block_results[0];
-                    uwrite!(self.gen.src, "{result} = ");
-                    match union_representation {
-                        // Uses the passed value directly
-                        PyUnionRepresentation::Raw => self.gen.src.push_str(block_result),
-                        // Constructs an instance of the union cases dataclass
-                        PyUnionRepresentation::Wrapped => {
-                            let name = self.name_of(name);
-                            uwrite!(self.gen.src, "{name}{i}({block_result})")
-                        }
-                    }
-                    self.gen.src.newline();
-                    self.gen.src.dedent();
-                }
-                self.gen.src.push_str("else:\n");
-                self.gen.src.indent();
-                uwriteln!(
-                    self.gen.src,
-                    "raise TypeError(\"invalid variant discriminant for {name}\")\n",
-                );
-                self.gen.src.dedent();
-                results.push(result);
-            }
-
             Instruction::OptionLower {
                 results: result_types,
                 ty,
                 ..
             } => {
-                let TypeDefKind::Option(some_type) = &self.gen.resolve.types[*ty].kind else { unreachable!() };
+                let TypeDefKind::Option(some_type) = &self.gen.resolve.types[*ty].kind else {
+                    unreachable!()
+                };
                 let nesting = is_option(self.gen.resolve, *some_type);
                 if nesting {
                     self.gen.import_shared_type("Some");
@@ -2270,7 +2082,9 @@ impl Bindgen for FunctionBindgen<'_, '_> {
             }
 
             Instruction::OptionLift { ty, .. } => {
-                let TypeDefKind::Option(some_type) = &self.gen.resolve.types[*ty].kind else { unreachable!() };
+                let TypeDefKind::Option(some_type) = &self.gen.resolve.types[*ty].kind else {
+                    unreachable!()
+                };
                 let nesting = is_option(self.gen.resolve, *some_type);
                 if nesting {
                     self.gen.import_shared_type("Some");
@@ -2640,58 +2454,6 @@ impl Bindgen for FunctionBindgen<'_, '_> {
             i => unimplemented!("{:?}", i),
         }
     }
-}
-
-fn classify_union(resolve: &Resolve, types: impl Iterator<Item = Type>) -> PyUnionRepresentation {
-    // Raw unions can't contain options or other raw unions since that can create ambiguity:
-    fn allowed(resolve: &Resolve, ty: Type) -> bool {
-        if let Type::Id(id) = ty {
-            match &resolve.types[id].kind {
-                TypeDefKind::Union(un) => {
-                    matches!(
-                        classify_union(resolve, un.cases.iter().map(|c| c.ty)),
-                        PyUnionRepresentation::Wrapped
-                    )
-                }
-                TypeDefKind::Option(_) => false,
-                TypeDefKind::Type(ty) => allowed(resolve, *ty),
-                _ => true,
-            }
-        } else {
-            true
-        }
-    }
-
-    #[derive(Debug, Hash, PartialEq, Eq)]
-    enum PyTypeClass {
-        Int,
-        Str,
-        Float,
-        Custom,
-    }
-
-    let mut py_type_classes = HashSet::new();
-    for ty in types {
-        let class = match ty {
-            Type::Bool
-            | Type::U8
-            | Type::U16
-            | Type::U32
-            | Type::U64
-            | Type::S8
-            | Type::S16
-            | Type::S32
-            | Type::S64 => PyTypeClass::Int,
-            Type::Float32 | Type::Float64 => PyTypeClass::Float,
-            Type::Char | Type::String => PyTypeClass::Str,
-            Type::Id(_) => PyTypeClass::Custom,
-        };
-        if !(allowed(resolve, ty) && py_type_classes.insert(class)) {
-            // Some of the cases are not distinguishable
-            return PyUnionRepresentation::Wrapped;
-        }
-    }
-    PyUnionRepresentation::Raw
 }
 
 fn wasm_ty_ctor(ty: WasmType) -> &'static str {
