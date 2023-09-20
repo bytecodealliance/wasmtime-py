@@ -2144,11 +2144,41 @@ _wasmtime_config_dynamic_memory_guard_size_set.argtypes = [POINTER(wasm_config_t
 def wasmtime_config_dynamic_memory_guard_size_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_dynamic_memory_guard_size_set(arg0, arg1)  # type: ignore
 
+_wasmtime_config_dynamic_memory_reserved_for_growth_set = dll.wasmtime_config_dynamic_memory_reserved_for_growth_set
+_wasmtime_config_dynamic_memory_reserved_for_growth_set.restype = None
+_wasmtime_config_dynamic_memory_reserved_for_growth_set.argtypes = [POINTER(wasm_config_t), c_uint64]
+def wasmtime_config_dynamic_memory_reserved_for_growth_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_dynamic_memory_reserved_for_growth_set(arg0, arg1)  # type: ignore
+
+_wasmtime_config_native_unwind_info_set = dll.wasmtime_config_native_unwind_info_set
+_wasmtime_config_native_unwind_info_set.restype = None
+_wasmtime_config_native_unwind_info_set.argtypes = [POINTER(wasm_config_t), c_bool]
+def wasmtime_config_native_unwind_info_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_native_unwind_info_set(arg0, arg1)  # type: ignore
+
 _wasmtime_config_cache_config_load = dll.wasmtime_config_cache_config_load
 _wasmtime_config_cache_config_load.restype = POINTER(wasmtime_error_t)
 _wasmtime_config_cache_config_load.argtypes = [POINTER(wasm_config_t), POINTER(c_char)]
 def wasmtime_config_cache_config_load(arg0: Any, arg1: Any) -> ctypes._Pointer:
     return _wasmtime_config_cache_config_load(arg0, arg1)  # type: ignore
+
+_wasmtime_config_target_set = dll.wasmtime_config_target_set
+_wasmtime_config_target_set.restype = POINTER(wasmtime_error_t)
+_wasmtime_config_target_set.argtypes = [POINTER(wasm_config_t), POINTER(c_char)]
+def wasmtime_config_target_set(arg0: Any, arg1: Any) -> ctypes._Pointer:
+    return _wasmtime_config_target_set(arg0, arg1)  # type: ignore
+
+_wasmtime_config_cranelift_flag_enable = dll.wasmtime_config_cranelift_flag_enable
+_wasmtime_config_cranelift_flag_enable.restype = None
+_wasmtime_config_cranelift_flag_enable.argtypes = [POINTER(wasm_config_t), POINTER(c_char)]
+def wasmtime_config_cranelift_flag_enable(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_cranelift_flag_enable(arg0, arg1)  # type: ignore
+
+_wasmtime_config_cranelift_flag_set = dll.wasmtime_config_cranelift_flag_set
+_wasmtime_config_cranelift_flag_set.restype = None
+_wasmtime_config_cranelift_flag_set.argtypes = [POINTER(wasm_config_t), POINTER(c_char), POINTER(c_char)]
+def wasmtime_config_cranelift_flag_set(arg0: Any, key: Any, value: Any) -> None:
+    return _wasmtime_config_cranelift_flag_set(arg0, key, value)  # type: ignore
 
 _wasmtime_engine_increment_epoch = dll.wasmtime_engine_increment_epoch
 _wasmtime_engine_increment_epoch.restype = None

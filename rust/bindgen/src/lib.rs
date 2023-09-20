@@ -45,7 +45,7 @@ mod bindings {
 
     struct PythonBindings;
 
-    impl crate::bindings::Bindgen for PythonBindings {
+    impl crate::bindings::Guest for PythonBindings {
         fn generate(name: String, component: Vec<u8>) -> Result<Vec<(String, Vec<u8>)>, String> {
             let mut gen = crate::WasmtimePy::default();
             let mut files = Default::default();
