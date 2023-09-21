@@ -8,7 +8,7 @@ from os import PathLike
 
 class Module:
     @classmethod
-    def from_file(cls, engine: Engine, path: str | bytes | PathLike) -> "Module":
+    def from_file(cls, engine: Engine, path: typing.Union[str, bytes, PathLike]) -> "Module":
         """
         Compiles and creates a new `Module` by reading the file at `path` and
         then delegating to the `Module` constructor.
