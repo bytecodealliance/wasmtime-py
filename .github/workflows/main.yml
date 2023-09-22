@@ -29,7 +29,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/setup
-      - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
       # Tests are flaky on Windows. It's something to do with generating modules
