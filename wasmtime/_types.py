@@ -81,7 +81,7 @@ class ValType:
             return 'anyref'
         if kind == ffi.WASM_FUNCREF.value:
             return 'funcref'
-        return 'ValType(%d)' % kind.value
+        return 'ValType(%d)' % kind  # type: ignore
 
     def __del__(self) -> None:
         if not hasattr(self, '_owner') or not hasattr(self, '_ptr'):

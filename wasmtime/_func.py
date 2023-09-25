@@ -7,7 +7,8 @@ from ._extern import wrap_extern
 from typing import Callable, Optional, Generic, TypeVar, List, Union, Tuple, cast as cast_type, Sequence
 from ._exportable import AsExtern
 from ._store import Storelike
-
+from ._bindings import wasmtime_val_raw_t
+from ._value import get_valtype_attr, val_getter, val_setter
 
 T = TypeVar('T')
 FUNCTIONS: "Slab[Tuple]"
@@ -16,6 +17,13 @@ LAST_EXCEPTION: Optional[Exception] = None
 
 class Func:
     _func: ffi.wasmtime_func_t
+    _ty: FuncType
+    _params_n: int
+    _results_n: int
+    _params_str: list[str]
+    _results_str: list[str]
+    _results_str0: str
+    _vals_raw_type: type[ctypes.Array[wasmtime_val_raw_t]]
 
     def __init__(self, store: Storelike, ty: FuncType, func: Callable, access_caller: bool = False):
         """
@@ -27,11 +35,11 @@ class Func:
         set to `True` then the first argument given to `func` is an instance of
         type `Caller` below.
         """
-
         if not isinstance(store, Store):
             raise TypeError("expected a Store")
         if not isinstance(ty, FuncType):
             raise TypeError("expected a FuncType")
+        self._init_call(ty)
         idx = FUNCTIONS.allocate((func, ty.results, access_caller))
         _func = ffi.wasmtime_func_t()
         ffi.wasmtime_func_new(
@@ -56,21 +64,39 @@ class Func:
         ptr = ffi.wasmtime_func_type(store._context, byref(self._func))
         return FuncType._from_ptr(ptr, None)
 
-    def __call__(self, store: Storelike, *params: IntoVal) -> Union[IntoVal, Sequence[IntoVal], None]:
+    def _create_raw_vals(self, *params: IntoVal) -> ctypes.Array[wasmtime_val_raw_t]:
+        raw = self._vals_raw_type()
+        for i, param_str in enumerate(self._params_str):
+            val_setter(self._func.store_id, raw[i], param_str, params[i])
+        return raw
+
+    def _extract_return(self, vals_raw: ctypes.Array[wasmtime_val_raw_t]) -> Union[IntoVal, Sequence[IntoVal], None]:
+        if self._results_n == 0:
+            return None
+        if self._results_n == 1:
+            return val_getter(self._func.store_id, vals_raw[0], self._results_str0)
+        # we can use tuple construct, but I'm using list for compatability
+        return [val_getter(self._func.store_id, val_raw, ret_str) for val_raw, ret_str in zip(vals_raw, self._results_str)]
+
+    def _init_call(self, ty: FuncType) -> None:
+        """init signature properties used by call"""
+        self._ty = ty
+        ty_params = ty.params
+        ty_results = ty.results
+        params_n = len(ty_params)
+        results_n = len(ty_results)
+        self._params_str = [get_valtype_attr(i) for i in ty_params]
+        self._results_str = [get_valtype_attr(i) for i in ty_results]
+        self._results_str0 = get_valtype_attr(ty_results[0]) if results_n else 'i32'
+        self._params_n = params_n
+        self._results_n = results_n
+        n = max(params_n, results_n)
+        self._vals_raw_type = wasmtime_val_raw_t * n
+
+    def _call_val(self, store: Storelike, *params: IntoVal) -> Union[IntoVal, Sequence[IntoVal], None]:
         """
-        Calls this function with the given parameters
-
-        Parameters can either be a `Val` or a native python value which can be
-        converted to a `Val` of the corresponding correct type
-
-        Returns `None` if this func has 0 return types
-        Returns a single value if the func has 1 return type
-        Returns a list if the func has more than 1 return type
-
-        Note that you can also use the `__call__` method and invoke a `Func` as
-        if it were a function directly.
+        internal implementation of calling a function that uses `wasmtime_func_call`
         """
-
         ty = self.type(store)
         param_tys = ty.params
         if len(params) > len(param_tys):
@@ -109,6 +135,52 @@ class Func:
             return results[0]
         else:
             return results
+
+    def _call_raw(self, store: Storelike, *params: IntoVal) -> Union[IntoVal, Sequence[IntoVal], None]:
+        """
+        internal implementation of calling a function that uses `wasmtime_func_call_unchecked`
+        """
+        if getattr(self, "_ty", None) is None:
+            self._init_call(self.type(store))
+        params_n = len(params)
+        if params_n > self._params_n:
+            raise WasmtimeError("too many parameters provided: given %s, expected %s" %
+                                (params_n, self._params_n))
+        if params_n < self._params_n:
+            raise WasmtimeError("too few parameters provided: given %s, expected %s" %
+                                (params_n, self._params_n))
+        vals_raw = self._create_raw_vals(*params)
+        vals_raw_ptr = ctypes.cast(vals_raw, ctypes.POINTER(wasmtime_val_raw_t))
+        # according to https://docs.wasmtime.dev/c-api/func_8h.html#a3b54596199641a8647a7cd89f322966f
+        # it's safe to call wasmtime_func_call_unchecked because
+        # - we allocate enough space to hold all the parameters and all the results
+        # - we set proper types by reading types from ty
+        # - externref and funcref are valid within the store being called
+        with enter_wasm(store) as trap:
+            error = ffi.wasmtime_func_call_unchecked(
+                store._context,
+                byref(self._func),
+                vals_raw_ptr,
+                trap)
+            if error:
+                raise WasmtimeError._from_ptr(error)
+        return self._extract_return(vals_raw)
+
+    def __call__(self, store: Storelike, *params: IntoVal) -> Union[IntoVal, Sequence[IntoVal], None]:
+        """
+        Calls this function with the given parameters
+
+        Parameters can either be a `Val` or a native python value which can be
+        converted to a `Val` of the corresponding correct type
+
+        Returns `None` if this func has 0 return types
+        Returns a single value if the func has 1 return type
+        Returns a list if the func has more than 1 return type
+
+        Note that you can also use the `__call__` method and invoke a `Func` as
+        if it were a function directly.
+        """
+        return self._call_raw(store, *params)
 
     def _as_extern(self) -> ffi.wasmtime_extern_t:
         union = ffi.wasmtime_extern_union(func=self._func)
