@@ -33,7 +33,7 @@ setuptools.setup(
     packages=['wasmtime'],
     include_package_data=True,
     package_data={"wasmtime": ["py.typed"]},
-    python_requires='>=3.6',
+    python_requires='>=3.8',
     test_suite="tests",
     extras_require={
         'testing': [
@@ -50,10 +50,10 @@ setuptools.setup(
     classifiers=[
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Software Development :: Compilers',

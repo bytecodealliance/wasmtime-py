@@ -1,13 +1,13 @@
-from ctypes import *
+from ctypes import c_char, POINTER, cast, c_char_p, c_int
 import ctypes
 from wasmtime import WasmtimeError
 from . import _ffi as ffi
 from ._config import setter_property
-from typing import List, Iterable
+from typing import List, Iterable, Union
 from os import PathLike
 
 
-def _encode_path(path: str | bytes | PathLike) -> bytes:
+def _encode_path(path: Union[str, bytes, PathLike]) -> bytes:
     if isinstance(path, (bytes, str)):
         path2 = path
     else:
@@ -60,7 +60,7 @@ class WasiConfig:
         ffi.wasi_config_inherit_env(self._ptr)
 
     @setter_property
-    def stdin_file(self, path: str | bytes | PathLike) -> None:
+    def stdin_file(self, path: Union[str, bytes, PathLike]) -> None:
         """
         Configures a file to be used as the stdin stream of this WASI
         configuration.

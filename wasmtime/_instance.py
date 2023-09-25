@@ -3,8 +3,7 @@ from ctypes import POINTER, byref
 from wasmtime import Module, WasmtimeError
 from ._extern import wrap_extern, get_extern_ptr
 from ._exportable import AsExtern
-from typing import Sequence, Optional, Iterator
-from collections.abc import Mapping
+from typing import Sequence, Optional, Iterator, Mapping
 from ._store import Storelike
 from ._func import enter_wasm
 
