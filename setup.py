@@ -7,7 +7,7 @@ import subprocess
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-version = "13.0.2"
+version = "14.0.0"
 
 # Give unique version numbers to all commits so our publication-on-each commit
 # works on main
@@ -38,12 +38,8 @@ setuptools.setup(
     extras_require={
         'testing': [
             'coverage',
-            # remove flake8 once https://github.com/tholo/pytest-flake8/issues/87 is fixed
-            # and the new version of pytest-flake8 is released
-            'flake8==4.0.1',
             'pytest',
             'pycparser',
-            'pytest-flake8',
             'pytest-mypy',
         ],
     },

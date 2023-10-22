@@ -2180,6 +2180,44 @@ _wasmtime_config_cranelift_flag_set.argtypes = [POINTER(wasm_config_t), POINTER(
 def wasmtime_config_cranelift_flag_set(arg0: Any, key: Any, value: Any) -> None:
     return _wasmtime_config_cranelift_flag_set(arg0, key, value)  # type: ignore
 
+wasmtime_memory_get_callback_t = CFUNCTYPE(c_size_t, c_void_p, POINTER(c_size_t), POINTER(c_size_t))
+
+wasmtime_memory_grow_callback_t = CFUNCTYPE(c_size_t, c_void_p, c_size_t)
+
+class wasmtime_linear_memory(Structure):
+    _fields_ = [
+        ("env", c_void_p),
+        ("get_memory", wasmtime_memory_get_callback_t),
+        ("grow_memory", wasmtime_memory_grow_callback_t),
+        ("finalizer", CFUNCTYPE(None, c_void_p)),
+    ]
+    env: ctypes._Pointer
+    get_memory: ctypes._Pointer
+    grow_memory: ctypes._Pointer
+    finalizer: ctypes._Pointer
+
+wasmtime_linear_memory_t = wasmtime_linear_memory
+
+wasmtime_new_memory_callback_t = CFUNCTYPE(c_size_t, c_void_p, POINTER(wasm_memorytype_t), c_size_t, c_size_t, c_size_t, c_size_t, POINTER(wasmtime_linear_memory_t))
+
+class wasmtime_memory_creator(Structure):
+    _fields_ = [
+        ("env", c_void_p),
+        ("new_memory", wasmtime_new_memory_callback_t),
+        ("finalizer", CFUNCTYPE(None, c_void_p)),
+    ]
+    env: ctypes._Pointer
+    new_memory: ctypes._Pointer
+    finalizer: ctypes._Pointer
+
+wasmtime_memory_creator_t = wasmtime_memory_creator
+
+_wasmtime_config_host_memory_creator_set = dll.wasmtime_config_host_memory_creator_set
+_wasmtime_config_host_memory_creator_set.restype = None
+_wasmtime_config_host_memory_creator_set.argtypes = [POINTER(wasm_config_t), POINTER(wasmtime_memory_creator_t)]
+def wasmtime_config_host_memory_creator_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_host_memory_creator_set(arg0, arg1)  # type: ignore
+
 _wasmtime_engine_increment_epoch = dll.wasmtime_engine_increment_epoch
 _wasmtime_engine_increment_epoch.restype = None
 _wasmtime_engine_increment_epoch.argtypes = [POINTER(wasm_engine_t)]
@@ -2244,6 +2282,12 @@ _wasmtime_module_deserialize_file.restype = POINTER(wasmtime_error_t)
 _wasmtime_module_deserialize_file.argtypes = [POINTER(wasm_engine_t), POINTER(c_char), POINTER(POINTER(wasmtime_module_t))]
 def wasmtime_module_deserialize_file(engine: Any, path: Any, ret: Any) -> ctypes._Pointer:
     return _wasmtime_module_deserialize_file(engine, path, ret)  # type: ignore
+
+_wasmtime_module_image_range = dll.wasmtime_module_image_range
+_wasmtime_module_image_range.restype = None
+_wasmtime_module_image_range.argtypes = [POINTER(wasmtime_module_t), POINTER(c_size_t), POINTER(c_size_t)]
+def wasmtime_module_image_range(module: Any, start: Any, end: Any) -> None:
+    return _wasmtime_module_image_range(module, start, end)  # type: ignore
 
 class wasmtime_store(Structure):
     pass
@@ -2639,6 +2683,23 @@ _wasmtime_instance_export_nth.argtypes = [POINTER(wasmtime_context_t), POINTER(w
 def wasmtime_instance_export_nth(store: Any, instance: Any, index: Any, name: Any, name_len: Any, item: Any) -> bool:
     return _wasmtime_instance_export_nth(store, instance, index, name, name_len, item)  # type: ignore
 
+class wasmtime_instance_pre(Structure):
+    pass
+
+wasmtime_instance_pre_t = wasmtime_instance_pre
+
+_wasmtime_instance_pre_delete = dll.wasmtime_instance_pre_delete
+_wasmtime_instance_pre_delete.restype = None
+_wasmtime_instance_pre_delete.argtypes = [POINTER(wasmtime_instance_pre_t)]
+def wasmtime_instance_pre_delete(instance: Any) -> None:
+    return _wasmtime_instance_pre_delete(instance)  # type: ignore
+
+_wasmtime_instance_pre_instantiate = dll.wasmtime_instance_pre_instantiate
+_wasmtime_instance_pre_instantiate.restype = POINTER(wasmtime_error_t)
+_wasmtime_instance_pre_instantiate.argtypes = [POINTER(wasmtime_instance_pre_t), POINTER(wasmtime_store_t), POINTER(wasmtime_instance_t), POINTER(POINTER(wasm_trap_t))]
+def wasmtime_instance_pre_instantiate(instance_pre: Any, store: Any, instance: Any, trap_ptr: Any) -> ctypes._Pointer:
+    return _wasmtime_instance_pre_instantiate(instance_pre, store, instance, trap_ptr)  # type: ignore
+
 class wasmtime_linker(Structure):
     pass
 
@@ -2715,6 +2776,12 @@ _wasmtime_linker_get.restype = c_bool
 _wasmtime_linker_get.argtypes = [POINTER(wasmtime_linker_t), POINTER(wasmtime_context_t), POINTER(c_char), c_size_t, POINTER(c_char), c_size_t, POINTER(wasmtime_extern_t)]
 def wasmtime_linker_get(linker: Any, store: Any, module: Any, module_len: Any, name: Any, name_len: Any, item: Any) -> bool:
     return _wasmtime_linker_get(linker, store, module, module_len, name, name_len, item)  # type: ignore
+
+_wasmtime_linker_instantiate_pre = dll.wasmtime_linker_instantiate_pre
+_wasmtime_linker_instantiate_pre.restype = POINTER(wasmtime_error_t)
+_wasmtime_linker_instantiate_pre.argtypes = [POINTER(wasmtime_linker_t), POINTER(wasmtime_module_t), POINTER(POINTER(wasmtime_instance_t))]
+def wasmtime_linker_instantiate_pre(linker: Any, module: Any, instance_pre: Any) -> ctypes._Pointer:
+    return _wasmtime_linker_instantiate_pre(linker, module, instance_pre)  # type: ignore
 
 _wasmtime_memorytype_new = dll.wasmtime_memorytype_new
 _wasmtime_memorytype_new.restype = POINTER(wasm_memorytype_t)
@@ -2837,6 +2904,85 @@ _wasmtime_frame_module_name.restype = POINTER(wasm_name_t)
 _wasmtime_frame_module_name.argtypes = [POINTER(wasm_frame_t)]
 def wasmtime_frame_module_name(arg0: Any) -> ctypes._Pointer:
     return _wasmtime_frame_module_name(arg0)  # type: ignore
+
+_wasmtime_config_async_support_set = dll.wasmtime_config_async_support_set
+_wasmtime_config_async_support_set.restype = None
+_wasmtime_config_async_support_set.argtypes = [POINTER(wasm_config_t), c_bool]
+def wasmtime_config_async_support_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_async_support_set(arg0, arg1)  # type: ignore
+
+_wasmtime_config_async_stack_size_set = dll.wasmtime_config_async_stack_size_set
+_wasmtime_config_async_stack_size_set.restype = None
+_wasmtime_config_async_stack_size_set.argtypes = [POINTER(wasm_config_t), c_uint64]
+def wasmtime_config_async_stack_size_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_async_stack_size_set(arg0, arg1)  # type: ignore
+
+_wasmtime_context_out_of_fuel_async_yield = dll.wasmtime_context_out_of_fuel_async_yield
+_wasmtime_context_out_of_fuel_async_yield.restype = None
+_wasmtime_context_out_of_fuel_async_yield.argtypes = [POINTER(wasmtime_context_t), c_uint64, c_uint64]
+def wasmtime_context_out_of_fuel_async_yield(context: Any, injection_count: Any, fuel_to_inject: Any) -> None:
+    return _wasmtime_context_out_of_fuel_async_yield(context, injection_count, fuel_to_inject)  # type: ignore
+
+_wasmtime_context_epoch_deadline_async_yield_and_update = dll.wasmtime_context_epoch_deadline_async_yield_and_update
+_wasmtime_context_epoch_deadline_async_yield_and_update.restype = None
+_wasmtime_context_epoch_deadline_async_yield_and_update.argtypes = [POINTER(wasmtime_context_t), c_uint64]
+def wasmtime_context_epoch_deadline_async_yield_and_update(context: Any, delta: Any) -> None:
+    return _wasmtime_context_epoch_deadline_async_yield_and_update(context, delta)  # type: ignore
+
+wasmtime_func_async_continuation_callback_t = CFUNCTYPE(c_bool, c_void_p)
+
+class wasmtime_async_continuation_t(Structure):
+    _fields_ = [
+        ("callback", wasmtime_func_async_continuation_callback_t),
+        ("env", c_void_p),
+        ("finalizer", CFUNCTYPE(None, c_void_p)),
+    ]
+    callback: ctypes._Pointer
+    env: ctypes._Pointer
+    finalizer: ctypes._Pointer
+
+wasmtime_func_async_callback_t = CFUNCTYPE(None, c_void_p, POINTER(wasmtime_caller_t), POINTER(wasmtime_val_t), c_size_t, POINTER(wasmtime_val_t), c_size_t, POINTER(POINTER(wasm_trap_t)), POINTER(wasmtime_async_continuation_t))
+
+class wasmtime_call_future(Structure):
+    pass
+
+wasmtime_call_future_t = wasmtime_call_future
+
+_wasmtime_call_future_poll = dll.wasmtime_call_future_poll
+_wasmtime_call_future_poll.restype = c_bool
+_wasmtime_call_future_poll.argtypes = [POINTER(wasmtime_call_future_t)]
+def wasmtime_call_future_poll(future: Any) -> bool:
+    return _wasmtime_call_future_poll(future)  # type: ignore
+
+_wasmtime_call_future_delete = dll.wasmtime_call_future_delete
+_wasmtime_call_future_delete.restype = None
+_wasmtime_call_future_delete.argtypes = [POINTER(wasmtime_call_future_t)]
+def wasmtime_call_future_delete(future: Any) -> None:
+    return _wasmtime_call_future_delete(future)  # type: ignore
+
+_wasmtime_func_call_async = dll.wasmtime_func_call_async
+_wasmtime_func_call_async.restype = POINTER(wasmtime_call_future_t)
+_wasmtime_func_call_async.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_func_t), POINTER(wasmtime_val_t), c_size_t, POINTER(wasmtime_val_t), c_size_t, POINTER(POINTER(wasm_trap_t)), POINTER(POINTER(wasmtime_error_t))]
+def wasmtime_func_call_async(context: Any, func: Any, args: Any, nargs: Any, results: Any, nresults: Any, trap_ret: Any, error_ret: Any) -> ctypes._Pointer:
+    return _wasmtime_func_call_async(context, func, args, nargs, results, nresults, trap_ret, error_ret)  # type: ignore
+
+_wasmtime_linker_define_async_func = dll.wasmtime_linker_define_async_func
+_wasmtime_linker_define_async_func.restype = POINTER(wasmtime_error_t)
+_wasmtime_linker_define_async_func.argtypes = [POINTER(wasmtime_linker_t), POINTER(c_char), c_size_t, POINTER(c_char), c_size_t, POINTER(wasm_functype_t), wasmtime_func_async_callback_t, c_void_p, CFUNCTYPE(None, c_void_p)]
+def wasmtime_linker_define_async_func(linker: Any, module: Any, module_len: Any, name: Any, name_len: Any, ty: Any, cb: Any, data: Any, finalizer: Any) -> ctypes._Pointer:
+    return _wasmtime_linker_define_async_func(linker, module, module_len, name, name_len, ty, cb, data, finalizer)  # type: ignore
+
+_wasmtime_linker_instantiate_async = dll.wasmtime_linker_instantiate_async
+_wasmtime_linker_instantiate_async.restype = POINTER(wasmtime_call_future_t)
+_wasmtime_linker_instantiate_async.argtypes = [POINTER(wasmtime_linker_t), POINTER(wasmtime_context_t), POINTER(wasmtime_module_t), POINTER(wasmtime_instance_t), POINTER(POINTER(wasm_trap_t)), POINTER(POINTER(wasmtime_error_t))]
+def wasmtime_linker_instantiate_async(linker: Any, store: Any, module: Any, instance: Any, trap_ret: Any, error_ret: Any) -> ctypes._Pointer:
+    return _wasmtime_linker_instantiate_async(linker, store, module, instance, trap_ret, error_ret)  # type: ignore
+
+_wasmtime_instance_pre_instantiate_async = dll.wasmtime_instance_pre_instantiate_async
+_wasmtime_instance_pre_instantiate_async.restype = POINTER(wasmtime_call_future_t)
+_wasmtime_instance_pre_instantiate_async.argtypes = [POINTER(wasmtime_instance_pre_t), POINTER(wasmtime_context_t), POINTER(wasmtime_instance_t), POINTER(POINTER(wasm_trap_t)), POINTER(POINTER(wasmtime_error_t))]
+def wasmtime_instance_pre_instantiate_async(instance_pre: Any, store: Any, instance: Any, trap_ret: Any, error_ret: Any) -> ctypes._Pointer:
+    return _wasmtime_instance_pre_instantiate_async(instance_pre, store, instance, trap_ret, error_ret)  # type: ignore
 
 _wasmtime_wat2wasm = dll.wasmtime_wat2wasm
 _wasmtime_wat2wasm.restype = POINTER(wasmtime_error_t)

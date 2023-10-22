@@ -68,6 +68,14 @@ class Visitor(c_ast.NodeVisitor):
     def visit_Typedef(self, node):
         if not node.name or not node.name.startswith('was'):
             return
+
+        # Given anonymous structs in typedefs names by default.
+        if isinstance(node.type, c_ast.TypeDecl):
+            if isinstance(node.type.type, c_ast.Struct):
+                if node.type.type.name is None:
+                    if node.name.endswith('_t'):
+                        node.type.type.name = node.name[:-2]
+
         self.visit(node.type)
         tyname = type_name(node.type)
         if tyname != node.name:
@@ -177,7 +185,7 @@ def type_name(ty, ptr=False, typing=False):
         elif ty.names[0] == "int":
             return "int" if typing else "c_int"
         # ctypes values can't stand as typedefs, so just use the pointer type here
-        elif typing and 'func_callback' in ty.names[0]:
+        elif typing and 'callback_t' in ty.names[0]:
             return "ctypes._Pointer"
         elif typing and ('size' in ty.names[0] or 'pages' in ty.names[0]):
             return "int"
