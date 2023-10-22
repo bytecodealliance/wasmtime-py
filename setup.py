@@ -38,10 +38,8 @@ setuptools.setup(
     extras_require={
         'testing': [
             'coverage',
-            'flake8',
             'pytest',
             'pycparser',
-            'pytest-flake8',
             'pytest-mypy',
         ],
     },
