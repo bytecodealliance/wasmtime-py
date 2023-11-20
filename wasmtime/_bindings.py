@@ -2218,6 +2218,12 @@ _wasmtime_config_host_memory_creator_set.argtypes = [POINTER(wasm_config_t), POI
 def wasmtime_config_host_memory_creator_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_host_memory_creator_set(arg0, arg1)  # type: ignore
 
+_wasmtime_config_memory_init_cow_set = dll.wasmtime_config_memory_init_cow_set
+_wasmtime_config_memory_init_cow_set.restype = None
+_wasmtime_config_memory_init_cow_set.argtypes = [POINTER(wasm_config_t), c_bool]
+def wasmtime_config_memory_init_cow_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_memory_init_cow_set(arg0, arg1)  # type: ignore
+
 _wasmtime_engine_increment_epoch = dll.wasmtime_engine_increment_epoch
 _wasmtime_engine_increment_epoch.restype = None
 _wasmtime_engine_increment_epoch.argtypes = [POINTER(wasm_engine_t)]
@@ -2341,29 +2347,17 @@ _wasmtime_context_gc.argtypes = [POINTER(wasmtime_context_t)]
 def wasmtime_context_gc(context: Any) -> None:
     return _wasmtime_context_gc(context)  # type: ignore
 
-_wasmtime_context_add_fuel = dll.wasmtime_context_add_fuel
-_wasmtime_context_add_fuel.restype = POINTER(wasmtime_error_t)
-_wasmtime_context_add_fuel.argtypes = [POINTER(wasmtime_context_t), c_uint64]
-def wasmtime_context_add_fuel(store: Any, fuel: Any) -> ctypes._Pointer:
-    return _wasmtime_context_add_fuel(store, fuel)  # type: ignore
+_wasmtime_context_set_fuel = dll.wasmtime_context_set_fuel
+_wasmtime_context_set_fuel.restype = POINTER(wasmtime_error_t)
+_wasmtime_context_set_fuel.argtypes = [POINTER(wasmtime_context_t), c_uint64]
+def wasmtime_context_set_fuel(store: Any, fuel: Any) -> ctypes._Pointer:
+    return _wasmtime_context_set_fuel(store, fuel)  # type: ignore
 
-_wasmtime_context_fuel_consumed = dll.wasmtime_context_fuel_consumed
-_wasmtime_context_fuel_consumed.restype = c_bool
-_wasmtime_context_fuel_consumed.argtypes = [POINTER(wasmtime_context_t), POINTER(c_uint64)]
-def wasmtime_context_fuel_consumed(context: Any, fuel: Any) -> bool:
-    return _wasmtime_context_fuel_consumed(context, fuel)  # type: ignore
-
-_wasmtime_context_fuel_remaining = dll.wasmtime_context_fuel_remaining
-_wasmtime_context_fuel_remaining.restype = c_bool
-_wasmtime_context_fuel_remaining.argtypes = [POINTER(wasmtime_context_t), POINTER(c_uint64)]
-def wasmtime_context_fuel_remaining(context: Any, fuel: Any) -> bool:
-    return _wasmtime_context_fuel_remaining(context, fuel)  # type: ignore
-
-_wasmtime_context_consume_fuel = dll.wasmtime_context_consume_fuel
-_wasmtime_context_consume_fuel.restype = POINTER(wasmtime_error_t)
-_wasmtime_context_consume_fuel.argtypes = [POINTER(wasmtime_context_t), c_uint64, POINTER(c_uint64)]
-def wasmtime_context_consume_fuel(context: Any, fuel: Any, remaining: Any) -> ctypes._Pointer:
-    return _wasmtime_context_consume_fuel(context, fuel, remaining)  # type: ignore
+_wasmtime_context_get_fuel = dll.wasmtime_context_get_fuel
+_wasmtime_context_get_fuel.restype = POINTER(wasmtime_error_t)
+_wasmtime_context_get_fuel.argtypes = [POINTER(wasmtime_context_t), POINTER(c_uint64)]
+def wasmtime_context_get_fuel(context: Any, fuel: Any) -> ctypes._Pointer:
+    return _wasmtime_context_get_fuel(context, fuel)  # type: ignore
 
 _wasmtime_context_set_wasi = dll.wasmtime_context_set_wasi
 _wasmtime_context_set_wasi.restype = POINTER(wasmtime_error_t)
@@ -2779,7 +2773,7 @@ def wasmtime_linker_get(linker: Any, store: Any, module: Any, module_len: Any, n
 
 _wasmtime_linker_instantiate_pre = dll.wasmtime_linker_instantiate_pre
 _wasmtime_linker_instantiate_pre.restype = POINTER(wasmtime_error_t)
-_wasmtime_linker_instantiate_pre.argtypes = [POINTER(wasmtime_linker_t), POINTER(wasmtime_module_t), POINTER(POINTER(wasmtime_instance_t))]
+_wasmtime_linker_instantiate_pre.argtypes = [POINTER(wasmtime_linker_t), POINTER(wasmtime_module_t), POINTER(POINTER(wasmtime_instance_pre_t))]
 def wasmtime_linker_instantiate_pre(linker: Any, module: Any, instance_pre: Any) -> ctypes._Pointer:
     return _wasmtime_linker_instantiate_pre(linker, module, instance_pre)  # type: ignore
 
@@ -2917,16 +2911,16 @@ _wasmtime_config_async_stack_size_set.argtypes = [POINTER(wasm_config_t), c_uint
 def wasmtime_config_async_stack_size_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_async_stack_size_set(arg0, arg1)  # type: ignore
 
-_wasmtime_context_out_of_fuel_async_yield = dll.wasmtime_context_out_of_fuel_async_yield
-_wasmtime_context_out_of_fuel_async_yield.restype = None
-_wasmtime_context_out_of_fuel_async_yield.argtypes = [POINTER(wasmtime_context_t), c_uint64, c_uint64]
-def wasmtime_context_out_of_fuel_async_yield(context: Any, injection_count: Any, fuel_to_inject: Any) -> None:
-    return _wasmtime_context_out_of_fuel_async_yield(context, injection_count, fuel_to_inject)  # type: ignore
+_wasmtime_context_fuel_async_yield_interval = dll.wasmtime_context_fuel_async_yield_interval
+_wasmtime_context_fuel_async_yield_interval.restype = POINTER(wasmtime_error_t)
+_wasmtime_context_fuel_async_yield_interval.argtypes = [POINTER(wasmtime_context_t), c_uint64]
+def wasmtime_context_fuel_async_yield_interval(context: Any, interval: Any) -> ctypes._Pointer:
+    return _wasmtime_context_fuel_async_yield_interval(context, interval)  # type: ignore
 
 _wasmtime_context_epoch_deadline_async_yield_and_update = dll.wasmtime_context_epoch_deadline_async_yield_and_update
-_wasmtime_context_epoch_deadline_async_yield_and_update.restype = None
+_wasmtime_context_epoch_deadline_async_yield_and_update.restype = POINTER(wasmtime_error_t)
 _wasmtime_context_epoch_deadline_async_yield_and_update.argtypes = [POINTER(wasmtime_context_t), c_uint64]
-def wasmtime_context_epoch_deadline_async_yield_and_update(context: Any, delta: Any) -> None:
+def wasmtime_context_epoch_deadline_async_yield_and_update(context: Any, delta: Any) -> ctypes._Pointer:
     return _wasmtime_context_epoch_deadline_async_yield_and_update(context, delta)  # type: ignore
 
 wasmtime_func_async_continuation_callback_t = CFUNCTYPE(c_bool, c_void_p)
@@ -2983,6 +2977,40 @@ _wasmtime_instance_pre_instantiate_async.restype = POINTER(wasmtime_call_future_
 _wasmtime_instance_pre_instantiate_async.argtypes = [POINTER(wasmtime_instance_pre_t), POINTER(wasmtime_context_t), POINTER(wasmtime_instance_t), POINTER(POINTER(wasm_trap_t)), POINTER(POINTER(wasmtime_error_t))]
 def wasmtime_instance_pre_instantiate_async(instance_pre: Any, store: Any, instance: Any, trap_ret: Any, error_ret: Any) -> ctypes._Pointer:
     return _wasmtime_instance_pre_instantiate_async(instance_pre, store, instance, trap_ret, error_ret)  # type: ignore
+
+wasmtime_stack_memory_get_callback_t = CFUNCTYPE(c_size_t, c_void_p, POINTER(c_size_t))
+
+class wasmtime_stack_memory(Structure):
+    _fields_ = [
+        ("env", c_void_p),
+        ("get_stack_memory", wasmtime_stack_memory_get_callback_t),
+        ("finalizer", CFUNCTYPE(None, c_void_p)),
+    ]
+    env: ctypes._Pointer
+    get_stack_memory: ctypes._Pointer
+    finalizer: ctypes._Pointer
+
+wasmtime_stack_memory_t = wasmtime_stack_memory
+
+wasmtime_new_stack_memory_callback_t = CFUNCTYPE(c_size_t, c_void_p, c_size_t, POINTER(wasmtime_stack_memory_t))
+
+class wasmtime_stack_creator(Structure):
+    _fields_ = [
+        ("env", c_void_p),
+        ("new_stack", wasmtime_new_stack_memory_callback_t),
+        ("finalizer", CFUNCTYPE(None, c_void_p)),
+    ]
+    env: ctypes._Pointer
+    new_stack: ctypes._Pointer
+    finalizer: ctypes._Pointer
+
+wasmtime_stack_creator_t = wasmtime_stack_creator
+
+_wasmtime_config_host_stack_creator_set = dll.wasmtime_config_host_stack_creator_set
+_wasmtime_config_host_stack_creator_set.restype = None
+_wasmtime_config_host_stack_creator_set.argtypes = [POINTER(wasm_config_t), POINTER(wasmtime_stack_creator_t)]
+def wasmtime_config_host_stack_creator_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_host_stack_creator_set(arg0, arg1)  # type: ignore
 
 _wasmtime_wat2wasm = dll.wasmtime_wat2wasm
 _wasmtime_wat2wasm.restype = POINTER(wasmtime_error_t)

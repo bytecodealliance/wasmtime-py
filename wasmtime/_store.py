@@ -49,9 +49,9 @@ class Store:
         """
         ffi.wasmtime_context_gc(self._context)
 
-    def add_fuel(self, fuel: int) -> None:
+    def set_fuel(self, fuel: int) -> None:
         """
-        Adds the specified amount of fuel into this store.
+        Sets the amount of fuel in this store to `fuel`.
 
         This is only relevant when `Config.consume_fuel` is configured.
 
@@ -61,36 +61,21 @@ class Store:
         Raises a `WasmtimeError` if this store's configuration is not configured
         to consume fuel.
         """
-        err = ffi.wasmtime_context_add_fuel(self._context, fuel)
+        err = ffi.wasmtime_context_set_fuel(self._context, fuel)
         if err:
             raise WasmtimeError._from_ptr(err)
 
-    def fuel_consumed(self) -> int:
+    def get_fuel(self) -> int:
         """
-        Returns the amount of fuel consumed by this `Store` so far.
-
-        Raises a `WasmtimeError` if this store's configuration is not configured
-        to consume fuel.
-        """
-        fuel = c_uint64(0)
-        ok = ffi.wasmtime_context_fuel_consumed(self._context, byref(fuel))
-        if ok:
-            return fuel.value
-        raise WasmtimeError("fuel is not enabled in this store's configuration")
-
-    def consume_fuel(self, fuel: int) -> int:
-        """
-        Consumes the specified amount of fuel from this store.
+        Returns the amount of fuel left in the store.
 
         This is only relevant when `Config.consume_fuel` is configured.
 
         Raises a `WasmtimeError` if this store's configuration is not configured
         to consume fuel or if the store doesn't have enough fuel remaining.
-
-        Returns the remaining amount of fuel left in the store.
         """
         remaining = c_uint64(0)
-        err = ffi.wasmtime_context_consume_fuel(self._context, fuel, byref(remaining))
+        err = ffi.wasmtime_context_get_fuel(self._context, byref(remaining))
         if err:
             raise WasmtimeError._from_ptr(err)
         return remaining.value

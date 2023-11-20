@@ -10,7 +10,7 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
-WASMTIME_VERSION = "v14.0.0"
+WASMTIME_VERSION = "v15.0.0"
 
 
 def main(platform, arch):
@@ -58,6 +58,8 @@ def main(platform, arch):
         if len(parts) > 1 and name.endswith('.h'):
             return Path('wasmtime') / 'include' / parts[1]
         elif name.endswith('.dll') or name.endswith('.so') or name.endswith('.dylib'):
+            if '-min.' in name:
+                return None
             return dst
         else:
             return None
