@@ -53,20 +53,19 @@ class TestStore(unittest.TestCase):
         store = Store()
 
         with self.assertRaises(WasmtimeError):
-            store.add_fuel(1)
+            store.set_fuel(1)
         with self.assertRaises(WasmtimeError):
-            store.fuel_consumed()
+            store.get_fuel()
 
         config = Config()
         config.consume_fuel = True
         store = Store(Engine(config))
-        store.add_fuel(1)
-        assert(store.fuel_consumed() == 0)
-        assert(store.consume_fuel(0) == 1)
-        store.add_fuel(1)
-        assert(store.consume_fuel(1) == 1)
-        with self.assertRaises(WasmtimeError):
-            store.consume_fuel(2)
+        store.set_fuel(1)
+        assert(store.get_fuel() == 1)
+        store.set_fuel(2)
+        assert(store.get_fuel() == 2)
+        store.set_fuel(0)
+        assert(store.get_fuel() == 0)
 
     def test_limits(self):
         store = Store()
