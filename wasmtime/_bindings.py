@@ -2180,6 +2180,12 @@ _wasmtime_config_cranelift_flag_set.argtypes = [POINTER(wasm_config_t), POINTER(
 def wasmtime_config_cranelift_flag_set(arg0: Any, key: Any, value: Any) -> None:
     return _wasmtime_config_cranelift_flag_set(arg0, key, value)  # type: ignore
 
+_wasmtime_config_macos_use_mach_ports_set = dll.wasmtime_config_macos_use_mach_ports_set
+_wasmtime_config_macos_use_mach_ports_set.restype = None
+_wasmtime_config_macos_use_mach_ports_set.argtypes = [POINTER(wasm_config_t), c_bool]
+def wasmtime_config_macos_use_mach_ports_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_macos_use_mach_ports_set(arg0, arg1)  # type: ignore
+
 wasmtime_memory_get_callback_t = CFUNCTYPE(c_size_t, c_void_p, POINTER(c_size_t), POINTER(c_size_t))
 
 wasmtime_memory_grow_callback_t = CFUNCTYPE(c_size_t, c_void_p, c_size_t)
@@ -2371,11 +2377,13 @@ _wasmtime_context_set_epoch_deadline.argtypes = [POINTER(wasmtime_context_t), c_
 def wasmtime_context_set_epoch_deadline(context: Any, ticks_beyond_current: Any) -> None:
     return _wasmtime_context_set_epoch_deadline(context, ticks_beyond_current)  # type: ignore
 
+wasmtime_update_deadline_kind_t = c_uint8
+
 _wasmtime_store_epoch_deadline_callback = dll.wasmtime_store_epoch_deadline_callback
 _wasmtime_store_epoch_deadline_callback.restype = None
-_wasmtime_store_epoch_deadline_callback.argtypes = [POINTER(wasmtime_store_t), CFUNCTYPE(c_size_t, POINTER(wasmtime_context_t), c_void_p, POINTER(c_uint64)), c_void_p]
-def wasmtime_store_epoch_deadline_callback(store: Any, func: Any, data: Any) -> None:
-    return _wasmtime_store_epoch_deadline_callback(store, func, data)  # type: ignore
+_wasmtime_store_epoch_deadline_callback.argtypes = [POINTER(wasmtime_store_t), CFUNCTYPE(c_size_t, POINTER(wasmtime_context_t), c_void_p, POINTER(c_uint64), POINTER(wasmtime_update_deadline_kind_t)), c_void_p, CFUNCTYPE(None, c_void_p)]
+def wasmtime_store_epoch_deadline_callback(store: Any, func: Any, data: Any, finalizer: Any) -> None:
+    return _wasmtime_store_epoch_deadline_callback(store, func, data, finalizer)  # type: ignore
 
 class wasmtime_func(Structure):
     _fields_ = [
@@ -2685,14 +2693,20 @@ wasmtime_instance_pre_t = wasmtime_instance_pre
 _wasmtime_instance_pre_delete = dll.wasmtime_instance_pre_delete
 _wasmtime_instance_pre_delete.restype = None
 _wasmtime_instance_pre_delete.argtypes = [POINTER(wasmtime_instance_pre_t)]
-def wasmtime_instance_pre_delete(instance: Any) -> None:
-    return _wasmtime_instance_pre_delete(instance)  # type: ignore
+def wasmtime_instance_pre_delete(instance_pre: Any) -> None:
+    return _wasmtime_instance_pre_delete(instance_pre)  # type: ignore
 
 _wasmtime_instance_pre_instantiate = dll.wasmtime_instance_pre_instantiate
 _wasmtime_instance_pre_instantiate.restype = POINTER(wasmtime_error_t)
 _wasmtime_instance_pre_instantiate.argtypes = [POINTER(wasmtime_instance_pre_t), POINTER(wasmtime_store_t), POINTER(wasmtime_instance_t), POINTER(POINTER(wasm_trap_t))]
 def wasmtime_instance_pre_instantiate(instance_pre: Any, store: Any, instance: Any, trap_ptr: Any) -> ctypes._Pointer:
     return _wasmtime_instance_pre_instantiate(instance_pre, store, instance, trap_ptr)  # type: ignore
+
+_wasmtime_instance_pre_module = dll.wasmtime_instance_pre_module
+_wasmtime_instance_pre_module.restype = POINTER(wasmtime_module_t)
+_wasmtime_instance_pre_module.argtypes = [POINTER(wasmtime_instance_pre_t)]
+def wasmtime_instance_pre_module(instance_pre: Any) -> ctypes._Pointer:
+    return _wasmtime_instance_pre_module(instance_pre)  # type: ignore
 
 class wasmtime_linker(Structure):
     pass
