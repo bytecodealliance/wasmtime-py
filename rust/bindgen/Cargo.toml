@@ -11,10 +11,10 @@ crate-type = ['cdylib', 'rlib']
 [dependencies]
 anyhow = "1.0"
 heck = { version = "0.4", features = ["unicode"] }
-wit-parser = "0.13.0"
-wit-component = "0.18.0"
+wit-parser = "0.13.1"
+wit-component = "0.19.1"
 indexmap = "2.0"
-wasmtime-environ = { version = "15.0.0", features = ['component-model'] }
+wasmtime-environ = { version = "16.0.0", features = ['component-model'] }
 wit-bindgen = { workspace = true, features = ['default'] }
 wit-bindgen-core = { workspace = true }
 
