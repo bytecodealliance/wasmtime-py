@@ -14,7 +14,7 @@ heck = { version = "0.4", features = ["unicode"] }
 wit-parser = "0.13.1"
 wit-component = "0.20.0"
 indexmap = "2.0"
-wasmtime-environ = { version = "17.0.0", features = ['component-model'] }
+wasmtime-environ = { version = "17.0.1", features = ['component-model'] }
 wit-bindgen = { workspace = true, features = ['default'] }
 wit-bindgen-core = { workspace = true }
 
@@ -24,4 +24,3 @@ cli = []
 [[bin]]
 name = "bootstrap"
 required-features = ["cli"]
-
