@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import TypeVar, Generic, Any
+from typing import TypeVar, Generic, Any, Optional
 
 T = TypeVar('T')
 
@@ -10,7 +10,7 @@ class Managed(Generic[T]):
 
     Not exported directly from this package.
     """
-    __ptr: T | None
+    __ptr: Optional[T]
 
     @abstractmethod
     def _delete(self, ptr: T) -> None:
