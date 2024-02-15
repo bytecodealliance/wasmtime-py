@@ -1,7 +1,7 @@
 from . import _ffi as ffi
 from ctypes import byref, c_uint64, cast, c_void_p, CFUNCTYPE
 import ctypes
-from wasmtime import Engine, WasmtimeError
+from wasmtime import Engine, WasmtimeError, Managed
 from . import _value as value
 import typing
 
@@ -9,9 +9,8 @@ if typing.TYPE_CHECKING:
     from ._wasi import WasiConfig
 
 
-class Store:
-    _ptr: "ctypes._Pointer[ffi.wasmtime_store_t]"
-    _context: "ctypes._Pointer[ffi.wasmtime_context_t]"
+class Store(Managed["ctypes._Pointer[ffi.wasmtime_store_t]"]):
+    __context: "ctypes._Pointer[ffi.wasmtime_context_t] | None"
 
     def __init__(self, engine: typing.Optional[Engine] = None, data: typing.Optional[typing.Any] = None):
 
@@ -24,15 +23,24 @@ class Store:
         if data:
             data_id = value._intern(data)
             finalize = value._externref_finalizer
-        self._ptr = ffi.wasmtime_store_new(engine._ptr, data_id, finalize)
-        self._context = ffi.wasmtime_store_context(self._ptr)
+        self._set_ptr(ffi.wasmtime_store_new(engine.ptr(), data_id, finalize))
+        self.__context = ffi.wasmtime_store_context(self.ptr())
         self.engine = engine
+
+    def _delete(self, ptr: "ctypes._Pointer[ffi.wasmtime_store_t]") -> None:
+        ffi.wasmtime_store_delete(ptr)
+        self.__context = None
+
+    def _context(self) -> "ctypes._Pointer[ffi.wasmtime_context_t]":
+        if self.__context is None:
+            raise ValueError('already closed')
+        return self.__context
 
     def data(self) -> typing.Optional[typing.Any]:
         """
         TODO
         """
-        data = ffi.wasmtime_context_get_data(self._context)
+        data = ffi.wasmtime_context_get_data(self._context())
         if data:
             return value._unintern(data)
         else:
@@ -47,7 +55,7 @@ class Store:
         like more precise control over when unreferenced `externref` values are
         deallocated.
         """
-        ffi.wasmtime_context_gc(self._context)
+        ffi.wasmtime_context_gc(self._context())
 
     def set_fuel(self, fuel: int) -> None:
         """
@@ -61,7 +69,7 @@ class Store:
         Raises a `WasmtimeError` if this store's configuration is not configured
         to consume fuel.
         """
-        err = ffi.wasmtime_context_set_fuel(self._context, fuel)
+        err = ffi.wasmtime_context_set_fuel(self._context(), fuel)
         if err:
             raise WasmtimeError._from_ptr(err)
 
@@ -75,7 +83,7 @@ class Store:
         to consume fuel or if the store doesn't have enough fuel remaining.
         """
         remaining = c_uint64(0)
-        err = ffi.wasmtime_context_get_fuel(self._context, byref(remaining))
+        err = ffi.wasmtime_context_get_fuel(self._context(), byref(remaining))
         if err:
             raise WasmtimeError._from_ptr(err)
         return remaining.value
@@ -84,8 +92,7 @@ class Store:
         """
         TODO
         """
-        error = ffi.wasmtime_context_set_wasi(self._context, wasi._ptr)
-        delattr(wasi, '_ptr')
+        error = ffi.wasmtime_context_set_wasi(self._context(), wasi._consume())
         if error:
             raise WasmtimeError._from_ptr(error)
 
@@ -94,7 +101,7 @@ class Store:
         Configures the relative epoch deadline, after the current engine's
         epoch, after which WebAssembly code will trap.
         """
-        ffi.wasmtime_context_set_epoch_deadline(self._context, ticks_after_current)
+        ffi.wasmtime_context_set_epoch_deadline(self._context(), ticks_after_current)
 
     def set_limits(self,
                    memory_size: int = -1,
@@ -127,11 +134,7 @@ class Store:
         If any limit is negative then the limit will not be set as a part of
         this invocation and it will be ignored.
         """
-        ffi.wasmtime_store_limiter(self._ptr, memory_size, table_elements, instances, tables, memories)
-
-    def __del__(self) -> None:
-        if hasattr(self, '_ptr'):
-            ffi.wasmtime_store_delete(self._ptr)
+        ffi.wasmtime_store_limiter(self.ptr(), memory_size, table_elements, instances, tables, memories)
 
 
 if typing.TYPE_CHECKING:

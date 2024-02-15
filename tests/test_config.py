@@ -1,4 +1,5 @@
 import unittest
+from contextlib import closing
 
 from wasmtime import *
 
@@ -34,3 +35,14 @@ class TestConfig(unittest.TestCase):
         config.consume_fuel = True
         config.wasm_relaxed_simd = True
         config.wasm_relaxed_simd_deterministic = True
+
+        with closing(config) as config:
+            pass
+
+        config.close()
+
+        with self.assertRaises(ValueError):
+            Engine(config)
+
+        with self.assertRaises(ValueError):
+            config.cache = True

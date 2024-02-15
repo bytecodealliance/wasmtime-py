@@ -8,6 +8,15 @@ class TestStore(unittest.TestCase):
         Store()
         Store(Engine())
 
+        with Store() as store:
+            pass
+
+        store = Store()
+        store.close()
+        store.close()
+        with self.assertRaises(ValueError):
+            store.set_epoch_deadline(1)
+
     def test_errors(self):
         with self.assertRaises(TypeError):
             Store(3)  # type: ignore

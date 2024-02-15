@@ -35,8 +35,8 @@ class Func:
         idx = FUNCTIONS.allocate((func, ty.results, access_caller))
         _func = ffi.wasmtime_func_t()
         ffi.wasmtime_func_new(
-            store._context,
-            ty._ptr,
+            store._context(),
+            ty.ptr(),
             trampoline,
             idx,
             finalize,
@@ -53,7 +53,7 @@ class Func:
         """
         Gets the type of this func as a `FuncType`
         """
-        ptr = ffi.wasmtime_func_type(store._context, byref(self._func))
+        ptr = ffi.wasmtime_func_type(store._context(), byref(self._func))
         return FuncType._from_ptr(ptr, None)
 
     def __call__(self, store: Storelike, *params: IntoVal) -> Union[IntoVal, Sequence[IntoVal], None]:
@@ -90,7 +90,7 @@ class Func:
 
         with enter_wasm(store) as trap:
             error = ffi.wasmtime_func_call(
-                store._context,
+                store._context(),
                 byref(self._func),
                 params_ptr,
                 len(params),
@@ -116,10 +116,12 @@ class Func:
 
 
 class Caller:
-    _context: "ctypes._Pointer[ffi.wasmtime_context_t]"
+    __ptr: "ctypes._Pointer[ffi.wasmtime_caller_t] | None"
+    __context: "ctypes._Pointer[ffi.wasmtime_context_t] | None"
 
-    def __init__(self, ptr: "ctypes._Pointer"):
-        self._ptr = ptr
+    def __init__(self, ptr: "ctypes._Pointer[ffi.wasmtime_caller_t]"):
+        self.__ptr = ptr
+        self.__context = ffi.wasmtime_caller_context(ptr)
 
     def __getitem__(self, name: str) -> AsExtern:
         """
@@ -150,16 +152,25 @@ class Caller:
         name_buf = ffi.create_string_buffer(name_bytes)
 
         # Next see if we've been invalidated
-        if not hasattr(self, '_ptr'):
+        if self.__ptr is None:
             return None
 
         # And if we're not invalidated we can perform the actual lookup
         item = ffi.wasmtime_extern_t()
-        ok = ffi.wasmtime_caller_export_get(self._ptr, name_buf, len(name_bytes), byref(item))
+        ok = ffi.wasmtime_caller_export_get(self.__ptr, name_buf, len(name_bytes), byref(item))
         if ok:
             return wrap_extern(item)
         else:
             return None
+
+    def _context(self) -> "ctypes._Pointer[ffi.wasmtime_context_t]":
+        if self.__context is None:
+            raise ValueError("caller is no longer valid")
+        return self.__context
+
+    def _invalidate(self) -> None:
+        self.__ptr = None
+        self.__context = None
 
 
 def extract_val(val: Val) -> IntoVal:
@@ -176,7 +187,6 @@ def trampoline(idx, caller, params, nparams, results, nresults):
         func, result_tys, access_caller = FUNCTIONS.get(idx or 0)
         pyparams = []
         if access_caller:
-            caller._context = ffi.wasmtime_caller_context(caller._ptr)
             pyparams.append(caller)
 
         for i in range(0, nparams):
@@ -209,12 +219,10 @@ def trampoline(idx, caller, params, nparams, results, nresults):
     except Exception as e:
         global LAST_EXCEPTION
         LAST_EXCEPTION = e
-        trap = Trap("python exception")
-        ptr = trap._ptr
-        delattr(trap, '_ptr')
-        return cast(ptr, c_void_p).value
+        trap = Trap("python exception")._consume()
+        return cast(trap, c_void_p).value
     finally:
-        delattr(caller, '_ptr')
+        caller._invalidate()
 
 
 @CFUNCTYPE(None, c_void_p)

@@ -13,8 +13,8 @@ class Global:
         val = Val._convert(ty.content, val)
         global_ = ffi.wasmtime_global_t()
         error = ffi.wasmtime_global_new(
-            store._context,
-            ty._ptr,
+            store._context(),
+            ty.ptr(),
             byref(val._unwrap_raw()),
             byref(global_))
         if error:
@@ -32,7 +32,7 @@ class Global:
         Gets the type of this global as a `GlobalType`
         """
 
-        ptr = ffi.wasmtime_global_type(store._context, byref(self._global))
+        ptr = ffi.wasmtime_global_type(store._context(), byref(self._global))
         return GlobalType._from_ptr(ptr, None)
 
     def value(self, store: Storelike) -> IntoVal:
@@ -42,7 +42,7 @@ class Global:
         Returns a native python type
         """
         raw = ffi.wasmtime_val_t()
-        ffi.wasmtime_global_get(store._context, byref(self._global), byref(raw))
+        ffi.wasmtime_global_get(store._context(), byref(self._global), byref(raw))
         val = Val(raw)
         if val.value is not None:
             return val.value
@@ -54,7 +54,7 @@ class Global:
         Sets the value of this global to a new value
         """
         val = Val._convert(self.type(store).content, val)
-        error = ffi.wasmtime_global_set(store._context, byref(self._global), byref(val._unwrap_raw()))
+        error = ffi.wasmtime_global_set(store._context(), byref(self._global), byref(val._unwrap_raw()))
         if error:
             raise WasmtimeError._from_ptr(error)
 
