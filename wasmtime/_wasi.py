@@ -1,6 +1,6 @@
 from ctypes import c_char, POINTER, cast, c_char_p, c_int
 import ctypes
-from wasmtime import WasmtimeError
+from wasmtime import WasmtimeError, Managed
 from . import _ffi as ffi
 from ._config import setter_property
 from typing import List, Iterable, Union
@@ -17,9 +17,13 @@ def _encode_path(path: Union[str, bytes, PathLike]) -> bytes:
     return path2.encode('utf8')
 
 
-class WasiConfig:
+class WasiConfig(Managed["ctypes._Pointer[ffi.wasi_config_t]"]):
+
     def __init__(self) -> None:
-        self._ptr = ffi.wasi_config_new()
+        self._set_ptr(ffi.wasi_config_new())
+
+    def _delete(self, ptr: "ctypes._Pointer[ffi.wasi_config_t]") -> None:
+        ffi.wasi_config_delete(ptr)
 
     @setter_property
     def argv(self, argv: List[str]) -> None:
@@ -27,10 +31,10 @@ class WasiConfig:
         Explicitly configure the `argv` for this WASI configuration
         """
         ptrs = to_char_array(argv)
-        ffi.wasi_config_set_argv(self._ptr, c_int(len(argv)), ptrs)
+        ffi.wasi_config_set_argv(self.ptr(), c_int(len(argv)), ptrs)
 
     def inherit_argv(self) -> None:
-        ffi.wasi_config_inherit_argv(self._ptr)
+        ffi.wasi_config_inherit_argv(self.ptr())
 
     @setter_property
     def env(self, pairs: Iterable[Iterable]) -> None:
@@ -48,7 +52,7 @@ class WasiConfig:
             values.append(value)
         name_ptrs = to_char_array(names)
         value_ptrs = to_char_array(values)
-        ffi.wasi_config_set_env(self._ptr, c_int(
+        ffi.wasi_config_set_env(self.ptr(), c_int(
             len(names)), name_ptrs, value_ptrs)
 
     def inherit_env(self) -> None:
@@ -57,7 +61,7 @@ class WasiConfig:
         in this own process's environment. All environment variables are
         inherited.
         """
-        ffi.wasi_config_inherit_env(self._ptr)
+        ffi.wasi_config_inherit_env(self.ptr())
 
     @setter_property
     def stdin_file(self, path: Union[str, bytes, PathLike]) -> None:
@@ -72,7 +76,7 @@ class WasiConfig:
         """
 
         res = ffi.wasi_config_set_stdin_file(
-            self._ptr, c_char_p(_encode_path(path)))
+            self.ptr(), c_char_p(_encode_path(path)))
         if not res:
             raise WasmtimeError("failed to set stdin file")
 
@@ -83,7 +87,7 @@ class WasiConfig:
 
         Reads of the stdin stream will read this process's stdin.
         """
-        ffi.wasi_config_inherit_stdin(self._ptr)
+        ffi.wasi_config_inherit_stdin(self.ptr())
 
     @setter_property
     def stdout_file(self, path: str) -> None:
@@ -98,7 +102,7 @@ class WasiConfig:
         cannot be opened for writing then `WasmtimeError` is raised.
         """
         res = ffi.wasi_config_set_stdout_file(
-            self._ptr, c_char_p(_encode_path(path)))
+            self.ptr(), c_char_p(_encode_path(path)))
         if not res:
             raise WasmtimeError("failed to set stdout file")
 
@@ -109,7 +113,7 @@ class WasiConfig:
 
         Writes to stdout stream will write to this process's stdout.
         """
-        ffi.wasi_config_inherit_stdout(self._ptr)
+        ffi.wasi_config_inherit_stdout(self.ptr())
 
     @setter_property
     def stderr_file(self, path: str) -> None:
@@ -124,7 +128,7 @@ class WasiConfig:
         cannot be opened for writing then `WasmtimeError` is raised.
         """
         res = ffi.wasi_config_set_stderr_file(
-            self._ptr, c_char_p(_encode_path(path)))
+            self.ptr(), c_char_p(_encode_path(path)))
         if not res:
             raise WasmtimeError("failed to set stderr file")
 
@@ -135,16 +139,12 @@ class WasiConfig:
 
         Writes to stderr stream will write to this process's stderr.
         """
-        ffi.wasi_config_inherit_stderr(self._ptr)
+        ffi.wasi_config_inherit_stderr(self.ptr())
 
     def preopen_dir(self, path: str, guest_path: str) -> None:
         path_ptr = c_char_p(path.encode('utf-8'))
         guest_path_ptr = c_char_p(guest_path.encode('utf-8'))
-        ffi.wasi_config_preopen_dir(self._ptr, path_ptr, guest_path_ptr)
-
-    def __del__(self) -> None:
-        if hasattr(self, '_ptr'):
-            ffi.wasi_config_delete(self._ptr)
+        ffi.wasi_config_preopen_dir(self.ptr(), path_ptr, guest_path_ptr)
 
 
 def to_char_array(strings: List[str]) -> "ctypes._Pointer[ctypes._Pointer[c_char]]":

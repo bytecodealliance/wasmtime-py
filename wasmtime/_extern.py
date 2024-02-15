@@ -1,7 +1,7 @@
 from . import _ffi as ffi
 import ctypes
 from ._exportable import AsExtern
-from wasmtime import WasmtimeError
+from wasmtime import WasmtimeError, Managed
 
 
 def wrap_extern(ptr: ffi.wasmtime_extern_t) -> AsExtern:
@@ -41,9 +41,9 @@ def get_extern_ptr(item: AsExtern) -> ffi.wasmtime_extern_t:
         raise TypeError("expected a Func, Global, Memory, Table, Module, or Instance")
 
 
-class Extern:
+class Extern(Managed["ctypes._Pointer[ffi.wasm_extern_t]"]):
     def __init__(self, ptr: "ctypes._Pointer[ffi.wasm_extern_t]"):
-        self.ptr = ptr
+        self._set_ptr(ptr)
 
-    def __del__(self) -> None:
-        ffi.wasm_extern_delete(self.ptr)
+    def _delete(self, ptr: "ctypes._Pointer[ffi.wasm_extern_t]") -> None:
+        ffi.wasm_extern_delete(ptr)

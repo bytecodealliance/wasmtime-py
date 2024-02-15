@@ -13,5 +13,5 @@ class TestEngine(unittest.TestCase):
             Engine(3)  # type: ignore
         config = Config()
         Engine(config)
-        with self.assertRaises(WasmtimeError):
+        with self.assertRaises(ValueError):
             Engine(config)

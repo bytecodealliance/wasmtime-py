@@ -2,15 +2,17 @@ from ctypes import byref, POINTER, c_int
 from . import _ffi as ffi
 import ctypes
 from typing import Optional
+from wasmtime import Managed
 
 
-class WasmtimeError(Exception):
-    _ptr: "Optional[ctypes._Pointer[ffi.wasmtime_error_t]]"
-    _message: Optional[str]
+class WasmtimeError(Exception, Managed["ctypes._Pointer[ffi.wasmtime_error_t]"]):
+    __message: Optional[str]
 
     def __init__(self, message: str):
-        self._message = message
-        self._ptr = None
+        self.__message = message
+
+    def _delete(self, ptr: "ctypes._Pointer[ffi.wasmtime_error_t]") -> None:
+        ffi.wasmtime_error_delete(ptr)
 
     @classmethod
     def _from_ptr(cls, ptr: "ctypes._Pointer") -> 'WasmtimeError':
@@ -21,28 +23,24 @@ class WasmtimeError(Exception):
         exit_code = c_int(0)
         if ffi.wasmtime_error_exit_status(ptr, byref(exit_code)):
             exit_trap: ExitTrap = ExitTrap.__new__(ExitTrap)
-            exit_trap._ptr = ptr
-            exit_trap._message = None
+            exit_trap._set_ptr(ptr)
+            exit_trap.__message = None
             exit_trap.code = exit_code.value
             return exit_trap
 
         err: WasmtimeError = cls.__new__(cls)
-        err._ptr = ptr
-        err._message = None
+        err._set_ptr(ptr)
+        err.__message = None
         return err
 
     def __str__(self) -> str:
-        if self._message:
-            return self._message
+        if self.__message:
+            return self.__message
         message_vec = ffi.wasm_byte_vec_t()
-        ffi.wasmtime_error_message(self._ptr, byref(message_vec))
+        ffi.wasmtime_error_message(self.ptr(), byref(message_vec))
         message = ffi.to_str(message_vec)
         ffi.wasm_byte_vec_delete(byref(message_vec))
         return message
-
-    def __del__(self) -> None:
-        if hasattr(self, '_ptr') and self._ptr:
-            ffi.wasmtime_error_delete(self._ptr)
 
 
 class ExitTrap(WasmtimeError):

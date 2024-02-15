@@ -15,7 +15,7 @@ class Memory:
         """
 
         mem = ffi.wasmtime_memory_t()
-        error = ffi.wasmtime_memory_new(store._context, ty._ptr, byref(mem))
+        error = ffi.wasmtime_memory_new(store._context(), ty.ptr(), byref(mem))
         if error:
             raise WasmtimeError._from_ptr(error)
         self._memory = mem
@@ -31,7 +31,7 @@ class Memory:
         Gets the type of this memory as a `MemoryType`
         """
 
-        ptr = ffi.wasmtime_memory_type(store._context, byref(self._memory))
+        ptr = ffi.wasmtime_memory_type(store._context(), byref(self._memory))
         return MemoryType._from_ptr(ptr, None)
 
     def grow(self, store: Storelike, delta: int) -> int:
@@ -42,7 +42,7 @@ class Memory:
         if delta < 0:
             raise WasmtimeError("cannot grow by negative amount")
         prev = ffi.c_uint64(0)
-        error = ffi.wasmtime_memory_grow(store._context, byref(self._memory), delta, byref(prev))
+        error = ffi.wasmtime_memory_grow(store._context(), byref(self._memory), delta, byref(prev))
         if error:
             raise WasmtimeError._from_ptr(error)
         return prev.value
@@ -52,7 +52,7 @@ class Memory:
         Returns the size, in WebAssembly pages, of this memory.
         """
 
-        return ffi.wasmtime_memory_size(store._context, byref(self._memory))
+        return ffi.wasmtime_memory_size(store._context(), byref(self._memory))
 
     def data_ptr(self, store: Storelike) -> "ctypes._Pointer[c_ubyte]":
         """
@@ -61,7 +61,7 @@ class Memory:
         Remember that all accesses to wasm memory should be bounds-checked
         against the `data_len` method.
         """
-        return ffi.wasmtime_memory_data(store._context, byref(self._memory))
+        return ffi.wasmtime_memory_data(store._context(), byref(self._memory))
 
     def get_buffer_ptr(self, store: Storelike,
                        size: typing.Optional[int] = None,
@@ -140,7 +140,7 @@ class Memory:
         Returns the raw byte length of this memory.
         """
 
-        return ffi.wasmtime_memory_data_size(store._context, byref(self._memory))
+        return ffi.wasmtime_memory_data_size(store._context(), byref(self._memory))
 
     def _as_extern(self) -> ffi.wasmtime_extern_t:
         union = ffi.wasmtime_extern_union(memory=self._memory)

@@ -13,6 +13,7 @@ free to consult that documentation as well. While not exactly the same the two
 libraries are intended to be quite similar.
 """
 
+from ._managed import Managed
 from ._error import WasmtimeError, ExitTrap
 from ._config import Config
 from ._engine import Engine
