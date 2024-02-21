@@ -60,7 +60,7 @@ class Config(Managed["ctypes._Pointer[ffi.wasm_config_t]"]):
 
         if not isinstance(enable, bool):
             raise TypeError('expected a bool')
-        ffi.wasmtime_config_wasm_tail_call_set(self._ptr, enable)
+        ffi.wasmtime_config_wasm_tail_call_set(self.ptr(), enable)
 
     @setter_property
     def wasm_reference_types(self, enable: bool) -> None:
