@@ -112,7 +112,7 @@ impl WasmtimePy {
         // internal to a component to a straight linear list of initializers
         // that need to be executed to instantiate a component.
         let scope = ScopeVec::new();
-        let tunables = Tunables::default();
+        let tunables = Tunables::default_u64();
         let mut types = ComponentTypesBuilder::default();
         let mut validator = Validator::new_with_features(WasmFeatures {
             component_model: true,
@@ -805,7 +805,7 @@ impl<'a> Instantiator<'a> {
                     });
                 }
 
-                Export::Instance(exports) => {
+                Export::Instance { exports, ty: _ } => {
                     let id = match world_exports_by_string[name] {
                         WorldItem::Interface(id) => *id,
                         WorldItem::Function(_) | WorldItem::Type(_) => unreachable!(),
@@ -816,8 +816,8 @@ impl<'a> Instantiator<'a> {
                             Export::LiftedFunction { func, options, .. } => (func, options),
                             Export::Type(_) => continue,
                             Export::ModuleStatic(_)
-                            | Export::ModuleImport(_)
-                            | Export::Instance(_) => unreachable!(),
+                            | Export::ModuleImport { .. }
+                            | Export::Instance { .. } => unreachable!(),
                         };
                         let callee = self.gen_lift_callee(callee);
                         let func = &self.resolve.interfaces[id].functions[name];
@@ -837,7 +837,7 @@ impl<'a> Instantiator<'a> {
                 Export::Type(_) => {}
 
                 // This can't be tested at this time so leave it unimplemented
-                Export::ModuleStatic(_) | Export::ModuleImport(_) => unimplemented!(),
+                Export::ModuleStatic(_) | Export::ModuleImport { .. } => unimplemented!(),
             }
         }
         (toplevel, nested)
