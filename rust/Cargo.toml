@@ -3,8 +3,8 @@ members = ['bindgen']
 resolver = "2"
 
 [workspace.dependencies]
-wit-bindgen = { version = "0.16.0", default-features = false, features = ['macros'] }
-wit-bindgen-core = "0.16.0"
+wit-bindgen = { version = "0.18.0", default-features = false, features = ['macros'] }
+wit-bindgen-core = "0.18.0"
 
 [profile.release]
 strip = 'debuginfo'

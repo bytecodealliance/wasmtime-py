@@ -2036,6 +2036,12 @@ _wasmtime_config_wasm_threads_set.argtypes = [POINTER(wasm_config_t), c_bool]
 def wasmtime_config_wasm_threads_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_wasm_threads_set(arg0, arg1)  # type: ignore
 
+_wasmtime_config_wasm_tail_call_set = dll.wasmtime_config_wasm_tail_call_set
+_wasmtime_config_wasm_tail_call_set.restype = None
+_wasmtime_config_wasm_tail_call_set.argtypes = [POINTER(wasm_config_t), c_bool]
+def wasmtime_config_wasm_tail_call_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_wasm_tail_call_set(arg0, arg1)  # type: ignore
+
 _wasmtime_config_wasm_reference_types_set = dll.wasmtime_config_wasm_reference_types_set
 _wasmtime_config_wasm_reference_types_set.restype = None
 _wasmtime_config_wasm_reference_types_set.argtypes = [POINTER(wasm_config_t), c_bool]
