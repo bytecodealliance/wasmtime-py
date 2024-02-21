@@ -51,6 +51,18 @@ class Config(Managed["ctypes._Pointer[ffi.wasm_config_t]"]):
         ffi.wasmtime_config_wasm_threads_set(self.ptr(), enable)
 
     @setter_property
+    def wasm_tail_call(self, enable: bool) -> None:
+        """
+        Configures whether the wasm [tail call proposal] is enabled.
+
+        [tail call proposal]: https://github.com/WebAssembly/tail-call
+        """
+
+        if not isinstance(enable, bool):
+            raise TypeError('expected a bool')
+        ffi.wasmtime_config_wasm_tail_call_set(self.ptr(), enable)
+
+    @setter_property
     def wasm_reference_types(self, enable: bool) -> None:
         """
         Configures whether the wasm [reference types proposal] is enabled.

@@ -9,6 +9,7 @@ class TestConfig(unittest.TestCase):
         config = Config()
         config.debug_info = True
         config.wasm_threads = True
+        config.wasm_tail_call = True
         config.wasm_reference_types = True
         config.wasm_simd = True
         config.wasm_bulk_memory = True
