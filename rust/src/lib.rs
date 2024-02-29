@@ -37,15 +37,12 @@ pub use files::Files;
 mod bindings {
     wit_bindgen::generate!({
         world: "bindgen",
-        path: "../bindgen.wit",
-        exports: {
-            world: PythonBindings,
-        }
+        path: "./bindgen.wit",
     });
 
     struct PythonBindings;
 
-    impl crate::bindings::Guest for PythonBindings {
+    impl Guest for PythonBindings {
         fn generate(name: String, component: Vec<u8>) -> Result<Vec<(String, Vec<u8>)>, String> {
             let mut gen = crate::WasmtimePy::default();
             let mut files = Default::default();
@@ -57,4 +54,6 @@ mod bindings {
                 .collect())
         }
     }
+
+    export!(PythonBindings);
 }

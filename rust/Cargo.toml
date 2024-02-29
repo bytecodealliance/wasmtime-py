@@ -1,10 +1,29 @@
-[workspace]
-members = ['bindgen']
-resolver = "2"
+[package]
+name = "bindgen"
+publish = false
+edition = "2021"
 
-[workspace.dependencies]
-wit-bindgen = { version = "0.19.1", default-features = false, features = ['macros'] }
-wit-bindgen-core = "0.19.1"
+[lib]
+crate-type = ['cdylib', 'rlib']
+
+[dependencies]
+anyhow = "1.0"
+heck = { version = "0.4", features = ["unicode"] }
+wit-parser = "0.201.0"
+wit-component = "0.201.0"
+indexmap = "2.0"
+wasmtime-environ = { version = "18.0.1", features = ['component-model'] }
+wit-bindgen = { version = "0.20.0" }
+wit-bindgen-core = "0.20.0"
+
+
+
+[features]
+cli = []
+
+[[bin]]
+name = "bootstrap"
+required-features = ["cli"]
 
 [profile.release]
 strip = 'debuginfo'
