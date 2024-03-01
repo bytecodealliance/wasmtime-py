@@ -1693,6 +1693,55 @@ impl FunctionBindgen<'_, '_> {
     fn name_of(&mut self, ty: &str) -> String {
         self.gen.name_of(ty)
     }
+
+    fn bitcast(&mut self, cast: &Bitcast, op: &str) -> String {
+        match cast {
+            Bitcast::I32ToF32 => {
+                let cvt = self.print_i32_to_f32();
+                format!("{cvt}({})", op)
+            }
+            Bitcast::F32ToI32 => {
+                let cvt = self.print_f32_to_i32();
+                format!("{cvt}({})", op)
+            }
+            Bitcast::I64ToF64 => {
+                let cvt = self.print_i64_to_f64();
+                format!("{cvt}({})", op)
+            }
+            Bitcast::F64ToI64 => {
+                let cvt = self.print_f64_to_i64();
+                format!("{cvt}({})", op)
+            }
+            Bitcast::I64ToF32 => {
+                let cvt = self.print_i32_to_f32();
+                format!("{cvt}(({}) & 0xffffffff)", op)
+            }
+            Bitcast::F32ToI64 => {
+                let cvt = self.print_f32_to_i32();
+                format!("{cvt}({})", op)
+            }
+            Bitcast::I32ToI64
+            | Bitcast::I64ToI32
+            | Bitcast::None
+            | Bitcast::P64ToI64
+            | Bitcast::I64ToP64
+            | Bitcast::P64ToP
+            | Bitcast::PToP64
+            | Bitcast::I32ToP
+            | Bitcast::PToI32
+            | Bitcast::PToL
+            | Bitcast::LToP
+            | Bitcast::I32ToL
+            | Bitcast::LToI32
+            | Bitcast::I64ToL
+            | Bitcast::LToI64 => op.to_string(),
+            Bitcast::Sequence(seq) => {
+                let [a, b] = &**seq;
+                let a = self.bitcast(a, op);
+                self.bitcast(b, &a)
+            }
+        }
+    }
 }
 
 impl Bindgen for FunctionBindgen<'_, '_> {
@@ -1733,7 +1782,11 @@ impl Bindgen for FunctionBindgen<'_, '_> {
             Instruction::ConstZero { tys } => {
                 for t in tys.iter() {
                     match t {
-                        WasmType::I32 | WasmType::I64 => results.push("0".to_string()),
+                        WasmType::I32
+                        | WasmType::I64
+                        | WasmType::Length
+                        | WasmType::Pointer
+                        | WasmType::PointerOrI64 => results.push("0".to_string()),
                         WasmType::F32 | WasmType::F64 => results.push("0.0".to_string()),
                     }
                 }
@@ -1797,35 +1850,7 @@ impl Bindgen for FunctionBindgen<'_, '_> {
 
             Instruction::Bitcasts { casts } => {
                 for (cast, op) in casts.iter().zip(operands) {
-                    match cast {
-                        Bitcast::I32ToF32 => {
-                            let cvt = self.print_i32_to_f32();
-                            results.push(format!("{cvt}({})", op));
-                        }
-                        Bitcast::F32ToI32 => {
-                            let cvt = self.print_f32_to_i32();
-                            results.push(format!("{cvt}({})", op));
-                        }
-                        Bitcast::I64ToF64 => {
-                            let cvt = self.print_i64_to_f64();
-                            results.push(format!("{cvt}({})", op));
-                        }
-                        Bitcast::F64ToI64 => {
-                            let cvt = self.print_f64_to_i64();
-                            results.push(format!("{cvt}({})", op));
-                        }
-                        Bitcast::I64ToF32 => {
-                            let cvt = self.print_i32_to_f32();
-                            results.push(format!("{cvt}(({}) & 0xffffffff)", op));
-                        }
-                        Bitcast::F32ToI64 => {
-                            let cvt = self.print_f32_to_i32();
-                            results.push(format!("{cvt}({})", op));
-                        }
-                        Bitcast::I32ToI64 | Bitcast::I64ToI32 | Bitcast::None => {
-                            results.push(op.clone())
-                        }
-                    }
+                    results.push(self.bitcast(cast, op));
                 }
             }
 
@@ -2374,10 +2399,7 @@ impl Bindgen for FunctionBindgen<'_, '_> {
                 self.gen.src.push_str(&operands.join(", "));
                 self.gen.src.push_str(")\n");
                 for (ty, name) in sig.results.iter().zip(results.iter()) {
-                    let ty = match ty {
-                        WasmType::I32 | WasmType::I64 => "int",
-                        WasmType::F32 | WasmType::F64 => "float",
-                    };
+                    let ty = wasm_ty_typing(*ty);
                     self.gen
                         .src
                         .push_str(&format!("assert(isinstance({}, {}))\n", name, ty));
@@ -2425,7 +2447,11 @@ impl Bindgen for FunctionBindgen<'_, '_> {
                 }
             }
 
-            Instruction::I32Load { offset } => self.load("c_int32", *offset, operands, results),
+            Instruction::I32Load { offset }
+            | Instruction::LengthLoad { offset }
+            | Instruction::PointerLoad { offset } => {
+                self.load("c_int32", *offset, operands, results)
+            }
             Instruction::I64Load { offset } => self.load("c_int64", *offset, operands, results),
             Instruction::F32Load { offset } => self.load("c_float", *offset, operands, results),
             Instruction::F64Load { offset } => self.load("c_double", *offset, operands, results),
@@ -2433,7 +2459,9 @@ impl Bindgen for FunctionBindgen<'_, '_> {
             Instruction::I32Load8S { offset } => self.load("c_int8", *offset, operands, results),
             Instruction::I32Load16U { offset } => self.load("c_uint16", *offset, operands, results),
             Instruction::I32Load16S { offset } => self.load("c_int16", *offset, operands, results),
-            Instruction::I32Store { offset } => self.store("c_uint32", *offset, operands),
+            Instruction::I32Store { offset }
+            | Instruction::LengthStore { offset }
+            | Instruction::PointerStore { offset } => self.store("c_uint32", *offset, operands),
             Instruction::I64Store { offset } => self.store("c_uint64", *offset, operands),
             Instruction::F32Store { offset } => self.store("c_float", *offset, operands),
             Instruction::F64Store { offset } => self.store("c_double", *offset, operands),
@@ -2458,8 +2486,8 @@ impl Bindgen for FunctionBindgen<'_, '_> {
 
 fn wasm_ty_ctor(ty: WasmType) -> &'static str {
     match ty {
-        WasmType::I32 => "wasmtime.ValType.i32()",
-        WasmType::I64 => "wasmtime.ValType.i64()",
+        WasmType::I32 | WasmType::Pointer | WasmType::Length => "wasmtime.ValType.i32()",
+        WasmType::I64 | WasmType::PointerOrI64 => "wasmtime.ValType.i64()",
         WasmType::F32 => "wasmtime.ValType.f32()",
         WasmType::F64 => "wasmtime.ValType.f64()",
     }
@@ -2467,10 +2495,12 @@ fn wasm_ty_ctor(ty: WasmType) -> &'static str {
 
 fn wasm_ty_typing(ty: WasmType) -> &'static str {
     match ty {
-        WasmType::I32 => "int",
-        WasmType::I64 => "int",
-        WasmType::F32 => "float",
-        WasmType::F64 => "float",
+        WasmType::I32
+        | WasmType::I64
+        | WasmType::Pointer
+        | WasmType::Length
+        | WasmType::PointerOrI64 => "int",
+        WasmType::F32 | WasmType::F64 => "float",
     }
 }
 
