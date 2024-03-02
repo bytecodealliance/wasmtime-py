@@ -12,10 +12,9 @@ heck = { version = "0.4", features = ["unicode"] }
 wit-parser = "0.201.0"
 wit-component = "0.201.0"
 indexmap = "2.0"
-wasmtime-environ = { version = "18.0.1", features = ['component-model'] }
+wasmtime-environ = { version = "18.0.2", features = ['component-model'] }
 wit-bindgen = { version = "0.20.0" }
 wit-bindgen-core = "0.20.0"
-
 
 
 [features]
