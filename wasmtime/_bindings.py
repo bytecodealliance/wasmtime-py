@@ -2303,7 +2303,7 @@ def wasmtime_module_deserialize_file(engine: Any, path: Any, ret: Any) -> ctypes
 
 _wasmtime_module_image_range = dll.wasmtime_module_image_range
 _wasmtime_module_image_range.restype = None
-_wasmtime_module_image_range.argtypes = [POINTER(wasmtime_module_t), POINTER(c_size_t), POINTER(c_size_t)]
+_wasmtime_module_image_range.argtypes = [POINTER(wasmtime_module_t), POINTER(c_void_p), POINTER(c_void_p)]
 def wasmtime_module_image_range(module: Any, start: Any, end: Any) -> None:
     return _wasmtime_module_image_range(module, start, end)  # type: ignore
 
@@ -2856,6 +2856,45 @@ _wasmtime_memory_grow.restype = POINTER(wasmtime_error_t)
 _wasmtime_memory_grow.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_memory_t), c_uint64, POINTER(c_uint64)]
 def wasmtime_memory_grow(store: Any, memory: Any, delta: Any, prev_size: Any) -> ctypes._Pointer:
     return _wasmtime_memory_grow(store, memory, delta, prev_size)  # type: ignore
+
+class wasmtime_guestprofiler(Structure):
+    pass
+
+wasmtime_guestprofiler_t = wasmtime_guestprofiler
+
+_wasmtime_guestprofiler_delete = dll.wasmtime_guestprofiler_delete
+_wasmtime_guestprofiler_delete.restype = None
+_wasmtime_guestprofiler_delete.argtypes = [POINTER(wasmtime_guestprofiler_t)]
+def wasmtime_guestprofiler_delete(guestprofiler: Any) -> None:
+    return _wasmtime_guestprofiler_delete(guestprofiler)  # type: ignore
+
+class wasmtime_guestprofiler_modules(Structure):
+    _fields_ = [
+        ("name", POINTER(wasm_name_t)),
+        ("mod", POINTER(wasmtime_module_t)),
+    ]
+    name: ctypes._Pointer
+    mod: ctypes._Pointer
+
+wasmtime_guestprofiler_modules_t = wasmtime_guestprofiler_modules
+
+_wasmtime_guestprofiler_new = dll.wasmtime_guestprofiler_new
+_wasmtime_guestprofiler_new.restype = POINTER(wasmtime_guestprofiler_t)
+_wasmtime_guestprofiler_new.argtypes = [POINTER(wasm_name_t), c_uint64, POINTER(wasmtime_guestprofiler_modules_t), c_size_t]
+def wasmtime_guestprofiler_new(module_name: Any, interval_nanos: Any, modules: Any, modules_len: Any) -> ctypes._Pointer:
+    return _wasmtime_guestprofiler_new(module_name, interval_nanos, modules, modules_len)  # type: ignore
+
+_wasmtime_guestprofiler_sample = dll.wasmtime_guestprofiler_sample
+_wasmtime_guestprofiler_sample.restype = None
+_wasmtime_guestprofiler_sample.argtypes = [POINTER(wasmtime_guestprofiler_t), POINTER(wasmtime_store_t), c_uint64]
+def wasmtime_guestprofiler_sample(guestprofiler: Any, store: Any, delta_nanos: Any) -> None:
+    return _wasmtime_guestprofiler_sample(guestprofiler, store, delta_nanos)  # type: ignore
+
+_wasmtime_guestprofiler_finish = dll.wasmtime_guestprofiler_finish
+_wasmtime_guestprofiler_finish.restype = POINTER(wasmtime_error_t)
+_wasmtime_guestprofiler_finish.argtypes = [POINTER(wasmtime_guestprofiler_t), POINTER(wasm_byte_vec_t)]
+def wasmtime_guestprofiler_finish(guestprofiler: Any, out: Any) -> ctypes._Pointer:
+    return _wasmtime_guestprofiler_finish(guestprofiler, out)  # type: ignore
 
 _wasmtime_table_new = dll.wasmtime_table_new
 _wasmtime_table_new.restype = POINTER(wasmtime_error_t)
