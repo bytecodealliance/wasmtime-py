@@ -46,6 +46,24 @@ After you've completed the set up steps, you can run the tests locally with
 $ pytest
 ```
 
+### Docker-compose setup
+Docker installation guide can be found [here](https://docs.docker.com/engine/install/)
+In short - all standard docker-compose commands can be used, but we also have some as shortcuts in [Makefile](Makefile).
+```bash
+make start
+```
+To run hello world example:
+```bash
+make hello-world
+```
+To run tests:
+```bash
+make test
+```
+To stop the image:
+```bash
+make stop
+```
 ### CI and Releases
 
 The CI for this project does a few different things:

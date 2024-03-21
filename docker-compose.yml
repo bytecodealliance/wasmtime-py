@@ -1,0 +1,9 @@
+version: "3.8"
+services:
+  app:
+    build: .
+    volumes:
+      - .:/code/wasmtime-py
+      - /code/wasmtime-py/wasmtime/linux-x86_64
+      - /code/wasmtime-py/wasmtime/bindgen/generated
+    working_dir: /code/wasmtime-py
