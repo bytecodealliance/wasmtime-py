@@ -7,14 +7,15 @@ can `import your_wasm_file` which will automatically compile and instantiate
 `your_wasm_file.wasm` and hook it up into Python's module system.
 """
 
-from wasmtime import Module, Linker, Store, WasiConfig
-from wasmtime import Func, Table, Global, Memory
 import sys
 from pathlib import Path
-import importlib
-
+from importlib import import_module
 from importlib.abc import Loader, MetaPathFinder
 from importlib.util import spec_from_file_location
+
+from wasmtime import Module, Linker, Store, WasiConfig
+from wasmtime import Func, Table, Global, Memory
+
 
 predefined_modules = []
 store = Store()
@@ -27,26 +28,6 @@ linker.define_wasi()
 linker.allow_shadowing = True
 
 
-class _WasmtimeMetaFinder(MetaPathFinder):
-    def find_spec(self, fullname, path, target=None):  # type: ignore
-        if not path:
-            path = sys.path
-        if "." in fullname:
-            *parents, name = fullname.split(".")
-        else:
-            name = fullname
-        for entry in path:
-            entry = Path(entry)
-            wasm = entry / (name + ".wasm")
-            if wasm.exists():
-                return spec_from_file_location(fullname, wasm, loader=_WasmtimeLoader())
-            wat = entry / (name + ".wat")
-            if wat.exists():
-                return spec_from_file_location(fullname, wat, loader=_WasmtimeLoader())
-
-        return None
-
-
 class _WasmtimeLoader(Loader):
     def create_module(self, spec):  # type: ignore
         return None  # use default module creation semantics
@@ -56,29 +37,37 @@ class _WasmtimeLoader(Loader):
 
         for wasm_import in wasm_module.imports:
             module_name = wasm_import.module
-            # skip modules predefined in library
             if module_name in predefined_modules:
                 break
             field_name = wasm_import.name
-            imported_module = importlib.import_module(module_name)
+            imported_module = import_module(module_name)
             item = imported_module.__dict__[field_name]
-            if not isinstance(item, Func) and \
-                    not isinstance(item, Table) and \
-                    not isinstance(item, Global) and \
-                    not isinstance(item, Memory):
+            if not isinstance(item, (Func, Table, Global, Memory)):
                 item = Func(store, wasm_import.type, item)
             linker.define(store, module_name, field_name, item)
 
-        res = linker.instantiate(store, wasm_module)
-        exports = res.exports(store)
-        for i, export in enumerate(wasm_module.exports):
-            item = exports.by_index[i]
+        exports = linker.instantiate(store, wasm_module).exports(store)
+        for index, wasm_export in enumerate(wasm_module.exports):
+            item = exports.by_index[index]
             # Calling a function requires a `Store`, so bind the first argument
             # to our loader's store
             if isinstance(item, Func):
                 func = item
                 item = lambda *args,func=func: func(store, *args)  # noqa
-            module.__dict__[export.name] = item
+            module.__dict__[wasm_export.name] = item
 
 
-sys.meta_path.append(_WasmtimeMetaFinder())
+class _WasmtimeMetaPathFinder(MetaPathFinder):
+    def find_spec(self, fullname, path, target=None):  # type: ignore
+        modname = fullname.split(".")[-1]
+        if path is None:
+            path = sys.path
+        for entry in map(Path, path):
+            for suffix in (".wasm", ".wat"):
+                pathname = entry / (modname + suffix)
+                if pathname.exists():
+                    return spec_from_file_location(fullname, pathname, loader=_WasmtimeLoader())
+        return None
+
+
+sys.meta_path.append(_WasmtimeMetaPathFinder())
