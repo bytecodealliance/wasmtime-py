@@ -39,23 +39,20 @@ class _WasmtimeMetaFinder(MetaPathFinder):
             entry = Path(entry)
             wasm = entry / (name + ".wasm")
             if wasm.exists():
-                return spec_from_file_location(fullname, wasm, loader=_WasmtimeLoader(wasm))
+                return spec_from_file_location(fullname, wasm, loader=_WasmtimeLoader())
             wat = entry / (name + ".wat")
             if wat.exists():
-                return spec_from_file_location(fullname, wat, loader=_WasmtimeLoader(wat))
+                return spec_from_file_location(fullname, wat, loader=_WasmtimeLoader())
 
         return None
 
 
 class _WasmtimeLoader(Loader):
-    def __init__(self, filename: str):
-        self.filename = filename
-
     def create_module(self, spec):  # type: ignore
         return None  # use default module creation semantics
 
     def exec_module(self, module):  # type: ignore
-        wasm_module = Module.from_file(store.engine, self.filename)
+        wasm_module = Module.from_file(store.engine, module.__spec__.origin)
 
         for wasm_import in wasm_module.imports:
             module_name = wasm_import.module
