@@ -32,9 +32,8 @@ linker.allow_shadowing = True
 
 class _WasmtimeMetaFinder(MetaPathFinder):
     def find_spec(self, fullname, path, target=None):  # type: ignore
-        if path is None or path == "":
-            path = [Path.cwd()]  # top level import --
-            path.extend(sys.path)
+        if not path:
+            path = sys.path
         if "." in fullname:
             *parents, name = fullname.split(".")
         else:
