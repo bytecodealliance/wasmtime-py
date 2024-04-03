@@ -49,11 +49,9 @@ class _WasmtimeLoader(Loader):
         exports = linker.instantiate(store, wasm_module).exports(store)
         for index, wasm_export in enumerate(wasm_module.exports):
             item = exports.by_index[index]
-            # Calling a function requires a `Store`, so bind the first argument
-            # to our loader's store
             if isinstance(item, Func):
-                func = item
-                item = lambda *args,func=func: func(store, *args)  # noqa
+                # Partially apply `item` to `store`.
+                item = (lambda func: lambda *args: func(store, *args))(item)
             module.__dict__[wasm_export.name] = item
 
 
