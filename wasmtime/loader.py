@@ -26,9 +26,6 @@ predefined_modules.append("wasi_unstable")
 linker.define_wasi()
 linker.allow_shadowing = True
 
-# Mostly copied from
-# https://stackoverflow.com/questions/43571737/how-to-implement-an-import-hook-that-can-modify-the-source-code-on-the-fly-using
-
 
 class _WasmtimeMetaFinder(MetaPathFinder):
     def find_spec(self, fullname, path, target=None):  # type: ignore
@@ -40,9 +37,6 @@ class _WasmtimeMetaFinder(MetaPathFinder):
             name = fullname
         for entry in path:
             entry = Path(entry)
-            py = entry / (name + ".py")
-            if py.exists():
-                continue
             wasm = entry / (name + ".wasm")
             if wasm.exists():
                 return spec_from_file_location(fullname, wasm, loader=_WasmtimeLoader(wasm))
@@ -90,4 +84,4 @@ class _WasmtimeLoader(Loader):
             module.__dict__[export.name] = item
 
 
-sys.meta_path.insert(0, _WasmtimeMetaFinder())
+sys.meta_path.append(_WasmtimeMetaFinder())
