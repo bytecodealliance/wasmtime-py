@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 from importlib import import_module
 from importlib.abc import Loader, MetaPathFinder
-from importlib.util import spec_from_file_location
+from importlib.machinery import ModuleSpec
 
 from wasmtime import Module, Linker, Store, WasiConfig
 from wasmtime import Func, Table, Global, Memory
@@ -62,9 +62,9 @@ class _WasmtimeMetaPathFinder(MetaPathFinder):
             path = sys.path
         for entry in map(Path, path):
             for suffix in (".wasm", ".wat"):
-                pathname = entry / (modname + suffix)
-                if pathname.exists():
-                    return spec_from_file_location(fullname, pathname, loader=_WasmtimeLoader())
+                origin = entry / (modname + suffix)
+                if origin.exists():
+                    return ModuleSpec(fullname, _WasmtimeLoader(), origin=origin)
         return None
 
 
