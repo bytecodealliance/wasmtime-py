@@ -7,14 +7,15 @@ can `import your_wasm_file` which will automatically compile and instantiate
 `your_wasm_file.wasm` and hook it up into Python's module system.
 """
 
-from wasmtime import Module, Linker, Store, WasiConfig
-from wasmtime import Func, Table, Global, Memory
 import sys
 from pathlib import Path
-import importlib
-
+from importlib import import_module
 from importlib.abc import Loader, MetaPathFinder
-from importlib.util import spec_from_file_location
+from importlib.machinery import ModuleSpec
+
+from wasmtime import Module, Linker, Store, WasiConfig
+from wasmtime import Func, Table, Global, Memory
+
 
 predefined_modules = []
 store = Store()
@@ -26,68 +27,45 @@ predefined_modules.append("wasi_unstable")
 linker.define_wasi()
 linker.allow_shadowing = True
 
-# Mostly copied from
-# https://stackoverflow.com/questions/43571737/how-to-implement-an-import-hook-that-can-modify-the-source-code-on-the-fly-using
-
-
-class _WasmtimeMetaFinder(MetaPathFinder):
-    def find_spec(self, fullname, path, target=None):  # type: ignore
-        if not path:
-            path = sys.path
-        if "." in fullname:
-            *parents, name = fullname.split(".")
-        else:
-            name = fullname
-        for entry in path:
-            entry = Path(entry)
-            py = entry / (name + ".py")
-            if py.exists():
-                continue
-            wasm = entry / (name + ".wasm")
-            if wasm.exists():
-                return spec_from_file_location(fullname, wasm, loader=_WasmtimeLoader(wasm))
-            wat = entry / (name + ".wat")
-            if wat.exists():
-                return spec_from_file_location(fullname, wat, loader=_WasmtimeLoader(wat))
-
-        return None
-
 
 class _WasmtimeLoader(Loader):
-    def __init__(self, filename: str):
-        self.filename = filename
-
     def create_module(self, spec):  # type: ignore
         return None  # use default module creation semantics
 
     def exec_module(self, module):  # type: ignore
-        wasm_module = Module.from_file(store.engine, self.filename)
+        wasm_module = Module.from_file(store.engine, module.__spec__.origin)
 
         for wasm_import in wasm_module.imports:
             module_name = wasm_import.module
-            # skip modules predefined in library
             if module_name in predefined_modules:
                 break
             field_name = wasm_import.name
-            imported_module = importlib.import_module(module_name)
+            imported_module = import_module(module_name)
             item = imported_module.__dict__[field_name]
-            if not isinstance(item, Func) and \
-                    not isinstance(item, Table) and \
-                    not isinstance(item, Global) and \
-                    not isinstance(item, Memory):
+            if not isinstance(item, (Func, Table, Global, Memory)):
                 item = Func(store, wasm_import.type, item)
             linker.define(store, module_name, field_name, item)
 
-        res = linker.instantiate(store, wasm_module)
-        exports = res.exports(store)
-        for i, export in enumerate(wasm_module.exports):
-            item = exports.by_index[i]
-            # Calling a function requires a `Store`, so bind the first argument
-            # to our loader's store
+        exports = linker.instantiate(store, wasm_module).exports(store)
+        for index, wasm_export in enumerate(wasm_module.exports):
+            item = exports.by_index[index]
             if isinstance(item, Func):
-                func = item
-                item = lambda *args,func=func: func(store, *args)  # noqa
-            module.__dict__[export.name] = item
+                # Partially apply `item` to `store`.
+                item = (lambda func: lambda *args: func(store, *args))(item)
+            module.__dict__[wasm_export.name] = item
 
 
-sys.meta_path.insert(0, _WasmtimeMetaFinder())
+class _WasmtimeMetaPathFinder(MetaPathFinder):
+    def find_spec(self, fullname, path, target=None):  # type: ignore
+        modname = fullname.split(".")[-1]
+        if path is None:
+            path = sys.path
+        for entry in map(Path, path):
+            for suffix in (".wasm", ".wat"):
+                origin = entry / (modname + suffix)
+                if origin.exists():
+                    return ModuleSpec(fullname, _WasmtimeLoader(), origin=origin)
+        return None
+
+
+sys.meta_path.append(_WasmtimeMetaPathFinder())

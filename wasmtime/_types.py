@@ -381,7 +381,7 @@ class ImportType(Managed["ctypes._Pointer[ffi.wasm_importtype_t]"]):
     @property
     def name(self) -> Optional[str]:
         """
-        Returns the name in the modulethis import type refers toa.
+        Returns the name in the module this import type refers to
 
         Note that `None` may be returned for the module linking proposal where
         the field name is optional.
