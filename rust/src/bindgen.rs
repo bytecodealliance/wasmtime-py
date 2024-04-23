@@ -457,8 +457,8 @@ fn array_ty(resolve: &Resolve, ty: &Type) -> Option<&'static str> {
         Type::S32 => Some("c_int32"),
         Type::U64 => Some("c_uint64"),
         Type::S64 => Some("c_int64"),
-        Type::Float32 => Some("c_float"),
-        Type::Float64 => Some("c_double"),
+        Type::F32 => Some("c_float"),
+        Type::F64 => Some("c_double"),
         Type::Char => None,
         Type::String => None,
         Type::Id(id) => match &resolve.types[*id].kind {
@@ -974,7 +974,7 @@ impl InterfaceGenerator<'_> {
             | Type::S32
             | Type::U64
             | Type::S64 => self.src.push_str("int"),
-            Type::Float32 | Type::Float64 => self.src.push_str("float"),
+            Type::F32 | Type::F64 => self.src.push_str("float"),
             Type::Char => self.src.push_str("str"),
             Type::String => self.src.push_str("str"),
             Type::Id(id) => {
@@ -1843,10 +1843,10 @@ impl Bindgen for FunctionBindgen<'_, '_> {
 
             // Python uses `float` for f32/f64, so everything is equivalent
             // here.
-            Instruction::Float32FromF32
-            | Instruction::Float64FromF64
-            | Instruction::F32FromFloat32
-            | Instruction::F64FromFloat64 => results.push(operands.pop().unwrap()),
+            Instruction::CoreF32FromF32
+            | Instruction::CoreF64FromF64
+            | Instruction::F32FromCoreF32
+            | Instruction::F64FromCoreF64 => results.push(operands.pop().unwrap()),
 
             // Validate that i32 values coming from wasm are indeed valid code
             // points.

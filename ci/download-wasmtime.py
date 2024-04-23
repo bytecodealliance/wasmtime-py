@@ -10,7 +10,7 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
-WASMTIME_VERSION = "dev"
+WASMTIME_VERSION = "v20.0.0"
 
 
 def main(platform, arch):
