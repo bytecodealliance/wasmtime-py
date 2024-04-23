@@ -1,10 +1,10 @@
 from contextlib import contextmanager
 from ctypes import POINTER, byref, CFUNCTYPE, c_void_p, cast
 import ctypes
-from wasmtime import Store, FuncType, Val, IntoVal, Trap, WasmtimeError
+from wasmtime import Store, FuncType, Val, Trap, WasmtimeError
 from . import _ffi as ffi
 from ._extern import wrap_extern
-from typing import Callable, Optional, Generic, TypeVar, List, Union, Tuple, cast as cast_type, Sequence
+from typing import Callable, Optional, Generic, TypeVar, List, Union, Tuple, cast as cast_type, Sequence, Any
 from ._exportable import AsExtern
 from ._store import Storelike
 
@@ -56,7 +56,7 @@ class Func:
         ptr = ffi.wasmtime_func_type(store._context(), byref(self._func))
         return FuncType._from_ptr(ptr, None)
 
-    def __call__(self, store: Storelike, *params: IntoVal) -> Union[IntoVal, Sequence[IntoVal], None]:
+    def __call__(self, store: Storelike, *params: Any) -> Any:
         """
         Calls this function with the given parameters
 
@@ -80,29 +80,34 @@ class Func:
             raise WasmtimeError("too few parameters provided: given %s, expected %s" %
                                 (len(params), len(param_tys)))
 
-        param_vals = [Val._convert(ty, params[i]) for i, ty in enumerate(param_tys)]
         params_ptr = (ffi.wasmtime_val_t * len(params))()
-        for i, val in enumerate(param_vals):
-            params_ptr[i] = val._unwrap_raw()
+        params_set = 0
+        try:
+            for val in params:
+                params_ptr[params_set] = Val._convert_to_raw(store, param_tys[params_set], val)
+                params_set += 1
 
-        result_tys = ty.results
-        results_ptr = (ffi.wasmtime_val_t * len(result_tys))()
+            result_tys = ty.results
+            results_ptr = (ffi.wasmtime_val_t * len(result_tys))()
 
-        with enter_wasm(store) as trap:
-            error = ffi.wasmtime_func_call(
-                store._context(),
-                byref(self._func),
-                params_ptr,
-                len(params),
-                results_ptr,
-                len(result_tys),
-                trap)
-            if error:
-                raise WasmtimeError._from_ptr(error)
+            with enter_wasm(store) as trap:
+                error = ffi.wasmtime_func_call(
+                    store._context(),
+                    byref(self._func),
+                    params_ptr,
+                    len(params),
+                    results_ptr,
+                    len(result_tys),
+                    trap)
+                if error:
+                    raise WasmtimeError._from_ptr(error)
+        finally:
+            for i in range(0, params_set):
+                ffi.wasmtime_val_delete(store._context(), byref(params_ptr[i]))
 
         results = []
         for i in range(0, len(result_tys)):
-            results.append(Val(results_ptr[i]).value)
+            results.append(Val._from_raw(store, results_ptr[i]).value)
         if len(results) == 0:
             return None
         elif len(results) == 1:
@@ -173,7 +178,7 @@ class Caller:
         self.__context = None
 
 
-def extract_val(val: Val) -> IntoVal:
+def extract_val(val: Val) -> Any:
     a = val.value
     if a is not None:
         return a
@@ -190,31 +195,19 @@ def trampoline(idx, caller, params, nparams, results, nresults):
             pyparams.append(caller)
 
         for i in range(0, nparams):
-            pyparams.append(Val._value(params[i]))
+            pyparams.append(Val._from_raw(caller, params[i], owned=False).value)
         pyresults = func(*pyparams)
         if nresults == 0:
             if pyresults is not None:
                 raise WasmtimeError(
                     "callback produced results when it shouldn't")
         elif nresults == 1:
-            if isinstance(pyresults, Val):
-                # Because we are taking the inner value with `_into_raw`, we
-                # need to ensure that we have a unique `Val`.
-                val = pyresults._clone()
-            else:
-                val = Val._convert(result_tys[0], pyresults)
-            results[0] = val._into_raw()
+            results[0] = Val._convert_to_raw(caller, result_tys[0], pyresults)
         else:
             if len(pyresults) != nresults:
                 raise WasmtimeError("callback produced wrong number of results")
             for i, result in enumerate(pyresults):
-                # Because we are taking the inner value with `_into_raw`, we
-                # need to ensure that we have a unique `Val`.
-                if isinstance(result, Val):
-                    val = result._clone()
-                else:
-                    val = Val._convert(result_tys[i], result)
-                results[i] = val._into_raw()
+                results[i] = Val._convert_to_raw(caller, result_tys[i], result)
         return 0
     except Exception as e:
         global LAST_EXCEPTION

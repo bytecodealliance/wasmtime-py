@@ -1,6 +1,6 @@
 from . import _ffi as ffi
 from ctypes import *
-from wasmtime import TableType, Store, WasmtimeError, IntoVal, Val
+from wasmtime import TableType, Store, WasmtimeError, Val
 from typing import Optional, Any
 from ._store import Storelike
 
@@ -8,15 +8,16 @@ from ._store import Storelike
 class Table:
     _table: ffi.wasmtime_table_t
 
-    def __init__(self, store: Store, ty: TableType, init: IntoVal):
+    def __init__(self, store: Store, ty: TableType, init: Any):
         """
         Creates a new table within `store` with the specified `ty`.
         """
 
-        init_val = Val._convert(ty.element, init)
+        init_val = Val._convert_to_raw(store, ty.element, init)
 
         table = ffi.wasmtime_table_t()
-        error = ffi.wasmtime_table_new(store._context(), ty.ptr(), byref(init_val._unwrap_raw()), byref(table))
+        error = ffi.wasmtime_table_new(store._context(), ty.ptr(), byref(init_val), byref(table))
+        ffi.wasmtime_val_delete(store._context(), byref(init_val))
         if error:
             raise WasmtimeError._from_ptr(error)
         self._table = table
@@ -41,7 +42,7 @@ class Table:
         """
         return ffi.wasmtime_table_size(store._context(), byref(self._table))
 
-    def grow(self, store: Storelike, amt: int, init: IntoVal) -> int:
+    def grow(self, store: Storelike, amt: int, init: Any) -> int:
         """
         Grows this table by the specified number of slots, using the specified
         initializer for all new table slots.
@@ -49,9 +50,10 @@ class Table:
         Raises a `WasmtimeError` if the table could not be grown.
         Returns the previous size of the table otherwise.
         """
-        init_val = Val._convert(self.type(store).element, init)
+        init_val = Val._convert_to_raw(store, self.type(store).element, init)
         prev = c_uint32(0)
-        error = ffi.wasmtime_table_grow(store._context(), byref(self._table), c_uint32(amt), byref(init_val._unwrap_raw()), byref(prev))
+        error = ffi.wasmtime_table_grow(store._context(), byref(self._table), c_uint32(amt), byref(init_val), byref(prev))
+        ffi.wasmtime_val_delete(store._context(), byref(init_val))
         if error:
             raise WasmtimeError._from_ptr(error)
         return prev.value
@@ -73,13 +75,13 @@ class Table:
         ok = ffi.wasmtime_table_get(store._context(), byref(self._table), idx, byref(raw))
         if not ok:
             return None
-        val = Val(raw)
+        val = Val._from_raw(store, raw)
         if val.value:
             return val.value
         else:
             return val
 
-    def set(self, store: Store, idx: int, val: IntoVal) -> None:
+    def set(self, store: Store, idx: int, val: Any) -> None:
         """
         Sets an individual element within this table.
 
@@ -92,8 +94,9 @@ class Table:
 
         Raises a `WasmtimeError` if `idx` is out of bounds.
         """
-        value = Val._convert(self.type(store).element, val)
-        error = ffi.wasmtime_table_set(store._context(), byref(self._table), idx, byref(value._unwrap_raw()))
+        value = Val._convert_to_raw(store, self.type(store).element, val)
+        error = ffi.wasmtime_table_set(store._context(), byref(self._table), idx, byref(value))
+        ffi.wasmtime_val_delete(store._context(), byref(value))
         if error:
             raise WasmtimeError._from_ptr(error)
 
