@@ -36,9 +36,10 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::Write;
 use std::mem;
 use wasmtime_environ::component::{
-    CanonicalOptions, Component, ComponentTypesBuilder, CoreDef, CoreExport, Export, ExportItem,
-    GlobalInitializer, InstantiateModule, LoweredIndex, RuntimeImportIndex, RuntimeInstanceIndex,
-    StaticModuleIndex, StringEncoding, Trampoline, TrampolineIndex, Translator, TypeFuncIndex,
+    CanonicalOptions, Component, ComponentTypes, ComponentTypesBuilder, CoreDef, CoreExport,
+    Export, ExportItem, GlobalInitializer, InstantiateModule, InterfaceType, LoweredIndex,
+    ResourceIndex, RuntimeImportIndex, RuntimeInstanceIndex, StaticModuleIndex, StringEncoding,
+    Trampoline, TrampolineIndex, Translator, TypeFuncIndex, TypeResourceTableIndex,
 };
 use wasmtime_environ::wasmparser::{Validator, WasmFeatures};
 use wasmtime_environ::{EntityIndex, ModuleTranslation, PrimaryMap, ScopeVec, Tunables};
@@ -76,6 +77,31 @@ pub struct WasmtimePy {
     exported_interfaces: HashMap<InterfaceId, String>,
 
     lowerings: PrimaryMap<LoweredIndex, (TrampolineIndex, TypeFuncIndex, CanonicalOptions)>,
+    resource_trampolines: Vec<(TrampolineIndex, Trampoline)>,
+}
+
+pub type ResourceMap = BTreeMap<TypeId, ResourceTable>;
+
+pub struct ResourceTable {
+    pub imported: bool,
+    pub data: ResourceData,
+}
+
+pub enum ResourceData {
+    Host {
+        tid: TypeResourceTableIndex,
+        rid: ResourceIndex,
+        local_name: String,
+    },
+}
+
+pub fn dealias(resolve: &Resolve, mut id: TypeId) -> TypeId {
+    loop {
+        match &resolve.types[id].kind {
+            TypeDefKind::Type(Type::Id(that_id)) => id = *that_id,
+            _ => break id,
+        }
+    }
 }
 
 impl WasmtimePy {
@@ -181,9 +207,18 @@ impl WasmtimePy {
                 }
                 Trampoline::Transcoder { .. } => unimplemented!(),
                 Trampoline::AlwaysTrap => unimplemented!(),
-                Trampoline::ResourceNew(_) => unimplemented!(),
-                Trampoline::ResourceRep(_) => unimplemented!(),
-                Trampoline::ResourceDrop(_) => unimplemented!(),
+                Trampoline::ResourceNew(idx) => {
+                    self.resource_trampolines
+                        .push((trampoline_index, Trampoline::ResourceNew(*idx)));
+                }
+                Trampoline::ResourceRep(idx) => {
+                    self.resource_trampolines
+                        .push((trampoline_index, Trampoline::ResourceRep(*idx)));
+                }
+                Trampoline::ResourceDrop(idx) => {
+                    self.resource_trampolines
+                        .push((trampoline_index, Trampoline::ResourceDrop(*idx)));
+                }
                 Trampoline::ResourceEnterCall => unimplemented!(),
                 Trampoline::ResourceExitCall => unimplemented!(),
                 Trampoline::ResourceTransferOwn => unimplemented!(),
@@ -191,10 +226,11 @@ impl WasmtimePy {
             }
         }
 
+        let comp_types = types.finish(&PrimaryMap::new(), Vec::new(), Vec::new()).0;
         // And finally generate the code necessary to instantiate the given
         // component to this method using the `Component` that
         // `wasmtime-environ` parsed.
-        self.instantiate(&resolve, id, &component.component, &modules);
+        self.instantiate(&resolve, id, &component.component, &modules, &comp_types);
 
         self.finish_component(&world.name, files);
 
@@ -260,6 +296,7 @@ impl WasmtimePy {
         id: WorldId,
         component: &Component,
         modules: &PrimaryMap<StaticModuleIndex, ModuleTranslation<'_>>,
+        types: &ComponentTypes,
     ) {
         self.init.pyimport("wasmtime", None);
 
@@ -292,23 +329,26 @@ impl WasmtimePy {
             world: id,
             instances: PrimaryMap::default(),
             lifts: 0,
+            resource_tables_initialized: vec![false; component.num_resource_tables],
+            types,
         };
+        i.gen_canon_resources();
         for init in component.initializers.iter() {
             i.global_initializer(init);
         }
         if component.initializers.len() == 0 {
             i.gen.init.push_str("pass\n");
         }
-        let (lifts, nested) = i.exports(&component.exports);
+        let (lifts, nested, resource_map) = i.exports(&component.exports);
         i.gen.init.dedent();
 
-        i.generate_lifts(&camel, None, &lifts);
+        i.generate_lifts(&camel, None, &lifts, &resource_map);
         for (package_name, lifts) in nested {
             let name = match package_name.find("/") {
                 Some(pos) => package_name.split_at(pos + 1).1,
                 None => &package_name,
             };
-            i.generate_lifts(&camel, Some(name), &lifts);
+            i.generate_lifts(&camel, Some(name), &lifts, &resource_map);
         }
         i.gen.init.dedent();
     }
@@ -477,6 +517,8 @@ struct Instantiator<'a> {
     component: &'a Component,
     lifts: usize,
     resolve: &'a Resolve,
+    resource_tables_initialized: Vec<bool>,
+    types: &'a ComponentTypes,
 }
 
 struct Lift<'a> {
@@ -531,8 +573,109 @@ impl<'a> Instantiator<'a> {
 
             GlobalInitializer::LowerImport { index, import } => self.lower_import(*index, *import),
 
-            GlobalInitializer::Resource(_) => unimplemented!(),
+            GlobalInitializer::Resource(_) => {}
         }
+    }
+
+    fn gen_canon_resources(&mut self) {
+        self.gen_resource_handle_tables();
+        for (tid, trampoline) in self.gen.resource_trampolines.iter() {
+            let tidx = tid.as_u32();
+            match trampoline {
+                Trampoline::ResourceNew(rid) => {
+                    let resource_id = rid.as_u32();
+                    let handle_add = &format!("_handle_add_{resource_id}");
+                    uwriteln!(self.gen.init, "def _resource_new_{resource_id}(rep):");
+                    self.gen.init.indent();
+                    uwriteln!(self.gen.init, "return {handle_add}((rep, True))");
+                    self.gen.init.dedent();
+                    uwriteln!(
+                        self.gen.init,
+                        "_resource_new_{resource_id}_ty = wasmtime.FuncType([wasmtime.ValType.i32()], [wasmtime.ValType.i32()])"
+                    );
+                    uwriteln!(
+                        self.gen.init,
+                        "trampoline{tidx} = wasmtime.Func(store, _resource_new_{resource_id}_ty, _resource_new_{resource_id})"
+                    )
+                }
+                Trampoline::ResourceDrop(rid) => {
+                    let resource_id = rid.as_u32();
+                    uwriteln!(self.gen.init, "def _resource_drop_{resource_id}(rep):");
+                    self.gen.init.indent();
+                    uwriteln!(self.gen.init, "_handle_remove_{resource_id}(rep)");
+                    self.gen.init.dedent();
+                    uwriteln!(
+                        self.gen.init,
+                        "_resource_drop_{resource_id}_ty = wasmtime.FuncType([wasmtime.ValType.i32()], [])"
+                    );
+                    uwriteln!(
+                        self.gen.init,
+                        "trampoline{tidx} = wasmtime.Func(store, _resource_drop_{resource_id}_ty, _resource_drop_{resource_id})"
+                    );
+                }
+                Trampoline::ResourceRep(_) => {}
+                _ => unreachable!(),
+            }
+        }
+    }
+
+    fn gen_resource_handle_tables(&mut self) {
+        let table_indices = self
+            .gen
+            .resource_trampolines
+            .iter()
+            .map(|(_, trampoline)| match trampoline {
+                Trampoline::ResourceNew(idx)
+                | Trampoline::ResourceRep(idx)
+                | Trampoline::ResourceDrop(idx) => *idx,
+                _ => unreachable!(),
+            })
+            .collect::<Vec<_>>();
+        for table_idx in table_indices {
+            self.ensure_resource_table(&table_idx);
+        }
+    }
+
+    fn ensure_resource_table(&mut self, rid: &TypeResourceTableIndex) {
+        let resource_id = rid.as_u32();
+        if self.resource_tables_initialized[resource_id as usize] {
+            return;
+        }
+        self.resource_tables_initialized[resource_id as usize] = true;
+        self.gen.init.pyimport("typing", "Tuple");
+        self.gen.init.pyimport("typing", "List");
+        self.gen.init.pyimport("typing", "Optional");
+        let table_name = &format!("_handle_table_{resource_id}");
+        let free_list = &format!("_handle_table_free{resource_id}");
+        uwriteln!(
+            self.gen.init,
+            "{table_name}: List[Optional[Tuple[int, bool]]] = []"
+        );
+        uwriteln!(self.gen.init, "{free_list}: List[int] = []");
+        let add_entry = &format!(
+            "
+            def _handle_add_{resource_id}(entry):
+                if {free_list}:
+                    idx = {free_list}.pop()
+                    {table_name}[idx] = entry
+                    return idx
+                else:
+                    {table_name}.append(entry)
+                    return len({table_name}) - 1
+            self._handle_add_{resource_id} = _handle_add_{resource_id}"
+        );
+        self.gen.init.push_str(add_entry);
+        let remove_entry = &format!(
+            "
+            def _handle_remove_{resource_id}(i):
+                entry = {table_name}[i]
+                {table_name}[i] = None
+                {free_list}.append(i)
+                return entry
+            self._handle_remove_{resource_id} = _handle_remove_{resource_id}
+        "
+        );
+        self.gen.init.push_str(remove_entry);
     }
 
     fn instantiate_static_module(&mut self, idx: StaticModuleIndex, args: &[CoreDef]) {
@@ -655,6 +798,9 @@ impl<'a> Instantiator<'a> {
             "self",
             interface,
             true,
+            // None is being passed for the resource_map because
+            // support for importing resources isn't implemented yet.
+            None,
         );
         self.gen.init.dedent();
 
@@ -687,6 +833,7 @@ impl<'a> Instantiator<'a> {
         this: &str,
         interface: Option<InterfaceId>,
         at_root: bool,
+        resource_map: Option<&ResourceMap>,
     ) {
         // Technically it wouldn't be the hardest thing in the world to support
         // other string encodings, but for now the code generator was originally
@@ -731,6 +878,7 @@ impl<'a> Instantiator<'a> {
             realloc,
             params,
             post_return,
+            resource_map,
         };
         abi::call(
             self.resolve,
@@ -787,9 +935,10 @@ impl<'a> Instantiator<'a> {
     fn exports(
         &mut self,
         exports: &'a IndexMap<String, Export>,
-    ) -> (Vec<Lift<'a>>, BTreeMap<&'a str, Vec<Lift<'a>>>) {
+    ) -> (Vec<Lift<'a>>, BTreeMap<&'a str, Vec<Lift<'a>>>, ResourceMap) {
         let mut toplevel = Vec::new();
         let mut nested = BTreeMap::new();
+        let mut resource_map = ResourceMap::new();
         let world_exports_by_string = self.resolve.worlds[self.world]
             .exports
             .iter()
@@ -823,8 +972,8 @@ impl<'a> Instantiator<'a> {
                     };
                     let mut lifts = Vec::new();
                     for (name, export) in exports {
-                        let (callee, options) = match export {
-                            Export::LiftedFunction { func, options, .. } => (func, options),
+                        let (callee, options, func_ty) = match export {
+                            Export::LiftedFunction { func, options, ty } => (func, options, ty),
                             Export::Type(_) => continue,
                             Export::ModuleStatic(_)
                             | Export::ModuleImport { .. }
@@ -832,6 +981,7 @@ impl<'a> Instantiator<'a> {
                         };
                         let callee = self.gen_lift_callee(callee);
                         let func = &self.resolve.interfaces[id].functions[name];
+                        self.create_resource_fn_map(func, func_ty, &mut resource_map);
                         lifts.push(Lift {
                             callee,
                             opts: options,
@@ -851,7 +1001,115 @@ impl<'a> Instantiator<'a> {
                 Export::ModuleStatic(_) | Export::ModuleImport { .. } => unimplemented!(),
             }
         }
-        (toplevel, nested)
+        (toplevel, nested, resource_map)
+    }
+
+    fn create_resource_fn_map(
+        &mut self,
+        func: &Function,
+        ty_func_idx: &TypeFuncIndex,
+        resource_map: &mut ResourceMap,
+    ) {
+        let params_ty = &self.types[self.types[*ty_func_idx].params];
+        let modeled_types = func.params.iter().map(|(_, ty)| ty);
+        for (modeled_ty, runtime_ty) in modeled_types.zip(params_ty.types.iter()) {
+            if let Type::Id(id) = modeled_ty {
+                self.connect_resource_types(*id, runtime_ty, resource_map);
+            }
+        }
+    }
+
+    fn connect_resource_types(
+        &mut self,
+        id: TypeId,
+        iface_ty: &InterfaceType,
+        resource_map: &mut ResourceMap,
+    ) {
+        let kind = &self.resolve.types[id].kind;
+        match (kind, iface_ty) {
+            (TypeDefKind::Flags(_), InterfaceType::Flags(_))
+            | (TypeDefKind::Enum(_), InterfaceType::Enum(_)) => {}
+            (TypeDefKind::Record(t1), InterfaceType::Record(t2)) => {
+                let t2 = &self.types[*t2];
+                for (f1, f2) in t1.fields.iter().zip(t2.fields.iter()) {
+                    if let Type::Id(id) = f1.ty {
+                        self.connect_resource_types(id, &f2.ty, resource_map);
+                    }
+                }
+            }
+            (
+                TypeDefKind::Handle(Handle::Own(t1) | Handle::Borrow(t1)),
+                InterfaceType::Own(t2) | InterfaceType::Borrow(t2),
+            ) => {
+                self.connect_resources(*t1, *t2, resource_map);
+            }
+            (TypeDefKind::Tuple(t1), InterfaceType::Tuple(t2)) => {
+                let t2 = &self.types[*t2];
+                for (f1, f2) in t1.types.iter().zip(t2.types.iter()) {
+                    if let Type::Id(id) = f1 {
+                        self.connect_resource_types(*id, f2, resource_map);
+                    }
+                }
+            }
+            (TypeDefKind::Variant(t1), InterfaceType::Variant(t2)) => {
+                let t2 = &self.types[*t2];
+                for (f1, f2) in t1.cases.iter().zip(t2.cases.iter()) {
+                    if let Some(Type::Id(id)) = &f1.ty {
+                        self.connect_resource_types(*id, f2.1.as_ref().unwrap(), resource_map);
+                    }
+                }
+            }
+            (TypeDefKind::Option(t1), InterfaceType::Option(t2)) => {
+                let t2 = &self.types[*t2];
+                if let Type::Id(id) = t1 {
+                    self.connect_resource_types(*id, &t2.ty, resource_map);
+                }
+            }
+            (TypeDefKind::Result(t1), InterfaceType::Result(t2)) => {
+                let t2 = &self.types[*t2];
+                if let Some(Type::Id(id)) = &t1.ok {
+                    self.connect_resource_types(*id, &t2.ok.unwrap(), resource_map);
+                }
+                if let Some(Type::Id(id)) = &t1.err {
+                    self.connect_resource_types(*id, &t2.err.unwrap(), resource_map);
+                }
+            }
+            (TypeDefKind::List(t1), InterfaceType::List(t2)) => {
+                let t2 = &self.types[*t2];
+                if let Type::Id(id) = t1 {
+                    self.connect_resource_types(*id, &t2.element, resource_map);
+                }
+            }
+            (TypeDefKind::Type(ty), _) => {
+                if let Type::Id(id) = ty {
+                    self.connect_resource_types(*id, iface_ty, resource_map);
+                }
+            }
+            (_, _) => unreachable!(),
+        }
+    }
+
+    fn connect_resources(
+        &mut self,
+        t: TypeId,
+        tid: TypeResourceTableIndex,
+        resource_map: &mut ResourceMap,
+    ) {
+        self.ensure_resource_table(&tid);
+        let imported = self
+            .component
+            .defined_resource_index(self.types[tid].ty)
+            .is_none();
+        let local_name = self.resolve.types[t].name.as_ref().unwrap();
+        let entry = ResourceTable {
+            imported,
+            data: ResourceData::Host {
+                tid,
+                rid: self.types[tid].ty,
+                local_name: local_name.to_string(),
+            },
+        };
+        resource_map.insert(t, entry);
     }
 
     fn gen_lift_callee(&mut self, callee: &CoreDef) -> String {
@@ -867,7 +1125,13 @@ impl<'a> Instantiator<'a> {
         callee
     }
 
-    fn generate_lifts(&mut self, camel_component: &str, ns: Option<&str>, lifts: &[Lift<'_>]) {
+    fn generate_lifts(
+        &mut self,
+        camel_component: &str,
+        ns: Option<&str>,
+        lifts: &[Lift<'_>],
+        resource_map: &ResourceMap,
+    ) {
         let mut this = "self".to_string();
 
         // If these exports are going into a non-default interface then a new
@@ -876,6 +1140,18 @@ impl<'a> Instantiator<'a> {
         // field of the root class, and then an associated constructor for the
         // root class to have. Finally the root class grows a method here as
         // well to return the nested instance.
+        // Any resources and corresponding methods will be generated in separate, individual
+        // classes from the class associated with the non-default interface.  This provides a more
+        // idiomatic mapping to resources in Python.
+        let mut resource_lifts: IndexMap<TypeId, Vec<&Lift<'_>>> = IndexMap::new();
+        for lift in lifts {
+            if let FunctionKind::Constructor(ty)
+            | FunctionKind::Method(ty)
+            | FunctionKind::Static(ty) = lift.func.kind
+            {
+                resource_lifts.entry(ty).or_default().push(lift);
+            }
+        }
         if let Some(ns) = ns {
             let src = self.gen.exports.get_mut(ns).unwrap();
             let camel = ns.to_upper_camel_case().escape();
@@ -890,6 +1166,15 @@ impl<'a> Instantiator<'a> {
             );
             src.indent();
             uwriteln!(src, "self.component = component");
+            // Bind any resource types here in the init so they're available
+            // via `self.MyResourceName`.
+            for (ty, _) in resource_lifts.iter() {
+                let resource_name = self.resolve.types[*ty].name.as_ref().unwrap();
+                let cls_name = resource_name.to_upper_camel_case().escape();
+                let create_closure_name =
+                    format!("_create_{}", resource_name.to_snake_case().escape());
+                uwriteln!(src, "self.{cls_name} = {create_closure_name}(component)");
+            }
             src.dedent();
 
             this.push_str(".component");
@@ -906,6 +1191,15 @@ impl<'a> Instantiator<'a> {
         }
 
         for lift in lifts {
+            if let FunctionKind::Constructor(_)
+            | FunctionKind::Method(_)
+            | FunctionKind::Static(_) = lift.func.kind
+            {
+                // Function kinds on resources get generated in a separate class
+                // specific to the corresponding resource type so we skip them
+                // in the top level class for the interface.
+                continue;
+            }
             // Go through some small gymnastics to print the function signature
             // here.
             let mut gen = InterfaceGenerator {
@@ -932,13 +1226,64 @@ impl<'a> Instantiator<'a> {
                 &this,
                 lift.interface,
                 ns.is_none(),
+                Some(resource_map),
             );
             self.gen.init.dedent();
         }
 
+        for (resource_ty, lifts) in resource_lifts {
+            //
+            let resource_name = self.resolve.types[resource_ty].name.as_ref().unwrap();
+            let cls_name = resource_name.to_upper_camel_case().escape();
+            let create_closure_name = format!("_create_{}", resource_name.to_snake_case().escape());
+            self.gen.init.dedent();
+            self.gen.init.pyimport("typing", "Type");
+            self.gen.init.push_str(&format!(
+                "\n\ndef {create_closure_name}(component: 'Root') -> Type[{cls_name}]:\n"
+            ));
+            self.gen.init.indent();
+            self.gen.init.push_str(&format!("class _{cls_name}:\n"));
+            self.gen.init.indent();
+            for lift in lifts {
+                let mut gen = InterfaceGenerator {
+                    resolve: self.resolve,
+                    src: mem::take(&mut self.gen.init),
+                    gen: self.gen,
+                    interface: lift.interface,
+                    at_root: ns.is_none(),
+                };
+                let params = gen.print_sig(lift.func, false);
+                let src = mem::take(&mut gen.src);
+                self.gen.init = src;
+                self.gen.init.push_str(":\n");
+
+                // Defer to `self.bindgen` for the body of the function.
+                self.gen.init.indent();
+                self.gen.init.docstring(&lift.func.docs);
+                if let FunctionKind::Constructor(_) = lift.func.kind {
+                    // Bind the component from the closure so we can reference it other
+                    // methods for this resource.
+                    self.gen.init.push_str("self.component = component\n");
+                }
+                self.bindgen(
+                    params,
+                    format!("self.component.{}", lift.callee),
+                    lift.opts,
+                    lift.func,
+                    AbiVariant::GuestExport,
+                    &this,
+                    lift.interface,
+                    ns.is_none(),
+                    Some(resource_map),
+                );
+                self.gen.init.dedent();
+            }
+            self.gen.init.dedent();
+            self.gen.init.push_str(&format!("return _{cls_name}"));
+        }
+
         // Undo the swap done above.
         if let Some(ns) = ns {
-            self.gen.init.dedent();
             mem::swap(&mut self.gen.init, self.gen.exports.get_mut(ns).unwrap());
         }
     }
@@ -1057,7 +1402,14 @@ impl InterfaceGenerator<'_> {
                         self.print_optional_ty(s.end.as_ref(), true);
                         self.src.push_str("]");
                     }
-                    TypeDefKind::Resource | TypeDefKind::Handle(_) => unimplemented!(),
+                    TypeDefKind::Resource => unimplemented!(),
+                    TypeDefKind::Handle(Handle::Own(t) | Handle::Borrow(t)) => {
+                        let ty = &self.resolve.types[*t];
+                        // Assuming that handles always refer to a resource type.
+                        if let Some(name) = &ty.name {
+                            self.src.push_str(&name.to_upper_camel_case().escape());
+                        }
+                    }
                     TypeDefKind::Unknown => unreachable!(),
                 }
             }
@@ -1100,7 +1452,12 @@ impl InterfaceGenerator<'_> {
 
     fn print_sig(&mut self, func: &Function, in_import: bool) -> Vec<String> {
         self.src.push_str("def ");
-        self.src.push_str(&func.name.to_snake_case().escape());
+        let func_name = func.item_name().to_snake_case().escape();
+        let py_name = match func.kind {
+            FunctionKind::Constructor(_) => "__init__",
+            _ => &func_name,
+        };
+        self.src.push_str(py_name);
         if in_import {
             self.src.push_str("(self");
         } else {
@@ -1108,7 +1465,19 @@ impl InterfaceGenerator<'_> {
             self.src.push_str("(self, caller: wasmtime.Store");
         }
         let mut params = Vec::new();
-        for (param, ty) in func.params.iter() {
+        let func_params = match func.kind {
+            FunctionKind::Method(_) => {
+                // Methods are generated as a separate class where the `self` is already bound
+                // to the resource type, so we don't want to add in the signature.
+                // However, we still want this as part of the params that are used in
+                // FunctionBindgen when generating the lowering to core wasm.
+                let self_param = &func.params[0].0;
+                params.push(self_param.to_snake_case().escape());
+                &func.params[1..]
+            }
+            _ => &func.params,
+        };
+        for (param, ty) in func_params.iter() {
             self.src.push_str(", ");
             self.src.push_str(&param.to_snake_case().escape());
             params.push(param.to_snake_case().escape());
@@ -1118,7 +1487,11 @@ impl InterfaceGenerator<'_> {
         self.src.push_str(") -> ");
         match func.results.len() {
             0 => self.src.push_str("None"),
-            1 => self.print_ty(func.results.iter_types().next().unwrap(), true),
+            1 => match func.kind {
+                // The return type of `__init__` in Python is always `None`.
+                FunctionKind::Constructor(_) => self.src.push_str("None"),
+                _ => self.print_ty(func.results.iter_types().next().unwrap(), true),
+            },
             _ => {
                 self.src.pyimport("typing", "Tuple");
                 self.src.push_str("Tuple[");
@@ -1150,7 +1523,8 @@ impl InterfaceGenerator<'_> {
                 TypeDefKind::Type(t) => self.type_alias(id, name, t, &ty.docs),
                 TypeDefKind::Future(_) => todo!("generate for future"),
                 TypeDefKind::Stream(_) => todo!("generate for stream"),
-                TypeDefKind::Resource | TypeDefKind::Handle(_) => unimplemented!(),
+                TypeDefKind::Resource => self.type_resource(ty, id, name, interface),
+                TypeDefKind::Handle(_) => unimplemented!(),
                 TypeDefKind::Unknown => unreachable!(),
             }
         }
@@ -1318,6 +1692,40 @@ impl InterfaceGenerator<'_> {
         self.src.push_str("\n");
     }
 
+    fn type_resource(&mut self, _ty: &TypeDef, id: TypeId, name: &str, interface: InterfaceId) {
+        self.src.pyimport("typing", "Protocol");
+        let cls_name = name.to_upper_camel_case().escape();
+        let methods = self.resolve.interfaces[interface]
+            .functions
+            .iter()
+            .filter_map(|(_, func)| match func.kind {
+                FunctionKind::Method(t)
+                | FunctionKind::Static(t)
+                | FunctionKind::Constructor(t) => {
+                    if t == id {
+                        Some(func)
+                    } else {
+                        None
+                    }
+                }
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+        self.src
+            .push_str(&format!("class {}(Protocol):\n", cls_name));
+        self.src.indent();
+        for method in &methods {
+            self.print_sig(method, false);
+            self.src.push_str(": ...\n");
+        }
+        if methods.is_empty() {
+            self.src.push_str("pass\n\n");
+        } else {
+            self.src.push_str("\n\n");
+        }
+        self.src.dedent();
+    }
+
     fn import_shared_type(&mut self, ty: &str) {
         let path = if self.at_root { ".types" } else { "..types" };
         self.src.pyimport(path, ty);
@@ -1373,6 +1781,7 @@ struct FunctionBindgen<'a, 'b> {
     realloc: Option<String>,
     post_return: Option<String>,
     callee: String,
+    resource_map: Option<&'a ResourceMap>,
 }
 
 impl FunctionBindgen<'_, '_> {
@@ -2443,18 +2852,21 @@ impl Bindgen for FunctionBindgen<'_, '_> {
                 self.gen.src.push_str("\n");
             }
 
-            Instruction::Return { amt, .. } => {
+            Instruction::Return { amt, func } => {
                 if let Some(s) = &self.post_return {
                     self.gen.src.push_str(&format!("{s}(caller, ret)\n"));
                 }
-                match amt {
-                    0 => {}
-                    1 => self.gen.src.push_str(&format!("return {}\n", operands[0])),
-                    _ => {
-                        self.gen
-                            .src
-                            .push_str(&format!("return ({})\n", operands.join(", ")));
-                    }
+                match func.kind {
+                    FunctionKind::Constructor(_) => {} // No return value for __init__
+                    _ => match amt {
+                        0 => {}
+                        1 => self.gen.src.push_str(&format!("return {}\n", operands[0])),
+                        _ => {
+                            self.gen
+                                .src
+                                .push_str(&format!("return ({})\n", operands.join(", ")));
+                        }
+                    },
                 }
             }
 
@@ -2488,6 +2900,25 @@ impl Bindgen for FunctionBindgen<'_, '_> {
                 );
                 uwriteln!(self.gen.src, "assert(isinstance({ptr}, int))");
                 results.push(ptr);
+            }
+            Instruction::HandleLift { handle, .. } => {
+                let resource_map = match self.resource_map {
+                    Some(resource_map) => resource_map,
+                    None => unimplemented!("imported resources not yet supported"),
+                };
+                let (Handle::Own(ty) | Handle::Borrow(ty)) = handle;
+                let resource_ty = &dealias(self.gen.resolve, *ty);
+                let ResourceTable { data, .. } = &resource_map[resource_ty];
+                let ResourceData::Host { tid, .. } = data;
+                let table_id = tid.as_u32();
+                let handle_remove = &format!("_handle_remove_{table_id}");
+                uwriteln!(self.gen.src, "entry = self.component.{handle_remove}(ret)");
+                uwriteln!(self.gen.src, "self._rep = entry[0]");
+                return results.push("".to_string());
+            }
+            Instruction::HandleLower { .. } => {
+                uwriteln!(self.gen.src, "rep = self._rep");
+                results.push("rep".to_string());
             }
 
             i => unimplemented!("{:?}", i),
