@@ -6,6 +6,7 @@ module = """
   (core module $core-mod
     (import "[export]component:basicresource/my-interface-name" "[resource-drop]demo-resource-class" (func $resource-drop (param i32)))
     (import "[export]component:basicresource/my-interface-name" "[resource-new]demo-resource-class" (func $resource-new (param i32) (result i32)))
+    (import "[export]component:basicresource/my-interface-name" "[resource-rep]demo-resource-class" (func $resource-rep (param i32) (result i32)))
     (func $core-create-demo-resource (param i32 i32) (result i32)
       unreachable
     )
@@ -28,6 +29,7 @@ module = """
   (core instance $canon-instance
     (export "[resource-drop]demo-resource-class" (func $core-resource-drop))
     (export "[resource-new]demo-resource-class" (func $core-resource-new))
+    (export "[resource-rep]demo-resource-class" (func $core-resource-rep))
   )
   (core instance $core-instance (instantiate $core-mod
       (with "[export]component:basicresource/my-interface-name" (instance $canon-instance))

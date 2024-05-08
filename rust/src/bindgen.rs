@@ -613,7 +613,21 @@ impl<'a> Instantiator<'a> {
                         "trampoline{tidx} = wasmtime.Func(store, _resource_drop_{resource_id}_ty, _resource_drop_{resource_id})"
                     );
                 }
-                Trampoline::ResourceRep(_) => {}
+                Trampoline::ResourceRep(rid) => {
+                    let resource_id = rid.as_u32();
+                    uwriteln!(self.gen.init, "def _resource_rep_{resource_id}(handle):");
+                    self.gen.init.indent();
+                    uwriteln!(self.gen.init, "return _handle_get_{resource_id}(handle)[0]");
+                    self.gen.init.dedent();
+                    uwriteln!(
+                        self.gen.init,
+                        "_resource_rep_{resource_id}_ty = wasmtime.FuncType([wasmtime.ValType.i32()], [wasmtime.ValType.i32()])"
+                    );
+                    uwriteln!(
+                        self.gen.init,
+                        "trampoline{tidx} = wasmtime.Func(store, _resource_rep_{resource_id}_ty, _resource_rep_{resource_id})"
+                    );
+                }
                 _ => unreachable!(),
             }
         }
@@ -676,6 +690,14 @@ impl<'a> Instantiator<'a> {
         "
         );
         self.gen.init.push_str(remove_entry);
+        let get_entry = &format!(
+            "
+            def _handle_get_{resource_id}(i):
+                return {table_name}[i]
+            self._handle_get_{resource_id} = _handle_get_{resource_id}
+        "
+        );
+        self.gen.init.push_str(get_entry);
     }
 
     fn instantiate_static_module(&mut self, idx: StaticModuleIndex, args: &[CoreDef]) {
