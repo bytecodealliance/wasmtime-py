@@ -14,3 +14,4 @@ wasmtime/win32-*
 wasmtime/include
 wasmtime/bindgen/generated
 tests/codegen/generated
+tests/bindgen/generated

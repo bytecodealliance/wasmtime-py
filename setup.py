@@ -42,6 +42,7 @@ setuptools.setup(
             'pytest',
             'pycparser',
             'pytest-mypy',
+            'componentize-py',
         ],
     },
     classifiers=[
