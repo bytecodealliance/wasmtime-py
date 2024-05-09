@@ -3,8 +3,9 @@ from .generated.imports import streams
 from .generated.imports.types import Descriptor, Filesize, ErrorCode, DescriptorType
 from .generated.imports.terminal_input import TerminalInput
 from .generated.imports.terminal_output import TerminalOutput
+from .generated.imports import terminal_stderr
 from .generated import types as core_types
-from typing import Mapping, Tuple, List
+from typing import Mapping, Tuple, List, Optional
 
 import sys
 import os
@@ -82,27 +83,33 @@ class WasiExit(imports.HostExit):
 
 class WasiTerminalInput(imports.HostTerminalInput):
     def drop_terminal_input(self, this: TerminalInput) -> None:
-        raise NotImplementedError
+        pass
 
 
 class WasiTerminalOutput(imports.HostTerminalOutput):
     def drop_terminal_output(self, this: TerminalOutput) -> None:
-        raise NotImplementedError
+        pass
 
 
 class WasiTerminalStdin(imports.HostTerminalStdin):
-    def get_terminal_stdin(self) -> None:
-        raise NotImplementedError
+    def get_terminal_stdin(self) -> Optional[TerminalInput]:
+        if sys.stdin.isatty():
+            return sys.stdin.fileno()
+        return None
 
 
 class WasiTerminalStdout(imports.HostTerminalStdout):
-    def get_terminal_stdout(self) -> None:
-        raise NotImplementedError
+    def get_terminal_stdout(self) -> Optional[TerminalOutput]:
+        if sys.stdout.isatty():
+            return sys.stdout.fileno()
+        return None
 
 
 class WasiTerminalStderr(imports.HostTerminalStderr):
-    def get_terminal_stderr(self) -> None:
-        raise NotImplementedError
+    def get_terminal_stderr(self) -> Optional[terminal_stderr.TerminalOutput]:
+        if sys.stderr.isatty():
+            return sys.stderr.fileno()
+        return None
 
 
 root = None
