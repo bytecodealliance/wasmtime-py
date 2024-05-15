@@ -1,0 +1,8 @@
+package component:lists;
+
+world lists {
+  export strings: func(a: string) -> string;
+  export bytes: func(a: list<u8>) -> list<u8>;
+  export ints: func(a: list<u32>) -> list<u32>;
+  export string-list: func(a: list<string>) -> list<string>;
+}

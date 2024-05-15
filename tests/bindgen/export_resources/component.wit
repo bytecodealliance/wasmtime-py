@@ -1,0 +1,13 @@
+package component:basicresource;
+
+interface my-interface-name {
+    interface-func: func(foo: string) -> string;
+    resource demo-resource-class {
+        constructor(name: string);
+        greet: func(greeting: string) -> string;
+    }
+}
+
+world testworld {
+    export my-interface-name;
+}

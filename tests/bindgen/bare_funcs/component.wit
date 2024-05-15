@@ -1,0 +1,5 @@
+package component:barefuncs;
+
+world barefuncs {
+  export foo: func(a: s32) -> s32;
+}
