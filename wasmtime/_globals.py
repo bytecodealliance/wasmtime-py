@@ -18,7 +18,7 @@ class Global:
             ty.ptr(),
             byref(val),
             byref(global_))
-        ffi.wasmtime_val_delete(store._context(), byref(val))
+        ffi.wasmtime_val_unroot(store._context(), byref(val))
         if error:
             raise WasmtimeError._from_ptr(error)
         self._global = global_
@@ -57,7 +57,7 @@ class Global:
         """
         val = Val._convert_to_raw(store, self.type(store).content, val)
         error = ffi.wasmtime_global_set(store._context(), byref(self._global), byref(val))
-        ffi.wasmtime_val_delete(store._context(), byref(val))
+        ffi.wasmtime_val_unroot(store._context(), byref(val))
         if error:
             raise WasmtimeError._from_ptr(error)
 

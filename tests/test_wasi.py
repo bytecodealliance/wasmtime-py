@@ -46,3 +46,8 @@ class TestWasi(unittest.TestCase):
         store = Store(linker.engine)
         store.set_wasi(WasiConfig())
         linker.instantiate(store, module)
+
+    def preopen_nonexistent(self):
+        config = WasiConfig()
+        with self.assertRaises(WasmtimeError):
+            config.preopen_dir('/path/to/nowhere', '/')

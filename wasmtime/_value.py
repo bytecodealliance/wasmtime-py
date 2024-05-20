@@ -152,9 +152,12 @@ class Val:
         elif ret.kind == WASMTIME_EXTERNREF.value:
             if self._val is not None:
                 extern_id = _intern(self._val)
-                ret.of.externref = wasmtime_externref_new(store._context(), extern_id, _externref_finalizer)
+                if not wasmtime_externref_new(store._context(), extern_id, _externref_finalizer,
+                                              byref(ret.of.externref)):
+                    raise WasmtimeError("failed to create an externref value")
             else:
-                ret.of.externref = POINTER(wasmtime_externref_t)()
+
+                ret.of.externref.store_id = 0
         elif ret.kind == WASMTIME_FUNCREF.value:
             if self._val is not None:
                 ret.of.funcref = self._val._func
@@ -184,7 +187,7 @@ class Val:
             raise WasmtimeError("Unkown `wasmtime_valkind_t`: {}".format(raw.kind))
 
         if owned:
-            wasmtime_val_delete(store._context(), byref(raw))
+            wasmtime_val_unroot(store._context(), byref(raw))
 
         return Val(raw.kind, val)
 

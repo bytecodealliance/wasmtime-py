@@ -17,7 +17,7 @@ class Table:
 
         table = ffi.wasmtime_table_t()
         error = ffi.wasmtime_table_new(store._context(), ty.ptr(), byref(init_val), byref(table))
-        ffi.wasmtime_val_delete(store._context(), byref(init_val))
+        ffi.wasmtime_val_unroot(store._context(), byref(init_val))
         if error:
             raise WasmtimeError._from_ptr(error)
         self._table = table
@@ -53,7 +53,7 @@ class Table:
         init_val = Val._convert_to_raw(store, self.type(store).element, init)
         prev = c_uint32(0)
         error = ffi.wasmtime_table_grow(store._context(), byref(self._table), c_uint32(amt), byref(init_val), byref(prev))
-        ffi.wasmtime_val_delete(store._context(), byref(init_val))
+        ffi.wasmtime_val_unroot(store._context(), byref(init_val))
         if error:
             raise WasmtimeError._from_ptr(error)
         return prev.value
@@ -96,7 +96,7 @@ class Table:
         """
         value = Val._convert_to_raw(store, self.type(store).element, val)
         error = ffi.wasmtime_table_set(store._context(), byref(self._table), idx, byref(value))
-        ffi.wasmtime_val_delete(store._context(), byref(value))
+        ffi.wasmtime_val_unroot(store._context(), byref(value))
         if error:
             raise WasmtimeError._from_ptr(error)
 

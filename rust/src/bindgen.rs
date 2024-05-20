@@ -31,7 +31,6 @@ use crate::ns::Ns;
 use crate::source::{self, Source};
 use anyhow::{bail, Context, Result};
 use heck::*;
-use indexmap::IndexMap;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::Write;
 use std::mem;
@@ -41,7 +40,8 @@ use wasmtime_environ::component::{
     ResourceIndex, RuntimeImportIndex, RuntimeInstanceIndex, StaticModuleIndex, StringEncoding,
     Trampoline, TrampolineIndex, Translator, TypeFuncIndex, TypeResourceTableIndex,
 };
-use wasmtime_environ::wasmparser::{Validator, WasmFeatures};
+use wasmtime_environ::wasmparser::map::IndexMap;
+use wasmtime_environ::wasmparser::Validator;
 use wasmtime_environ::{EntityIndex, ModuleTranslation, PrimaryMap, ScopeVec, Tunables};
 use wit_bindgen_core::abi::{self, AbiVariant, Bindgen, Bitcast, Instruction, LiftLower, WasmType};
 use wit_component::DecodedWasm;
@@ -139,11 +139,8 @@ impl WasmtimePy {
         // that need to be executed to instantiate a component.
         let scope = ScopeVec::new();
         let tunables = Tunables::default_u64();
-        let mut types = ComponentTypesBuilder::default();
-        let mut validator = Validator::new_with_features(WasmFeatures {
-            component_model: true,
-            ..WasmFeatures::default()
-        });
+        let mut validator = Validator::new();
+        let mut types = ComponentTypesBuilder::new(&validator);
         let (component, modules) = Translator::new(&tunables, &mut validator, &mut types, &scope)
             .translate(binary)
             .context("failed to parse the input component")?;
@@ -1165,7 +1162,7 @@ impl<'a> Instantiator<'a> {
         // Any resources and corresponding methods will be generated in separate, individual
         // classes from the class associated with the non-default interface.  This provides a more
         // idiomatic mapping to resources in Python.
-        let mut resource_lifts: IndexMap<TypeId, Vec<&Lift<'_>>> = IndexMap::new();
+        let mut resource_lifts: IndexMap<TypeId, Vec<&Lift<'_>>> = IndexMap::default();
         for lift in lifts {
             if let FunctionKind::Constructor(ty)
             | FunctionKind::Method(ty)
