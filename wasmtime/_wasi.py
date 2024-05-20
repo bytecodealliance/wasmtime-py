@@ -31,7 +31,8 @@ class WasiConfig(Managed["ctypes._Pointer[ffi.wasi_config_t]"]):
         Explicitly configure the `argv` for this WASI configuration
         """
         ptrs = to_char_array(argv)
-        ffi.wasi_config_set_argv(self.ptr(), c_int(len(argv)), ptrs)
+        if not ffi.wasi_config_set_argv(self.ptr(), len(argv), ptrs):
+            raise WasmtimeError("failed to configure argv")
 
     def inherit_argv(self) -> None:
         ffi.wasi_config_inherit_argv(self.ptr())
@@ -52,8 +53,8 @@ class WasiConfig(Managed["ctypes._Pointer[ffi.wasi_config_t]"]):
             values.append(value)
         name_ptrs = to_char_array(names)
         value_ptrs = to_char_array(values)
-        ffi.wasi_config_set_env(self.ptr(), c_int(
-            len(names)), name_ptrs, value_ptrs)
+        if not ffi.wasi_config_set_env(self.ptr(), len(names), name_ptrs, value_ptrs):
+            raise WasmtimeError("failed to configure environment")
 
     def inherit_env(self) -> None:
         """
@@ -144,7 +145,8 @@ class WasiConfig(Managed["ctypes._Pointer[ffi.wasi_config_t]"]):
     def preopen_dir(self, path: str, guest_path: str) -> None:
         path_ptr = c_char_p(path.encode('utf-8'))
         guest_path_ptr = c_char_p(guest_path.encode('utf-8'))
-        ffi.wasi_config_preopen_dir(self.ptr(), path_ptr, guest_path_ptr)
+        if not ffi.wasi_config_preopen_dir(self.ptr(), path_ptr, guest_path_ptr):
+            raise WasmtimeError('failed to add preopen dir')
 
 
 def to_char_array(strings: List[str]) -> "ctypes._Pointer[ctypes._Pointer[c_char]]":
