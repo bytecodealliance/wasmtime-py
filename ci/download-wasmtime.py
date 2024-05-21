@@ -16,8 +16,11 @@ WASMTIME_VERSION = "v21.0.0"
 def main(platform, arch):
     is_zip = False
     version = WASMTIME_VERSION
+
+    # Temporarily use `dev` artifacts for musl until Wasmtime 22 is released.
     if platform == 'musl':
         version = 'dev'
+
     if arch == 'AMD64':
         arch = 'x86_64'
     if arch == 'arm64':
