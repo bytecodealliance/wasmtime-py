@@ -43,6 +43,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
     - uses: ./.github/actions/setup
     - run: pip install setuptools wheel
     # If this is a tagged build use real version numbers
@@ -164,7 +166,7 @@ jobs:
       with:
         user: __token__
         password: ${{ secrets.test_pypi_password }}
-        repository_url: https://test.pypi.org/legacy/
+        repository-url: https://test.pypi.org/legacy/
         skip-existing: true
 
     - name: Publish distribution 📦 to PyPI
