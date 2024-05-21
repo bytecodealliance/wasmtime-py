@@ -27,12 +27,6 @@ runs:
       echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
 
   # Ensure the Rust lockfile is up-to-date
-  - uses: actions/cache@v3
-    with:
-      path: |
-        ~/.cargo/registry/index
-        ~/.cargo/git/db
-      key: cargo-registry-${{ hashFiles('rust/Cargo.lock') }}
   - run: cargo fetch --manifest-path rust/Cargo.toml --locked
     shell: bash
 
