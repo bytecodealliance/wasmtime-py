@@ -16,13 +16,17 @@ WASMTIME_VERSION = "v21.0.0"
 def main(platform, arch):
     is_zip = False
     version = WASMTIME_VERSION
+    dirname = '{}-{}'.format(platform, arch)
+    if platform == 'musl':
+        version = 'dev'
     if arch == 'AMD64':
         arch = 'x86_64'
     if arch == 'arm64':
         arch = 'aarch64'
-    if platform == 'linux':
-        filename = 'wasmtime-{}-{}-linux-c-api.tar.xz'.format(version, arch)
+    if platform == 'linux' or platform == 'musl':
+        filename = 'wasmtime-{}-{}-{}-c-api.tar.xz'.format(version, arch, platform)
         libname = '_libwasmtime.so'
+        dirname = 'linux-{}'.format(arch)
     elif platform == 'win32':
         filename = 'wasmtime-{}-{}-windows-c-api.zip'.format(version, arch)
         is_zip = True
@@ -36,7 +40,6 @@ def main(platform, arch):
     url = 'https://github.com/bytecodealliance/wasmtime/releases/download/{}/'.format(version)
     url += filename
     print('Download', url)
-    dirname = '{}-{}'.format(platform, arch)
     dst = Path('wasmtime') / dirname / libname
     try:
         shutil.rmtree(dst.parent)
@@ -54,8 +57,9 @@ def main(platform, arch):
 
     def final_loc(name):
         parts = name.split('include/')
-        print(parts)
-        if len(parts) > 1 and name.endswith('.h'):
+        if '/min/' in name:
+            return None
+        elif len(parts) > 1 and name.endswith('.h'):
             return Path('wasmtime') / 'include' / parts[1]
         elif name.endswith('.dll') or name.endswith('.so') or name.endswith('.dylib'):
             if '-min.' in name:
@@ -70,6 +74,7 @@ def main(platform, arch):
             loc = final_loc(member)
             if not loc:
                 continue
+            print(f'{member} => {loc}')
             contents = t.read(member)
             with open(loc, "wb") as f:
                 f.write(contents)
@@ -79,6 +84,7 @@ def main(platform, arch):
             loc = final_loc(member.name)
             if not loc:
                 continue
+            print(f'{member.name} => {loc}')
             contents = t.extractfile(member).read()
             with open(loc, "wb") as f:
                 f.write(contents)
