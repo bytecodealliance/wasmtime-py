@@ -44,6 +44,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
+        # fetch all history so the git-commit-length-appended-to-version for
+        # publishes to `test.pypi.org` works. (see `git` command in `setup.py`)
         fetch-depth: 0
     - uses: ./.github/actions/setup
     - run: pip install setuptools wheel
@@ -152,6 +154,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
+        # fetch all history so the git-commit-length-appended-to-version for
+        # publishes to `test.pypi.org` works. (see `git` command in `setup.py`)
         fetch-depth: 0
     - uses: ./.github/actions/setup
     - uses: actions/download-artifact@v4
@@ -167,7 +171,6 @@ jobs:
         user: __token__
         password: ${{ secrets.test_pypi_password }}
         repository-url: https://test.pypi.org/legacy/
-        skip-existing: true
 
     - name: Publish distribution 📦 to PyPI
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
