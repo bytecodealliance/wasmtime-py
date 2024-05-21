@@ -73,6 +73,11 @@ jobs:
         python ci/download-wasmtime.py win32 x86_64
         python ci/build-rust.py
         python setup.py bdist_wheel --plat-name win-amd64
+    - run: |
+        git clean -fdx wasmtime build
+        python ci/download-wasmtime.py musl x86_64
+        python ci/build-rust.py
+        python setup.py bdist_wheel --plat-name musllinux_1_2_x86_64
 
     # Build an "any" wheel with:
     #

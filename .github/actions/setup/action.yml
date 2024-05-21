@@ -8,7 +8,7 @@ runs:
   using: "composite"
   steps:
   # Setup Python and the Python dependencies of this project
-  - uses: actions/setup-python@v4
+  - uses: actions/setup-python@v5
     with:
       python-version: ${{ inputs.python-version }}
   - run: pip install -e ".[testing]"
@@ -27,36 +27,14 @@ runs:
       echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
 
   # Ensure the Rust lockfile is up-to-date
-  - uses: actions/cache@v3
-    with:
-      path: |
-        ~/.cargo/registry/index
-        ~/.cargo/git/db
-      key: cargo-registry-${{ hashFiles('rust/Cargo.lock') }}
   - run: cargo fetch --manifest-path rust/Cargo.toml --locked
     shell: bash
 
   # Install the `wasm-tools` binary with the `component` subcommand that is all
   # that's needed here.
-  - run: |
-      echo WASM_TOOLS=wasm-tools-1.0.53 >> $GITHUB_ENV
-      mkdir -p '${{ runner.tool_cache }}/wasm-tools'
-      echo '${{ runner.tool_cache }}/wasm-tools' >> $GITHUB_PATH
-    shell: bash
-  - run: |
-      curl -L https://github.com/bytecodealliance/wasm-tools/releases/download/$WASM_TOOLS/$WASM_TOOLS-x86_64-linux.tar.gz | tar xzv -C ${{ runner.tool_cache }}/wasm-tools --strip-components 1
-    if: runner.os == 'Linux'
-    shell: bash
-  - run: |
-      curl -L https://github.com/bytecodealliance/wasm-tools/releases/download/$WASM_TOOLS/$WASM_TOOLS-x86_64-macos.tar.gz | tar xzv -C ${{ runner.tool_cache }}/wasm-tools --strip-components 1
-    if: runner.os == 'macOS'
-    shell: bash
-  - run: |
-      path='${{ runner.tool_cache }}/wasm-tools'
-      curl -o "$path/bins.zip" -L https://github.com/bytecodealliance/wasm-tools/releases/download/$WASM_TOOLS/$WASM_TOOLS-x86_64-windows.zip
-      7z e "$path/bins.zip" -o"$path"
-    if: runner.os == 'Windows'
-    shell: bash
+  - uses: bytecodealliance/actions/wasm-tools/setup@v1
+    with:
+      version: "1.208.1"
 
   # Build the bindgen wasm blob with some extra Rust targets.
   - run: |
@@ -65,7 +43,7 @@ runs:
       echo CARGO_PROFILE_DEV_DEBUG=0 >> $GITHUB_ENV
       echo RUSTC_VERSION=`rustc --version` >> $GITHUB_ENV
     shell: bash
-  - uses: actions/cache@v3
+  - uses: actions/cache@v4
     with:
       path: rust/target
       key: rust-target-${{ env.RUSTC_VERSION }}-${{ runner.os }}-${{ hashFiles('rust/Cargo.lock') }}
