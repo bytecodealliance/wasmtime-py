@@ -8,7 +8,7 @@ runs:
   using: "composite"
   steps:
   # Setup Python and the Python dependencies of this project
-  - uses: actions/setup-python@v4
+  - uses: actions/setup-python@v5
     with:
       python-version: ${{ inputs.python-version }}
   - run: pip install -e ".[testing]"
@@ -43,7 +43,7 @@ runs:
       echo CARGO_PROFILE_DEV_DEBUG=0 >> $GITHUB_ENV
       echo RUSTC_VERSION=`rustc --version` >> $GITHUB_ENV
     shell: bash
-  - uses: actions/cache@v3
+  - uses: actions/cache@v4
     with:
       path: rust/target
       key: rust-target-${{ env.RUSTC_VERSION }}-${{ runner.os }}-${{ hashFiles('rust/Cargo.lock') }}
