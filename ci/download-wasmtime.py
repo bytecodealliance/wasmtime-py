@@ -16,13 +16,13 @@ WASMTIME_VERSION = "v21.0.0"
 def main(platform, arch):
     is_zip = False
     version = WASMTIME_VERSION
-    dirname = '{}-{}'.format(platform, arch)
     if platform == 'musl':
         version = 'dev'
     if arch == 'AMD64':
         arch = 'x86_64'
     if arch == 'arm64':
         arch = 'aarch64'
+    dirname = '{}-{}'.format(platform, arch)
     if platform == 'linux' or platform == 'musl':
         filename = 'wasmtime-{}-{}-{}-c-api.tar.xz'.format(version, arch, platform)
         libname = '_libwasmtime.so'
