@@ -141,7 +141,7 @@ jobs:
         name: generated-docs
         path: generated-docs
     - run: find .
-    - uses: JamesIves/github-pages-deploy-action@v4.5.0
+    - uses: JamesIves/github-pages-deploy-action@v4.6.1
       with:
         branch: gh-pages
         folder: generated-docs
