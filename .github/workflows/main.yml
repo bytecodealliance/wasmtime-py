@@ -141,12 +141,13 @@ jobs:
         name: generated-docs
         path: generated-docs
     - run: find .
-    - uses: JamesIves/github-pages-deploy-action@v4.5.0
+
+    - if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: actions/configure-pages@v5
+    - if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: actions/upload-pages-artifact@v3
       with:
-        branch: gh-pages
-        folder: generated-docs
-        single-commit: true
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        path: generated-docs
 
   upload_wheels:
     needs: build
@@ -178,3 +179,18 @@ jobs:
       with:
         user: __token__
         password: ${{ secrets.pypi_password }}
+
+  deploy:
+    name: Deploy gh-pages
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: upload_docs
+    permissions:
+      pages: write
+      id-token: write
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
