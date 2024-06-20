@@ -10,16 +10,12 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
-WASMTIME_VERSION = "v21.0.0"
+WASMTIME_VERSION = "v22.0.0"
 
 
 def main(platform, arch):
     is_zip = False
     version = WASMTIME_VERSION
-
-    # Temporarily use `dev` artifacts for musl until Wasmtime 22 is released.
-    if platform == 'musl':
-        version = 'dev'
 
     if arch == 'AMD64':
         arch = 'x86_64'

@@ -37,10 +37,10 @@ use std::mem;
 use wasmtime_environ::component::{
     CanonicalOptions, Component, ComponentTypes, ComponentTypesBuilder, CoreDef, CoreExport,
     Export, ExportItem, GlobalInitializer, InstantiateModule, InterfaceType, LoweredIndex,
-    ResourceIndex, RuntimeImportIndex, RuntimeInstanceIndex, StaticModuleIndex, StringEncoding,
-    Trampoline, TrampolineIndex, Translator, TypeFuncIndex, TypeResourceTableIndex,
+    RuntimeImportIndex, RuntimeInstanceIndex, StaticModuleIndex, StringEncoding, Trampoline,
+    TrampolineIndex, Translator, TypeFuncIndex, TypeResourceTableIndex,
 };
-use wasmtime_environ::wasmparser::map::IndexMap;
+use wasmtime_environ::wasmparser::collections::IndexMap;
 use wasmtime_environ::wasmparser::Validator;
 use wasmtime_environ::{EntityIndex, ModuleTranslation, PrimaryMap, ScopeVec, Tunables};
 use wit_bindgen_core::abi::{self, AbiVariant, Bindgen, Bitcast, Instruction, LiftLower, WasmType};
@@ -83,16 +83,11 @@ pub struct WasmtimePy {
 pub type ResourceMap = BTreeMap<TypeId, ResourceTable>;
 
 pub struct ResourceTable {
-    pub imported: bool,
     pub data: ResourceData,
 }
 
 pub enum ResourceData {
-    Host {
-        tid: TypeResourceTableIndex,
-        rid: ResourceIndex,
-        local_name: String,
-    },
+    Host { tid: TypeResourceTableIndex },
 }
 
 pub fn dealias(resolve: &Resolve, mut id: TypeId) -> TypeId {
@@ -159,7 +154,7 @@ impl WasmtimePy {
         for (world_key, world_item) in world.imports.clone().into_iter() {
             match world_item {
                 WorldItem::Function(function) => root_functions.push(function),
-                WorldItem::Interface(id) => {
+                WorldItem::Interface { id, .. } => {
                     let interface = &resolve.interfaces[id];
                     let iface_name = match world_key {
                         WorldKey::Name(name) => name,
@@ -177,7 +172,7 @@ impl WasmtimePy {
         for (world_key, export) in world.exports.clone().into_iter() {
             match export {
                 WorldItem::Function(_) => {}
-                WorldItem::Interface(id) => {
+                WorldItem::Interface { id, .. } => {
                     let interface = &resolve.interfaces[id];
                     let iface_name = match world_key {
                         WorldKey::Name(name) => name,
@@ -756,7 +751,7 @@ impl<'a> Instantiator<'a> {
                 assert_eq!(path.len(), 0);
                 (f, None, BARE_FUNCTION_NAMESPACE.to_snake_case())
             }
-            WorldItem::Interface(i) => {
+            WorldItem::Interface { id, .. } => {
                 assert_eq!(path.len(), 1);
                 let (import_name, _import_ty) = &self.component.import_types[*import_index];
                 let import_name = import_name.replace(":", ".");
@@ -767,8 +762,8 @@ impl<'a> Instantiator<'a> {
                 .to_snake_case()
                 .escape();
                 (
-                    &self.resolve.interfaces[*i].functions[&path[0]],
-                    Some(*i),
+                    &self.resolve.interfaces[*id].functions[&path[0]],
+                    Some(*id),
                     import_name,
                 )
             }
@@ -974,7 +969,7 @@ impl<'a> Instantiator<'a> {
                     let callee = self.gen_lift_callee(func);
                     let func = match world_exports_by_string[name] {
                         WorldItem::Function(f) => f,
-                        WorldItem::Interface(_) | WorldItem::Type(_) => unreachable!(),
+                        WorldItem::Interface { .. } | WorldItem::Type(_) => unreachable!(),
                     };
                     toplevel.push(Lift {
                         callee,
@@ -986,7 +981,7 @@ impl<'a> Instantiator<'a> {
 
                 Export::Instance { exports, ty: _ } => {
                     let id = match world_exports_by_string[name] {
-                        WorldItem::Interface(id) => *id,
+                        WorldItem::Interface { id, .. } => *id,
                         WorldItem::Function(_) | WorldItem::Type(_) => unreachable!(),
                     };
                     let mut lifts = Vec::new();
@@ -1115,18 +1110,8 @@ impl<'a> Instantiator<'a> {
         resource_map: &mut ResourceMap,
     ) {
         self.ensure_resource_table(&tid);
-        let imported = self
-            .component
-            .defined_resource_index(self.types[tid].ty)
-            .is_none();
-        let local_name = self.resolve.types[t].name.as_ref().unwrap();
         let entry = ResourceTable {
-            imported,
-            data: ResourceData::Host {
-                tid,
-                rid: self.types[tid].ty,
-                local_name: local_name.to_string(),
-            },
+            data: ResourceData::Host { tid },
         };
         resource_map.insert(t, entry);
     }
