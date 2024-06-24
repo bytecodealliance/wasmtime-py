@@ -19,11 +19,11 @@ def main():
     print('======================= Building bindgen.wasm =====================')
 
     subprocess.run(
-        ['cargo', 'build', '--release', '--target=wasm32-wasi', '-p=bindgen'],
+        ['cargo', 'build', '--release', '--target=wasm32-wasip1', '-p=bindgen'],
         cwd='rust'
     ).check_returncode()
 
-    core = 'rust/target/wasm32-wasi/release/bindgen.wasm'
+    core = 'rust/target/wasm32-wasip1/release/bindgen.wasm'
     wasi = 'ci/wasi_snapshot_preview1.reactor.wasm'
     component = 'rust/target/component.wasm'
 
