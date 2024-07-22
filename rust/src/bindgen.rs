@@ -114,7 +114,7 @@ impl WasmtimePy {
             .context("failed to extract interface information from component")?
         {
             DecodedWasm::Component(resolve, world) => (resolve, world),
-            DecodedWasm::WitPackage(..) => bail!("expected a component"),
+            DecodedWasm::WitPackages(..) => bail!("expected a component"),
         };
         self.sizes.fill(&resolve);
 
@@ -218,7 +218,7 @@ impl WasmtimePy {
             }
         }
 
-        let comp_types = types.finish(&PrimaryMap::new(), Vec::new(), Vec::new()).0;
+        let comp_types = types.finish(&Component::default()).0;
         // And finally generate the code necessary to instantiate the given
         // component to this method using the `Component` that
         // `wasmtime-environ` parsed.
@@ -331,7 +331,7 @@ impl WasmtimePy {
         if component.initializers.len() == 0 {
             i.gen.init.push_str("pass\n");
         }
-        let (lifts, nested, resource_map) = i.exports(&component.exports);
+        let (lifts, nested, resource_map) = i.exports(&component);
         i.gen.init.dedent();
 
         i.generate_lifts(&camel, None, &lifts, &resource_map);
@@ -948,7 +948,7 @@ impl<'a> Instantiator<'a> {
     /// `*.wit` this method will likely need to change.
     fn exports(
         &mut self,
-        exports: &'a IndexMap<String, Export>,
+        component: &'a Component,
     ) -> (Vec<Lift<'a>>, BTreeMap<&'a str, Vec<Lift<'a>>>, ResourceMap) {
         let mut toplevel = Vec::new();
         let mut nested = BTreeMap::new();
@@ -958,9 +958,9 @@ impl<'a> Instantiator<'a> {
             .iter()
             .map(|(k, v)| (self.resolve.name_world_key(k), v))
             .collect::<HashMap<_, _>>();
-        for (name, export) in exports {
+        for (name, export) in component.exports.raw_iter() {
             let name = name.as_str();
-            match export {
+            match &component.export_items[*export] {
                 Export::LiftedFunction {
                     ty: _,
                     func,
@@ -985,11 +985,12 @@ impl<'a> Instantiator<'a> {
                         WorldItem::Function(_) | WorldItem::Type(_) => unreachable!(),
                     };
                     let mut lifts = Vec::new();
-                    for (name, export) in exports {
+                    for (name, export) in exports.raw_iter() {
+                        let export = &component.export_items[*export];
                         let (callee, options, func_ty) = match export {
                             Export::LiftedFunction { func, options, ty } => (func, options, ty),
                             Export::Type(_) => continue,
-                            Export::ModuleStatic(_)
+                            Export::ModuleStatic { .. }
                             | Export::ModuleImport { .. }
                             | Export::Instance { .. } => unreachable!(),
                         };
@@ -1012,7 +1013,7 @@ impl<'a> Instantiator<'a> {
                 Export::Type(_) => {}
 
                 // This can't be tested at this time so leave it unimplemented
-                Export::ModuleStatic(_) | Export::ModuleImport { .. } => unimplemented!(),
+                Export::ModuleStatic { .. } | Export::ModuleImport { .. } => unimplemented!(),
             }
         }
         (toplevel, nested, resource_map)
