@@ -10,7 +10,7 @@ if typing.TYPE_CHECKING:
 
 
 class Store(Managed["ctypes._Pointer[ffi.wasmtime_store_t]"]):
-    __context: "ctypes._Pointer[ffi.wasmtime_context_t] | None"
+    __context: "typing.Optional[ctypes._Pointer[ffi.wasmtime_context_t]]"
 
     def __init__(self, engine: typing.Optional[Engine] = None, data: typing.Optional[typing.Any] = None):
 

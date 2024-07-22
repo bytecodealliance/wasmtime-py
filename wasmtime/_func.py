@@ -121,8 +121,8 @@ class Func:
 
 
 class Caller:
-    __ptr: "ctypes._Pointer[ffi.wasmtime_caller_t] | None"
-    __context: "ctypes._Pointer[ffi.wasmtime_context_t] | None"
+    __ptr: "Optional[ctypes._Pointer[ffi.wasmtime_caller_t]]"
+    __context: "Optional[ctypes._Pointer[ffi.wasmtime_context_t]]"
 
     def __init__(self, ptr: "ctypes._Pointer[ffi.wasmtime_caller_t]"):
         self.__ptr = ptr
