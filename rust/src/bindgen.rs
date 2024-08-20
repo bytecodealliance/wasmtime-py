@@ -114,7 +114,7 @@ impl WasmtimePy {
             .context("failed to extract interface information from component")?
         {
             DecodedWasm::Component(resolve, world) => (resolve, world),
-            DecodedWasm::WitPackages(..) => bail!("expected a component"),
+            DecodedWasm::WitPackage(..) => bail!("expected a component"),
         };
         self.sizes.fill(&resolve);
 

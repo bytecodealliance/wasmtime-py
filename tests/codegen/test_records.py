@@ -22,7 +22,7 @@ module = """
         (type $r1 (record (field "a" u8) (field "b" $flag1)))
 
         (import "host" (instance $i
-            (export "multiple-results" (func (result "a" u8) (result "b" u16)))
+            (export "multiple-results" (func (result (tuple u8 u16))))
             (export "swap" (func (param "a" $tuple) (result $tuple)))
 
             (export $f1 "flag1" (type (eq $flag1)))
@@ -105,21 +105,21 @@ module = """
             ))
         ))
 
-        (func $multiple-results (result "a" u8) (result "b" u16)
+        (func $multiple-results (result (tuple u8 u16))
             (canon lift (core func $i "multi") (memory $libc "mem")))
-        (func $swap (param "a" $tuple) (result "a" $tuple)
+        (func $swap (param "a" $tuple) (result $tuple)
             (canon lift (core func $i "swap") (memory $libc "mem")))
-        (func $roundtrip-flag1 (param "a" $flag1) (result "a" $flag1)
+        (func $roundtrip-flag1 (param "a" $flag1) (result $flag1)
             (canon lift (core func $i "r-flag1")))
-        (func $roundtrip-flag2  (param "a" $flag2) (result "a" $flag2)
+        (func $roundtrip-flag2  (param "a" $flag2) (result $flag2)
             (canon lift (core func $i "r-flag2")))
-        (func $roundtrip-flag8 (param "a" $flag8) (result "a" $flag8)
+        (func $roundtrip-flag8 (param "a" $flag8) (result $flag8)
             (canon lift (core func $i "r-flag8")))
-        (func $roundtrip-flag16 (param "a" $flag16) (result "a" $flag16)
+        (func $roundtrip-flag16 (param "a" $flag16) (result $flag16)
             (canon lift (core func $i "r-flag16")))
-        (func $roundtrip-flag32 (param "a" $flag32) (result "a" $flag32)
+        (func $roundtrip-flag32 (param "a" $flag32) (result $flag32)
             (canon lift (core func $i "r-flag32")))
-        (func $roundtrip-r1 (param "a" $r1) (result "b" $r1)
+        (func $roundtrip-r1 (param "a" $r1) (result $r1)
             (canon lift (core func $i "r-r1") (memory $libc "mem")))
 
         (instance (export "e")
