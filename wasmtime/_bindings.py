@@ -2242,6 +2242,12 @@ _wasmtime_config_memory_init_cow_set.argtypes = [POINTER(wasm_config_t), c_bool]
 def wasmtime_config_memory_init_cow_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_memory_init_cow_set(arg0, arg1)  # type: ignore
 
+_wasmtime_engine_clone = dll.wasmtime_engine_clone
+_wasmtime_engine_clone.restype = POINTER(wasm_engine_t)
+_wasmtime_engine_clone.argtypes = [POINTER(wasm_engine_t)]
+def wasmtime_engine_clone(engine: Any) -> ctypes._Pointer:
+    return _wasmtime_engine_clone(engine)  # type: ignore
+
 _wasmtime_engine_increment_epoch = dll.wasmtime_engine_increment_epoch
 _wasmtime_engine_increment_epoch.restype = None
 _wasmtime_engine_increment_epoch.argtypes = [POINTER(wasm_engine_t)]
