@@ -2670,8 +2670,8 @@ impl Bindgen for FunctionBindgen<'_, '_> {
                 let ptr = self.locals.tmp("ptr");
                 let len = self.locals.tmp("len");
                 let array_ty = array_ty(resolve, element).unwrap();
-                let size = self.gen.gen.sizes.size(element);
-                let align = self.gen.gen.sizes.align(element);
+                let size = self.gen.gen.sizes.size(element).size_wasm32();
+                let align = self.gen.gen.sizes.align(element).align_wasm32();
                 uwriteln!(
                     self.gen.src,
                     "{ptr}, {len} = {lower}({}, ctypes.{array_ty}, {size}, {align}, {realloc}, {memory}, caller)",
@@ -2691,7 +2691,7 @@ impl Bindgen for FunctionBindgen<'_, '_> {
                 self.gen.src.pyimport("ctypes", None);
                 let lift = format!(
                     "{lift}({ptr}, {len}, {}, ctypes.{array_ty}, {memory}, caller)",
-                    self.gen.gen.sizes.size(element),
+                    self.gen.gen.sizes.size(element).size_wasm32(),
                 );
                 self.gen.src.pyimport("typing", "cast");
                 let list = self.locals.tmp("list");
@@ -2739,8 +2739,8 @@ impl Bindgen for FunctionBindgen<'_, '_> {
                 let vec = self.locals.tmp("vec");
                 let result = self.locals.tmp("result");
                 let len = self.locals.tmp("len");
-                let size = self.gen.gen.sizes.size(element);
-                let align = self.gen.gen.sizes.align(element);
+                let size = self.gen.gen.sizes.size(element).size_wasm32();
+                let align = self.gen.gen.sizes.align(element).align_wasm32();
 
                 // first store our vec-to-lower in a temporary since we'll
                 // reference it multiple times.
@@ -2771,7 +2771,7 @@ impl Bindgen for FunctionBindgen<'_, '_> {
             Instruction::ListLift { element, .. } => {
                 let (body, body_results) = self.blocks.pop().unwrap();
                 let base = self.payloads.pop().unwrap();
-                let size = self.gen.gen.sizes.size(element);
+                let size = self.gen.gen.sizes.size(element).size_wasm32();
                 let ptr = self.locals.tmp("ptr");
                 let len = self.locals.tmp("len");
                 uwriteln!(self.gen.src, "{ptr} = {}", operands[0]);
