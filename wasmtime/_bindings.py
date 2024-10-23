@@ -2550,7 +2550,7 @@ class wasmtime_extern_union(Union):
         ("global_", wasmtime_global_t),
         ("table", wasmtime_table_t),
         ("memory", wasmtime_memory_t),
-        ("sharedmemory", POINTER(wasmtime_sharedmemory_t)),
+        ("sharedmemory", POINTER(wasmtime_sharedmemory)),
     ]
     func: wasmtime_func_t
     global_: wasmtime_global_t
@@ -2983,9 +2983,9 @@ def wasmtime_linker_instantiate_pre(linker: Any, module: Any, instance_pre: Any)
 
 _wasmtime_memorytype_new = dll.wasmtime_memorytype_new
 _wasmtime_memorytype_new.restype = POINTER(wasm_memorytype_t)
-_wasmtime_memorytype_new.argtypes = [c_uint64, c_bool, c_uint64, c_bool, c_bool]
-def wasmtime_memorytype_new(min: Any, max_present: Any, max: Any, is_64: Any, shared: Any) -> ctypes._Pointer:
-    return _wasmtime_memorytype_new(min, max_present, max, is_64, shared)  # type: ignore
+_wasmtime_memorytype_new.argtypes = [c_uint64, c_bool, c_uint64, c_bool]
+def wasmtime_memorytype_new(min: Any, max_present: Any, max: Any, is_64: Any) -> ctypes._Pointer:
+    return _wasmtime_memorytype_new(min, max_present, max, is_64)  # type: ignore
 
 _wasmtime_memorytype_minimum = dll.wasmtime_memorytype_minimum
 _wasmtime_memorytype_minimum.restype = c_uint64
