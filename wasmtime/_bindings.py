@@ -2550,7 +2550,7 @@ class wasmtime_extern_union(Union):
         ("global_", wasmtime_global_t),
         ("table", wasmtime_table_t),
         ("memory", wasmtime_memory_t),
-        ("sharedmemory", POINTER(wasmtime_sharedmemory)),
+        ("sharedmemory", POINTER(wasmtime_sharedmemory_t)),
     ]
     func: wasmtime_func_t
     global_: wasmtime_global_t

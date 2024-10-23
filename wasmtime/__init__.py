@@ -31,6 +31,7 @@ from ._memory import Memory
 from ._instance import Instance
 from ._wasi import WasiConfig, FilePerms, DirPerms
 from ._linker import Linker
+from ._sharedmemory import SharedMemory
 
 __all__ = [
     'wat2wasm',
@@ -50,6 +51,7 @@ __all__ = [
     'Caller',
     'Table',
     'Memory',
+    'SharedMemory',
     'Global',
     'Trap',
     'TrapCode',
