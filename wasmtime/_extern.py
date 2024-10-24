@@ -16,7 +16,7 @@ def wrap_extern(ptr: ffi.wasmtime_extern_t) -> AsExtern:
     if ptr.kind == ffi.WASMTIME_EXTERN_MEMORY.value:
         return Memory._from_raw(ptr.of.memory)
     if ptr.kind == ffi.WASMTIME_EXTERN_SHAREDMEMORY.value:
-        return Memory._from_raw(ptr.of.sharedmemory)
+        return SharedMemory._from_raw(ptr.of.sharedmemory)
     if ptr.kind == ffi.WASMTIME_EXTERN_INSTANCE.value:
         return Instance._from_raw(ptr.of.instance)
     if ptr.kind == ffi.WASMTIME_EXTERN_MODULE.value:
