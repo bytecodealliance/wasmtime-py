@@ -65,84 +65,12 @@ class SharedMemory:
         """
         return ffi.wasmtime_sharedmemory_data(byref(self._sharedmemory))
 
-    def get_buffer_ptr(self, store: Storelike,
-                       size: typing.Optional[int] = None,
-                       offset: int = 0) -> ctypes.Array:
-        """
-        return raw pointer to buffer suitable for creating zero-copy writable NumPy Buffer Protocol
-        this method is also used internally by `read()` and `write()`
-
-        np_mem = np.frombuffer(memory.get_buffer_ptr(store), dtype=np.uint8)
-        np_mem[start:end] = A # write
-        B = np_mem[start:end] # read
-        """
-        if size is None:
-            size = self.data_len(store)
-        ptr_type = ctypes.c_ubyte * size
-        return ptr_type.from_address(ctypes.addressof(self.data_ptr(store).contents) + offset)
-
-    def read(
-            self,
-            store: Storelike,
-            start: typing.Optional[int] = 0,
-            stop: typing.Optional[int] = None) -> bytearray:
-        """
-        Reads this memory starting from `start` and up to `stop`
-        and returns a copy of the contents as a `bytearray`.
-
-        The indexing behavior of this method is similar to `list[start:stop]`
-        where negative starts can be used to read from the end, for example.
-        """
-        size = self.data_len(store)
-        key = slice(start, stop, None)
-        start, stop, _ = key.indices(size)
-        val_size = stop - start
-        if val_size <= 0:
-            # return bytearray of size zero
-            return bytearray(0)
-        src_ptr = self.get_buffer_ptr(store, val_size, start)
-        return bytearray(src_ptr)
-
-    def write(
-            self,
-            store: Storelike,
-            value: typing.Union[bytearray, bytes],
-            start: typing.Optional[int] = None) -> int:
-        """
-        write a bytearray value into a possibly large slice of memory
-        negative start is allowed in a way similat to list slice mylist[-10:]
-        if value is not bytearray it will be used to construct an intermediate bytearray (copyied twice)
-        return number of bytes written
-        raises IndexError when trying to write outside the memory range
-        this happens when start offset is >= size or when end side of value is >= size
-        """
-        size = self.data_len(store)
-        key = slice(start, None)
-        start = key.indices(size)[0]
-        if start >= size:
-            raise IndexError("index out of range")
-        # value must be bytearray ex. cast bytes() to bytearray
-        if not isinstance(value, bytearray):
-            value = bytearray(value)
-        val_size = len(value)
-        if val_size == 0:
-            return val_size
-        # stop is exclusive
-        stop = start + val_size
-        if stop > size:
-            raise IndexError("index out of range")
-        ptr_type = ctypes.c_ubyte * val_size
-        src_ptr = ptr_type.from_buffer(value)
-        dst_ptr = self.get_buffer_ptr(store, val_size, start)
-        ctypes.memmove(dst_ptr, src_ptr, val_size)
-        return val_size
-
-    def data_len(self, store: Storelike) -> int:
+    def data_len(self) -> int:
         """
         Returns the raw byte length of this memory.
         """
 
-        return ffi.wasmtime_sharedmemory_data_size(store._context(), byref(self._sharedmemory))
+        return ffi.wasmtime_sharedmemory_data_size(byref(self._sharedmemory))
 
     def _as_extern(self) -> ffi.wasmtime_extern_t:
         union = ffi.wasmtime_extern_union(sharedmemory=pointer(self._sharedmemory))
