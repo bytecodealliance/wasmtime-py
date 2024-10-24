@@ -1,15 +1,12 @@
 from . import _ffi as ffi
 from ctypes import *
 import ctypes
-import typing
-from wasmtime import MemoryType, WasmtimeError, Engine
+from wasmtime import MemoryType, WasmtimeError, Engine, Managed
 from ._store import Storelike
 
 
 
-class SharedMemory:
-    _sharedmemory: ffi.wasmtime_sharedmemory_t
-
+class SharedMemory(Managed["ctypes._Pointer[ffi.wasmtime_sharedmemory_t]"]):
     def __init__(self, engine: Engine, ty: MemoryType):
         """
         Creates a new shared memory in `store` with the given `ty`
@@ -20,12 +17,12 @@ class SharedMemory:
         error = ffi.wasmtime_sharedmemory_new(engine.ptr(), ty.ptr(), byref(ptr))
         if error:
             raise WasmtimeError._from_ptr(error)
-        self._sharedmemory = sharedmemory
+        self._set_ptr(sharedmemory)
 
     @classmethod
     def _from_raw(cls, sharedmemory: ffi.wasmtime_sharedmemory_t) -> "SharedMemory":
         ty: "SharedMemory" = cls.__new__(cls)
-        ty._sharedmemory = sharedmemory
+        ty._set_ptr(sharedmemory)
         return ty
 
     def type(self) -> MemoryType:
@@ -44,7 +41,7 @@ class SharedMemory:
         if delta < 0:
             raise WasmtimeError("cannot grow by negative amount")
         prev = ffi.c_uint64(0)
-        error = ffi.wasmtime_sharedmemory_grow(byref(self._sharedmemory), delta, byref(prev))
+        error = ffi.wasmtime_sharedmemory_grow(byref(self.ptr()), delta, byref(prev))
         if error:
             raise WasmtimeError._from_ptr(error)
         return prev.value
@@ -54,7 +51,7 @@ class SharedMemory:
         Returns the size, in WebAssembly pages, of this shared memory.
         """
 
-        return ffi.wasmtime_sharedmemory_size(byref(self._sharedmemory))
+        return ffi.wasmtime_sharedmemory_size(byref(self.ptr()))
 
     def data_ptr(self) -> "ctypes._Pointer[c_ubyte]":
         """
@@ -63,15 +60,15 @@ class SharedMemory:
         Remember that all accesses to wasm shared memory should be bounds-checked
         against the `data_len` method.
         """
-        return ffi.wasmtime_sharedmemory_data(byref(self._sharedmemory))
+        return ffi.wasmtime_sharedmemory_data(byref(self.ptr()))
 
     def data_len(self) -> int:
         """
         Returns the raw byte length of this memory.
         """
 
-        return ffi.wasmtime_sharedmemory_data_size(byref(self._sharedmemory))
+        return ffi.wasmtime_sharedmemory_data_size(byref(self.ptr()))
 
     def _as_extern(self) -> ffi.wasmtime_extern_t:
-        union = ffi.wasmtime_extern_union(sharedmemory=pointer(self._sharedmemory))
+        union = ffi.wasmtime_extern_union(sharedmemory=pointer(self.ptr()))
         return ffi.wasmtime_extern_t(ffi.WASMTIME_EXTERN_SHAREDMEMORY, union)
