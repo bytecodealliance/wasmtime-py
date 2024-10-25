@@ -21,6 +21,9 @@ class SharedMemory(Managed["ctypes._Pointer[ffi.wasmtime_sharedmemory_t]"]):
 
     @classmethod
     def _from_raw(cls, sharedmemory: ffi.wasmtime_sharedmemory_t) -> "SharedMemory":
+        if not isinstance(sharedmemory, ffi.wasmtime_sharedmemory_t):
+            raise TypeError("wrong shared memory pointer type provided to _from_raw")
+        
         ty: "SharedMemory" = cls.__new__(cls)
         ty._set_ptr(sharedmemory)
         return ty
