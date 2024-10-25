@@ -282,7 +282,7 @@ class TableType(Managed["ctypes._Pointer[ffi.wasm_tabletype_t]"]):
 
 
 class MemoryType(Managed["ctypes._Pointer[ffi.wasm_memorytype_t]"]):
-    def __init__(self, limits: Limits, is_64: bool = False):
+    def __init__(self, limits: Limits, is_64: bool = False, shared: bool = True):
         if not isinstance(limits, Limits):
             raise TypeError("expected Limits")
         if is_64:
@@ -296,7 +296,8 @@ class MemoryType(Managed["ctypes._Pointer[ffi.wasm_memorytype_t]"]):
         ptr = ffi.wasmtime_memorytype_new(limits.min,
                                           limits.max is not None,
                                           limits.max if limits.max else 0,
-                                          is_64)
+                                          is_64,
+                                          shared)
         if not ptr:
             raise WasmtimeError("failed to allocate MemoryType")
         self._set_ptr(ptr)
@@ -331,10 +332,18 @@ class MemoryType(Managed["ctypes._Pointer[ffi.wasm_memorytype_t]"]):
         Returns whether or not this is a 64-bit memory
         """
         return ffi.wasmtime_memorytype_is64(self.ptr())
+    
+    @property
+    def is_shared(self) -> bool:
+        """
+        Returns whether or not this is a shared memory
+        """
+        return ffi.wasmtime_memorytype_isshared(self.ptr())
+
 
     def _as_extern(self) -> "ctypes._Pointer[ffi.wasm_externtype_t]":
         return ffi.wasm_memorytype_as_externtype_const(self.ptr())
-
+    
 
 def wrap_externtype(ptr: "ctypes._Pointer[ffi.wasm_externtype_t]", owner: Optional[Any]) -> "AsExternType":
     if not isinstance(ptr, POINTER(ffi.wasm_externtype_t)):
