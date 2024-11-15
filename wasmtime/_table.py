@@ -51,8 +51,8 @@ class Table:
         Returns the previous size of the table otherwise.
         """
         init_val = Val._convert_to_raw(store, self.type(store).element, init)
-        prev = c_uint32(0)
-        error = ffi.wasmtime_table_grow(store._context(), byref(self._table), c_uint32(amt), byref(init_val), byref(prev))
+        prev = c_uint64(0)
+        error = ffi.wasmtime_table_grow(store._context(), byref(self._table), c_uint64(amt), byref(init_val), byref(prev))
         ffi.wasmtime_val_unroot(store._context(), byref(init_val))
         if error:
             raise WasmtimeError._from_ptr(error)

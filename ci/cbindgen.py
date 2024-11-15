@@ -20,6 +20,7 @@ class Visitor(c_ast.NodeVisitor):
         self.ret += 'from ctypes import *\n'
         self.ret += 'import ctypes\n'
         self.ret += 'from typing import Any\n'
+        self.ret += 'from enum import Enum, auto\n'
         self.ret += 'from ._ffi import dll, wasm_val_t, wasm_ref_t\n'
 
     # Skip all function definitions, we don't bind those
@@ -64,6 +65,19 @@ class Visitor(c_ast.NodeVisitor):
                 self.ret += "\n"
         else:
             self.ret += "    pass\n"
+
+    def visit_Enum(self, node):
+        if not node.name or not node.name.startswith('was'):
+            return
+
+        self.ret += "\n"
+        self.ret += "class {}(Enum):\n".format(node.name)
+        for enumerator in node.values.enumerators:
+            if enumerator.value:
+                self.ret += "    {} = {}\n".format(enumerator.name, enumerator.value.value)
+            else:
+                self.ret += "    {} = auto()\n".format(enumerator.name)
+
 
     def visit_Typedef(self, node):
         if not node.name or not node.name.startswith('was'):
@@ -193,6 +207,8 @@ def type_name(ty, ptr=False, typing=False):
     elif isinstance(ty, c_ast.Struct):
         return ty.name
     elif isinstance(ty, c_ast.Union):
+        return ty.name
+    elif isinstance(ty, c_ast.Enum):
         return ty.name
     elif isinstance(ty, c_ast.FuncDecl):
         tys = []

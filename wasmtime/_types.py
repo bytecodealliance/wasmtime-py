@@ -1,8 +1,10 @@
-from . import _ffi as ffi
-from wasmtime import WasmtimeError, Managed
 import ctypes
-from ctypes import byref, POINTER
-from typing import Union, List, Optional, Any
+from ctypes import POINTER, byref
+from typing import Any, List, Optional, Union
+
+from wasmtime import Managed, WasmtimeError
+
+from . import _ffi as ffi
 
 
 class ValType(Managed["ctypes._Pointer[ffi.wasm_valtype_t]"]):
@@ -282,7 +284,7 @@ class TableType(Managed["ctypes._Pointer[ffi.wasm_tabletype_t]"]):
 
 
 class MemoryType(Managed["ctypes._Pointer[ffi.wasm_memorytype_t]"]):
-    def __init__(self, limits: Limits, is_64: bool = False):
+    def __init__(self, limits: Limits, is_64: bool = False, shared: bool = False):
         if not isinstance(limits, Limits):
             raise TypeError("expected Limits")
         if is_64:
@@ -296,7 +298,8 @@ class MemoryType(Managed["ctypes._Pointer[ffi.wasm_memorytype_t]"]):
         ptr = ffi.wasmtime_memorytype_new(limits.min,
                                           limits.max is not None,
                                           limits.max if limits.max else 0,
-                                          is_64)
+                                          is_64,
+                                          shared)
         if not ptr:
             raise WasmtimeError("failed to allocate MemoryType")
         self._set_ptr(ptr)
