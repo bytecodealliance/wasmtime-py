@@ -30,7 +30,7 @@ class TestWasi(unittest.TestCase):
             config.stdout_file = 'some-directory/without-a-rainbow'
         with self.assertRaises(WasmtimeError):
             config.stderr_file = 'some-directory/without-a-rainbow'
-        config.preopen_dir('wasmtime', 'other')
+        config.preopen_dir('wasmtime', 'other', DirPerms.READ_WRITE, FilePerms.READ_WRITE)
 
     def test_preview1(self):
         linker = Linker(Engine())
@@ -50,4 +50,4 @@ class TestWasi(unittest.TestCase):
     def preopen_nonexistent(self):
         config = WasiConfig()
         with self.assertRaises(WasmtimeError):
-            config.preopen_dir('/path/to/nowhere', '/')
+            config.preopen_dir('/path/to/nowhere', '/', DirPerms.READ_ONLY, FilePerms.READ_ONLY)

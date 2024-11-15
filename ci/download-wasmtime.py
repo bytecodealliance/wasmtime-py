@@ -1,5 +1,5 @@
 # Helper script to download a precompiled binary of the wasmtime dll for the
-# current platform. Currently always downloads the dev release of wasmtime.
+# current platform.
 
 import io
 import platform
@@ -10,7 +10,8 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
-WASMTIME_VERSION = "v25.0.0"
+ # set to "dev" to download the latest or pick a tag from https://github.com/bytecodealliance/wasmtime/tags
+WASMTIME_VERSION = "dev"
 
 
 def main(platform, arch):

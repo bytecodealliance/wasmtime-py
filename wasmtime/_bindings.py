@@ -6,6 +6,7 @@
 from ctypes import *
 import ctypes
 from typing import Any
+from enum import Enum, auto
 from ._ffi import dll, wasm_val_t, wasm_ref_t
 
 wasm_byte_t = c_ubyte
@@ -103,6 +104,10 @@ def wasm_store_new(arg0: Any) -> ctypes._Pointer:
 
 wasm_mutability_t = c_uint8
 
+class wasm_mutability_enum(Enum):
+    WASM_CONST = auto()
+    WASM_VAR = auto()
+
 class wasm_limits_t(Structure):
     _fields_ = [
         ("min", c_uint32),
@@ -165,6 +170,14 @@ def wasm_valtype_copy(arg0: Any) -> ctypes._Pointer:
     return _wasm_valtype_copy(arg0)  # type: ignore
 
 wasm_valkind_t = c_uint8
+
+class wasm_valkind_enum(Enum):
+    WASM_I32 = auto()
+    WASM_I64 = auto()
+    WASM_F32 = auto()
+    WASM_F64 = auto()
+    WASM_EXTERNREF = 128
+    WASM_FUNCREF = auto()
 
 _wasm_valtype_new = dll.wasm_valtype_new
 _wasm_valtype_new.restype = POINTER(wasm_valtype_t)
@@ -510,6 +523,12 @@ def wasm_externtype_copy(arg0: Any) -> ctypes._Pointer:
     return _wasm_externtype_copy(arg0)  # type: ignore
 
 wasm_externkind_t = c_uint8
+
+class wasm_externkind_enum(Enum):
+    WASM_EXTERN_FUNC = auto()
+    WASM_EXTERN_GLOBAL = auto()
+    WASM_EXTERN_TABLE = auto()
+    WASM_EXTERN_MEMORY = auto()
 
 _wasm_externtype_kind = dll.wasm_externtype_kind
 _wasm_externtype_kind.restype = wasm_externkind_t
@@ -1953,11 +1972,23 @@ _wasi_config_inherit_stderr.argtypes = [POINTER(wasi_config_t)]
 def wasi_config_inherit_stderr(config: Any) -> None:
     return _wasi_config_inherit_stderr(config)  # type: ignore
 
+class wasi_dir_perms_flags(Enum):
+    WASMTIME_WASI_DIR_PERMS_READ = 1
+    WASMTIME_WASI_DIR_PERMS_WRITE = 2
+
+wasi_dir_perms = c_size_t
+
+class wasi_file_perms_flags(Enum):
+    WASMTIME_WASI_FILE_PERMS_READ = 1
+    WASMTIME_WASI_FILE_PERMS_WRITE = 2
+
+wasi_file_perms = c_size_t
+
 _wasi_config_preopen_dir = dll.wasi_config_preopen_dir
 _wasi_config_preopen_dir.restype = c_bool
-_wasi_config_preopen_dir.argtypes = [POINTER(wasi_config_t), POINTER(c_char), POINTER(c_char)]
-def wasi_config_preopen_dir(config: Any, path: Any, guest_path: Any) -> bool:
-    return _wasi_config_preopen_dir(config, path, guest_path)  # type: ignore
+_wasi_config_preopen_dir.argtypes = [POINTER(wasi_config_t), POINTER(c_char), POINTER(c_char), wasi_dir_perms, wasi_file_perms]
+def wasi_config_preopen_dir(config: Any, host_path: Any, guest_path: Any, dir_perms: Any, file_perms: Any) -> bool:
+    return _wasi_config_preopen_dir(config, host_path, guest_path, dir_perms, file_perms)  # type: ignore
 
 class wasmtime_error(Structure):
     pass
@@ -1996,9 +2027,24 @@ def wasmtime_error_wasm_trace(arg0: Any, out: Any) -> None:
 
 wasmtime_strategy_t = c_uint8
 
+class wasmtime_strategy_enum(Enum):
+    WASMTIME_STRATEGY_AUTO = auto()
+    WASMTIME_STRATEGY_CRANELIFT = auto()
+
 wasmtime_opt_level_t = c_uint8
 
+class wasmtime_opt_level_enum(Enum):
+    WASMTIME_OPT_LEVEL_NONE = auto()
+    WASMTIME_OPT_LEVEL_SPEED = auto()
+    WASMTIME_OPT_LEVEL_SPEED_AND_SIZE = auto()
+
 wasmtime_profiling_strategy_t = c_uint8
+
+class wasmtime_profiling_strategy_enum(Enum):
+    WASMTIME_PROFILING_STRATEGY_NONE = auto()
+    WASMTIME_PROFILING_STRATEGY_JITDUMP = auto()
+    WASMTIME_PROFILING_STRATEGY_VTUNE = auto()
+    WASMTIME_PROFILING_STRATEGY_PERFMAP = auto()
 
 _wasmtime_config_debug_info_set = dll.wasmtime_config_debug_info_set
 _wasmtime_config_debug_info_set.restype = None
@@ -2096,6 +2142,12 @@ _wasmtime_config_wasm_memory64_set.argtypes = [POINTER(wasm_config_t), c_bool]
 def wasmtime_config_wasm_memory64_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_wasm_memory64_set(arg0, arg1)  # type: ignore
 
+_wasmtime_config_wasm_wide_arithmetic_set = dll.wasmtime_config_wasm_wide_arithmetic_set
+_wasmtime_config_wasm_wide_arithmetic_set.restype = None
+_wasmtime_config_wasm_wide_arithmetic_set.argtypes = [POINTER(wasm_config_t), c_bool]
+def wasmtime_config_wasm_wide_arithmetic_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_wasm_wide_arithmetic_set(arg0, arg1)  # type: ignore
+
 _wasmtime_config_strategy_set = dll.wasmtime_config_strategy_set
 _wasmtime_config_strategy_set.restype = None
 _wasmtime_config_strategy_set.argtypes = [POINTER(wasm_config_t), wasmtime_strategy_t]
@@ -2132,35 +2184,29 @@ _wasmtime_config_profiler_set.argtypes = [POINTER(wasm_config_t), wasmtime_profi
 def wasmtime_config_profiler_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_profiler_set(arg0, arg1)  # type: ignore
 
-_wasmtime_config_static_memory_forced_set = dll.wasmtime_config_static_memory_forced_set
-_wasmtime_config_static_memory_forced_set.restype = None
-_wasmtime_config_static_memory_forced_set.argtypes = [POINTER(wasm_config_t), c_bool]
-def wasmtime_config_static_memory_forced_set(arg0: Any, arg1: Any) -> None:
-    return _wasmtime_config_static_memory_forced_set(arg0, arg1)  # type: ignore
+_wasmtime_config_memory_may_move_set = dll.wasmtime_config_memory_may_move_set
+_wasmtime_config_memory_may_move_set.restype = None
+_wasmtime_config_memory_may_move_set.argtypes = [POINTER(wasm_config_t), c_bool]
+def wasmtime_config_memory_may_move_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_memory_may_move_set(arg0, arg1)  # type: ignore
 
-_wasmtime_config_static_memory_maximum_size_set = dll.wasmtime_config_static_memory_maximum_size_set
-_wasmtime_config_static_memory_maximum_size_set.restype = None
-_wasmtime_config_static_memory_maximum_size_set.argtypes = [POINTER(wasm_config_t), c_uint64]
-def wasmtime_config_static_memory_maximum_size_set(arg0: Any, arg1: Any) -> None:
-    return _wasmtime_config_static_memory_maximum_size_set(arg0, arg1)  # type: ignore
+_wasmtime_config_memory_reservation_set = dll.wasmtime_config_memory_reservation_set
+_wasmtime_config_memory_reservation_set.restype = None
+_wasmtime_config_memory_reservation_set.argtypes = [POINTER(wasm_config_t), c_uint64]
+def wasmtime_config_memory_reservation_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_memory_reservation_set(arg0, arg1)  # type: ignore
 
-_wasmtime_config_static_memory_guard_size_set = dll.wasmtime_config_static_memory_guard_size_set
-_wasmtime_config_static_memory_guard_size_set.restype = None
-_wasmtime_config_static_memory_guard_size_set.argtypes = [POINTER(wasm_config_t), c_uint64]
-def wasmtime_config_static_memory_guard_size_set(arg0: Any, arg1: Any) -> None:
-    return _wasmtime_config_static_memory_guard_size_set(arg0, arg1)  # type: ignore
+_wasmtime_config_memory_guard_size_set = dll.wasmtime_config_memory_guard_size_set
+_wasmtime_config_memory_guard_size_set.restype = None
+_wasmtime_config_memory_guard_size_set.argtypes = [POINTER(wasm_config_t), c_uint64]
+def wasmtime_config_memory_guard_size_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_memory_guard_size_set(arg0, arg1)  # type: ignore
 
-_wasmtime_config_dynamic_memory_guard_size_set = dll.wasmtime_config_dynamic_memory_guard_size_set
-_wasmtime_config_dynamic_memory_guard_size_set.restype = None
-_wasmtime_config_dynamic_memory_guard_size_set.argtypes = [POINTER(wasm_config_t), c_uint64]
-def wasmtime_config_dynamic_memory_guard_size_set(arg0: Any, arg1: Any) -> None:
-    return _wasmtime_config_dynamic_memory_guard_size_set(arg0, arg1)  # type: ignore
-
-_wasmtime_config_dynamic_memory_reserved_for_growth_set = dll.wasmtime_config_dynamic_memory_reserved_for_growth_set
-_wasmtime_config_dynamic_memory_reserved_for_growth_set.restype = None
-_wasmtime_config_dynamic_memory_reserved_for_growth_set.argtypes = [POINTER(wasm_config_t), c_uint64]
-def wasmtime_config_dynamic_memory_reserved_for_growth_set(arg0: Any, arg1: Any) -> None:
-    return _wasmtime_config_dynamic_memory_reserved_for_growth_set(arg0, arg1)  # type: ignore
+_wasmtime_config_memory_reservation_for_growth_set = dll.wasmtime_config_memory_reservation_for_growth_set
+_wasmtime_config_memory_reservation_for_growth_set.restype = None
+_wasmtime_config_memory_reservation_for_growth_set.argtypes = [POINTER(wasm_config_t), c_uint64]
+def wasmtime_config_memory_reservation_for_growth_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_memory_reservation_for_growth_set(arg0, arg1)  # type: ignore
 
 _wasmtime_config_native_unwind_info_set = dll.wasmtime_config_native_unwind_info_set
 _wasmtime_config_native_unwind_info_set.restype = None
@@ -2937,9 +2983,9 @@ def wasmtime_linker_instantiate_pre(linker: Any, module: Any, instance_pre: Any)
 
 _wasmtime_memorytype_new = dll.wasmtime_memorytype_new
 _wasmtime_memorytype_new.restype = POINTER(wasm_memorytype_t)
-_wasmtime_memorytype_new.argtypes = [c_uint64, c_bool, c_uint64, c_bool]
-def wasmtime_memorytype_new(min: Any, max_present: Any, max: Any, is_64: Any) -> ctypes._Pointer:
-    return _wasmtime_memorytype_new(min, max_present, max, is_64)  # type: ignore
+_wasmtime_memorytype_new.argtypes = [c_uint64, c_bool, c_uint64, c_bool, c_bool]
+def wasmtime_memorytype_new(min: Any, max_present: Any, max: Any, is_64: Any, shared: Any) -> ctypes._Pointer:
+    return _wasmtime_memorytype_new(min, max_present, max, is_64, shared)  # type: ignore
 
 _wasmtime_memorytype_minimum = dll.wasmtime_memorytype_minimum
 _wasmtime_memorytype_minimum.restype = c_uint64
@@ -3054,29 +3100,43 @@ def wasmtime_table_type(store: Any, table: Any) -> ctypes._Pointer:
 
 _wasmtime_table_get = dll.wasmtime_table_get
 _wasmtime_table_get.restype = c_bool
-_wasmtime_table_get.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_table_t), c_uint32, POINTER(wasmtime_val_t)]
+_wasmtime_table_get.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_table_t), c_uint64, POINTER(wasmtime_val_t)]
 def wasmtime_table_get(store: Any, table: Any, index: Any, val: Any) -> bool:
     return _wasmtime_table_get(store, table, index, val)  # type: ignore
 
 _wasmtime_table_set = dll.wasmtime_table_set
 _wasmtime_table_set.restype = POINTER(wasmtime_error_t)
-_wasmtime_table_set.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_table_t), c_uint32, POINTER(wasmtime_val_t)]
+_wasmtime_table_set.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_table_t), c_uint64, POINTER(wasmtime_val_t)]
 def wasmtime_table_set(store: Any, table: Any, index: Any, value: Any) -> ctypes._Pointer:
     return _wasmtime_table_set(store, table, index, value)  # type: ignore
 
 _wasmtime_table_size = dll.wasmtime_table_size
-_wasmtime_table_size.restype = c_uint32
+_wasmtime_table_size.restype = c_uint64
 _wasmtime_table_size.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_table_t)]
 def wasmtime_table_size(store: Any, table: Any) -> int:
     return _wasmtime_table_size(store, table)  # type: ignore
 
 _wasmtime_table_grow = dll.wasmtime_table_grow
 _wasmtime_table_grow.restype = POINTER(wasmtime_error_t)
-_wasmtime_table_grow.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_table_t), c_uint32, POINTER(wasmtime_val_t), POINTER(c_uint32)]
+_wasmtime_table_grow.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_table_t), c_uint64, POINTER(wasmtime_val_t), POINTER(c_uint64)]
 def wasmtime_table_grow(store: Any, table: Any, delta: Any, init: Any, prev_size: Any) -> ctypes._Pointer:
     return _wasmtime_table_grow(store, table, delta, init, prev_size)  # type: ignore
 
 wasmtime_trap_code_t = c_uint8
+
+class wasmtime_trap_code_enum(Enum):
+    WASMTIME_TRAP_CODE_STACK_OVERFLOW = auto()
+    WASMTIME_TRAP_CODE_MEMORY_OUT_OF_BOUNDS = auto()
+    WASMTIME_TRAP_CODE_HEAP_MISALIGNED = auto()
+    WASMTIME_TRAP_CODE_TABLE_OUT_OF_BOUNDS = auto()
+    WASMTIME_TRAP_CODE_INDIRECT_CALL_TO_NULL = auto()
+    WASMTIME_TRAP_CODE_BAD_SIGNATURE = auto()
+    WASMTIME_TRAP_CODE_INTEGER_OVERFLOW = auto()
+    WASMTIME_TRAP_CODE_INTEGER_DIVISION_BY_ZERO = auto()
+    WASMTIME_TRAP_CODE_BAD_CONVERSION_TO_INTEGER = auto()
+    WASMTIME_TRAP_CODE_UNREACHABLE_CODE_REACHED = auto()
+    WASMTIME_TRAP_CODE_INTERRUPT = auto()
+    WASMTIME_TRAP_CODE_OUT_OF_FUEL = auto()
 
 _wasmtime_trap_new = dll.wasmtime_trap_new
 _wasmtime_trap_new.restype = POINTER(wasm_trap_t)

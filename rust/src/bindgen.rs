@@ -31,6 +31,8 @@ use crate::ns::Ns;
 use crate::source::{self, Source};
 use anyhow::{bail, Context, Result};
 use heck::*;
+use wasmparser::Validator;
+use wasmtime_environ::prelude::*;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::Write;
 use std::mem;
@@ -40,8 +42,6 @@ use wasmtime_environ::component::{
     RuntimeImportIndex, RuntimeInstanceIndex, StaticModuleIndex, StringEncoding, Trampoline,
     TrampolineIndex, Translator, TypeFuncIndex, TypeResourceTableIndex,
 };
-use wasmtime_environ::wasmparser::collections::IndexMap;
-use wasmtime_environ::wasmparser::Validator;
 use wasmtime_environ::{EntityIndex, ModuleTranslation, PrimaryMap, ScopeVec, Tunables};
 use wit_bindgen_core::abi::{self, AbiVariant, Bindgen, Bitcast, Instruction, LiftLower, WasmType};
 use wit_component::DecodedWasm;

@@ -1,10 +1,13 @@
-from ctypes import c_char, POINTER, cast, c_char_p, c_int
 import ctypes
-from wasmtime import WasmtimeError, Managed
+from ctypes import POINTER, c_char, c_char_p, cast
+from enum import Enum
+from os import PathLike
+from typing import Iterable, List, Union
+
+from wasmtime import Managed, WasmtimeError
+
 from . import _ffi as ffi
 from ._config import setter_property
-from typing import List, Iterable, Union
-from os import PathLike
 
 
 def _encode_path(path: Union[str, bytes, PathLike]) -> bytes:
@@ -16,6 +19,15 @@ def _encode_path(path: Union[str, bytes, PathLike]) -> bytes:
         return path2
     return path2.encode('utf8')
 
+class DirPerms(Enum):
+    READ_ONLY = ffi.wasi_dir_perms_flags.WASMTIME_WASI_DIR_PERMS_READ.value
+    WRITE_ONLY = ffi.wasi_dir_perms_flags.WASMTIME_WASI_DIR_PERMS_WRITE.value
+    READ_WRITE = ffi.wasi_dir_perms_flags.WASMTIME_WASI_DIR_PERMS_READ.value | ffi.wasi_dir_perms_flags.WASMTIME_WASI_DIR_PERMS_WRITE.value
+
+class FilePerms(Enum):
+    READ_ONLY = ffi.wasi_file_perms_flags.WASMTIME_WASI_FILE_PERMS_READ.value
+    WRITE_ONLY = ffi.wasi_file_perms_flags.WASMTIME_WASI_FILE_PERMS_WRITE.value
+    READ_WRITE = ffi.wasi_file_perms_flags.WASMTIME_WASI_FILE_PERMS_READ.value | ffi.wasi_file_perms_flags.WASMTIME_WASI_FILE_PERMS_WRITE.value
 
 class WasiConfig(Managed["ctypes._Pointer[ffi.wasi_config_t]"]):
 
@@ -142,10 +154,21 @@ class WasiConfig(Managed["ctypes._Pointer[ffi.wasi_config_t]"]):
         """
         ffi.wasi_config_inherit_stderr(self.ptr())
 
-    def preopen_dir(self, path: str, guest_path: str) -> None:
+    def preopen_dir(self, path: str, guest_path: str, dir_perms: DirPerms, file_perms: FilePerms) -> None:
+        """
+        Allows the WASI program to access the directory at `path` using the
+        path `guest_path` within the WASI program.
+
+        `dir_perms` specifies the permissions that wasm will have to operate on
+        `guest_path`. This can be used, for example, to provide readonly access to a
+        directory.
+
+        `file_perms` specifies the maximum set of permissions that can be used for
+        any file in this directory.
+        """
         path_ptr = c_char_p(path.encode('utf-8'))
         guest_path_ptr = c_char_p(guest_path.encode('utf-8'))
-        if not ffi.wasi_config_preopen_dir(self.ptr(), path_ptr, guest_path_ptr):
+        if not ffi.wasi_config_preopen_dir(self.ptr(), path_ptr, guest_path_ptr, dir_perms.value, file_perms.value):
             raise WasmtimeError('failed to add preopen dir')
 
 
