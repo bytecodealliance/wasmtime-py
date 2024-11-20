@@ -10,8 +10,9 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
- # set to "dev" to download the latest or pick a tag from https://github.com/bytecodealliance/wasmtime/tags
-WASMTIME_VERSION = "dev"
+# set to "dev" to download the latest or pick a tag from
+# https://github.com/bytecodealliance/wasmtime/tags
+WASMTIME_VERSION = "v27.0.0"
 
 
 def main(platform, arch):
