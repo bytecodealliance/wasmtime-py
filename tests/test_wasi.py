@@ -31,6 +31,7 @@ class TestWasi(unittest.TestCase):
         with self.assertRaises(WasmtimeError):
             config.stderr_file = 'some-directory/without-a-rainbow'
         config.preopen_dir('wasmtime', 'other', DirPerms.READ_WRITE, FilePerms.READ_WRITE)
+        config.preopen_dir('wasmtime', 'other2')
 
     def test_preview1(self):
         linker = Linker(Engine())

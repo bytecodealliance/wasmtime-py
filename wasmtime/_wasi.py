@@ -154,7 +154,7 @@ class WasiConfig(Managed["ctypes._Pointer[ffi.wasi_config_t]"]):
         """
         ffi.wasi_config_inherit_stderr(self.ptr())
 
-    def preopen_dir(self, path: str, guest_path: str, dir_perms: DirPerms, file_perms: FilePerms) -> None:
+    def preopen_dir(self, path: str, guest_path: str, dir_perms: DirPerms = DirPerms.READ_WRITE, file_perms: FilePerms = FilePerms.READ_WRITE) -> None:
         """
         Allows the WASI program to access the directory at `path` using the
         path `guest_path` within the WASI program.
