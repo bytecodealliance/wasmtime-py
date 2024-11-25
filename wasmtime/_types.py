@@ -334,10 +334,18 @@ class MemoryType(Managed["ctypes._Pointer[ffi.wasm_memorytype_t]"]):
         Returns whether or not this is a 64-bit memory
         """
         return ffi.wasmtime_memorytype_is64(self.ptr())
+    
+    @property
+    def is_shared(self) -> bool:
+        """
+        Returns whether or not this is a shared memory
+        """
+        return ffi.wasmtime_memorytype_isshared(self.ptr())
+
 
     def _as_extern(self) -> "ctypes._Pointer[ffi.wasm_externtype_t]":
         return ffi.wasm_memorytype_as_externtype_const(self.ptr())
-
+    
 
 def wrap_externtype(ptr: "ctypes._Pointer[ffi.wasm_externtype_t]", owner: Optional[Any]) -> "AsExternType":
     if not isinstance(ptr, POINTER(ffi.wasm_externtype_t)):
