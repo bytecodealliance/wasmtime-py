@@ -138,14 +138,14 @@ example with this core wasm module at `demo.wat`:
 and with this [`*.wit`] interface at `demo.wit`:
 
 ```text
-package my:demo
+package my:demo;
 
 world demo {
   import python: interface {
-    print: func(s: string)
+    print: func(s: string);
   }
 
-  export run: func()
+  export run: func();
 }
 ```
 
