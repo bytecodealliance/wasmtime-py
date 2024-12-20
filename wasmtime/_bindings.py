@@ -2184,17 +2184,17 @@ _wasmtime_config_profiler_set.argtypes = [POINTER(wasm_config_t), wasmtime_profi
 def wasmtime_config_profiler_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_profiler_set(arg0, arg1)  # type: ignore
 
-_wasmtime_config_static_memory_forced_set = dll.wasmtime_config_static_memory_forced_set
-_wasmtime_config_static_memory_forced_set.restype = None
-_wasmtime_config_static_memory_forced_set.argtypes = [POINTER(wasm_config_t), c_bool]
-def wasmtime_config_static_memory_forced_set(arg0: Any, arg1: Any) -> None:
-    return _wasmtime_config_static_memory_forced_set(arg0, arg1)  # type: ignore
+_wasmtime_config_memory_may_move_set = dll.wasmtime_config_memory_may_move_set
+_wasmtime_config_memory_may_move_set.restype = None
+_wasmtime_config_memory_may_move_set.argtypes = [POINTER(wasm_config_t), c_bool]
+def wasmtime_config_memory_may_move_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_memory_may_move_set(arg0, arg1)  # type: ignore
 
-_wasmtime_config_static_memory_maximum_size_set = dll.wasmtime_config_static_memory_maximum_size_set
-_wasmtime_config_static_memory_maximum_size_set.restype = None
-_wasmtime_config_static_memory_maximum_size_set.argtypes = [POINTER(wasm_config_t), c_uint64]
-def wasmtime_config_static_memory_maximum_size_set(arg0: Any, arg1: Any) -> None:
-    return _wasmtime_config_static_memory_maximum_size_set(arg0, arg1)  # type: ignore
+_wasmtime_config_memory_reservation_set = dll.wasmtime_config_memory_reservation_set
+_wasmtime_config_memory_reservation_set.restype = None
+_wasmtime_config_memory_reservation_set.argtypes = [POINTER(wasm_config_t), c_uint64]
+def wasmtime_config_memory_reservation_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_memory_reservation_set(arg0, arg1)  # type: ignore
 
 _wasmtime_config_memory_guard_size_set = dll.wasmtime_config_memory_guard_size_set
 _wasmtime_config_memory_guard_size_set.restype = None
@@ -2202,11 +2202,11 @@ _wasmtime_config_memory_guard_size_set.argtypes = [POINTER(wasm_config_t), c_uin
 def wasmtime_config_memory_guard_size_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_memory_guard_size_set(arg0, arg1)  # type: ignore
 
-_wasmtime_config_dynamic_memory_reserved_for_growth_set = dll.wasmtime_config_dynamic_memory_reserved_for_growth_set
-_wasmtime_config_dynamic_memory_reserved_for_growth_set.restype = None
-_wasmtime_config_dynamic_memory_reserved_for_growth_set.argtypes = [POINTER(wasm_config_t), c_uint64]
-def wasmtime_config_dynamic_memory_reserved_for_growth_set(arg0: Any, arg1: Any) -> None:
-    return _wasmtime_config_dynamic_memory_reserved_for_growth_set(arg0, arg1)  # type: ignore
+_wasmtime_config_memory_reservation_for_growth_set = dll.wasmtime_config_memory_reservation_for_growth_set
+_wasmtime_config_memory_reservation_for_growth_set.restype = None
+_wasmtime_config_memory_reservation_for_growth_set.argtypes = [POINTER(wasm_config_t), c_uint64]
+def wasmtime_config_memory_reservation_for_growth_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_memory_reservation_for_growth_set(arg0, arg1)  # type: ignore
 
 _wasmtime_config_native_unwind_info_set = dll.wasmtime_config_native_unwind_info_set
 _wasmtime_config_native_unwind_info_set.restype = None
