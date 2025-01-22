@@ -8,6 +8,8 @@ class TestEngine(unittest.TestCase):
         Engine()
         Engine(Config())
 
+        Engine().is_pulley()
+
     def test_errors(self):
         with self.assertRaises(TypeError):
             Engine(3)  # type: ignore
