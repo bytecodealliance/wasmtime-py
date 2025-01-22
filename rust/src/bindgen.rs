@@ -31,8 +31,6 @@ use crate::ns::Ns;
 use crate::source::{self, Source};
 use anyhow::{bail, Context, Result};
 use heck::*;
-use wasmparser::Validator;
-use wasmtime_environ::prelude::*;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::Write;
 use std::mem;
@@ -42,6 +40,7 @@ use wasmtime_environ::component::{
     RuntimeImportIndex, RuntimeInstanceIndex, StaticModuleIndex, StringEncoding, Trampoline,
     TrampolineIndex, Translator, TypeFuncIndex, TypeResourceTableIndex,
 };
+use wasmtime_environ::prelude::*;
 use wasmtime_environ::{EntityIndex, ModuleTranslation, PrimaryMap, ScopeVec, Tunables};
 use wit_bindgen_core::abi::{self, AbiVariant, Bindgen, Bitcast, Instruction, LiftLower, WasmType};
 use wit_component::DecodedWasm;
@@ -134,7 +133,7 @@ impl WasmtimePy {
         // that need to be executed to instantiate a component.
         let scope = ScopeVec::new();
         let tunables = Tunables::default_u64();
-        let mut validator = Validator::new();
+        let mut validator = wasmtime_environ::wasmparser::Validator::new();
         let mut types = ComponentTypesBuilder::new(&validator);
         let (component, modules) = Translator::new(&tunables, &mut validator, &mut types, &scope)
             .translate(binary)
@@ -900,9 +899,13 @@ impl<'a> Instantiator<'a> {
             match abi {
                 AbiVariant::GuestImport => LiftLower::LiftArgsLowerResults,
                 AbiVariant::GuestExport => LiftLower::LowerArgsLiftResults,
+                AbiVariant::GuestImportAsync => unimplemented!(),
+                AbiVariant::GuestExportAsync => unimplemented!(),
+                AbiVariant::GuestExportAsyncStackful => unimplemented!(),
             },
             func,
             &mut f,
+            false,
         );
 
         // Swap the printed source back into the destination of our `init`, and
@@ -1395,18 +1398,8 @@ impl InterfaceGenerator<'_> {
                         self.src.push_str("]");
                     }
                     TypeDefKind::List(t) => self.print_list(t),
-                    TypeDefKind::Future(t) => {
-                        self.src.push_str("Future[");
-                        self.print_optional_ty(t.as_ref(), true);
-                        self.src.push_str("]");
-                    }
-                    TypeDefKind::Stream(s) => {
-                        self.src.push_str("Stream[");
-                        self.print_optional_ty(s.element.as_ref(), true);
-                        self.src.push_str(", ");
-                        self.print_optional_ty(s.end.as_ref(), true);
-                        self.src.push_str("]");
-                    }
+                    TypeDefKind::Future(_) => unimplemented!(),
+                    TypeDefKind::Stream(_) => unimplemented!(),
                     TypeDefKind::Resource => unimplemented!(),
                     TypeDefKind::Handle(Handle::Own(t) | Handle::Borrow(t)) => {
                         let ty = &self.resolve.types[*t];
@@ -1416,6 +1409,7 @@ impl InterfaceGenerator<'_> {
                         }
                     }
                     TypeDefKind::Unknown => unreachable!(),
+                    TypeDefKind::ErrorContext => unimplemented!(),
                 }
             }
         }
@@ -1531,6 +1525,7 @@ impl InterfaceGenerator<'_> {
                 TypeDefKind::Resource => self.type_resource(ty, id, name, interface),
                 TypeDefKind::Handle(_) => unimplemented!(),
                 TypeDefKind::Unknown => unreachable!(),
+                TypeDefKind::ErrorContext => unreachable!(),
             }
         }
     }
@@ -2830,7 +2825,8 @@ impl Bindgen for FunctionBindgen<'_, '_> {
                         .push_str(&format!("assert(isinstance({}, {}))\n", name, ty));
                 }
             }
-            Instruction::CallInterface { func } => {
+            Instruction::CallInterface { func, async_ } => {
+                assert!(!async_);
                 for i in 0..func.results.len() {
                     if i > 0 {
                         self.gen.src.push_str(", ");
@@ -2924,6 +2920,13 @@ impl Bindgen for FunctionBindgen<'_, '_> {
             Instruction::HandleLower { .. } => {
                 uwriteln!(self.gen.src, "rep = self._rep");
                 results.push("rep".to_string());
+            }
+            Instruction::Flush { amt } => {
+                for i in 0..*amt {
+                    let tmp = self.locals.tmp("tmp");
+                    uwriteln!(self.gen.src, "{tmp} = {}", operands[i]);
+                    results.push(tmp);
+                }
             }
 
             i => unimplemented!("{:?}", i),

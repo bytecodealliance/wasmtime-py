@@ -2300,6 +2300,12 @@ _wasmtime_engine_increment_epoch.argtypes = [POINTER(wasm_engine_t)]
 def wasmtime_engine_increment_epoch(engine: Any) -> None:
     return _wasmtime_engine_increment_epoch(engine)  # type: ignore
 
+_wasmtime_engine_is_pulley = dll.wasmtime_engine_is_pulley
+_wasmtime_engine_is_pulley.restype = c_bool
+_wasmtime_engine_is_pulley.argtypes = [POINTER(wasm_engine_t)]
+def wasmtime_engine_is_pulley(engine: Any) -> bool:
+    return _wasmtime_engine_is_pulley(engine)  # type: ignore
+
 class wasmtime_module(Structure):
     pass
 
@@ -2882,7 +2888,7 @@ def wasmtime_instance_pre_delete(instance_pre: Any) -> None:
 
 _wasmtime_instance_pre_instantiate = dll.wasmtime_instance_pre_instantiate
 _wasmtime_instance_pre_instantiate.restype = POINTER(wasmtime_error_t)
-_wasmtime_instance_pre_instantiate.argtypes = [POINTER(wasmtime_instance_pre_t), POINTER(wasmtime_store_t), POINTER(wasmtime_instance_t), POINTER(POINTER(wasm_trap_t))]
+_wasmtime_instance_pre_instantiate.argtypes = [POINTER(wasmtime_instance_pre_t), POINTER(wasmtime_context_t), POINTER(wasmtime_instance_t), POINTER(POINTER(wasm_trap_t))]
 def wasmtime_instance_pre_instantiate(instance_pre: Any, store: Any, instance: Any, trap_ptr: Any) -> ctypes._Pointer:
     return _wasmtime_instance_pre_instantiate(instance_pre, store, instance, trap_ptr)  # type: ignore
 

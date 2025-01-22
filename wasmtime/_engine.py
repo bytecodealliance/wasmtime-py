@@ -20,3 +20,6 @@ class Engine(Managed["ctypes._Pointer[ffi.wasm_engine_t]"]):
 
     def increment_epoch(self) -> None:
         ffi.wasmtime_engine_increment_epoch(self.ptr())
+
+    def is_pulley(self) -> bool:
+        return ffi.wasmtime_engine_is_pulley(self.ptr())
