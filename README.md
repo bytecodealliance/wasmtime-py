@@ -9,21 +9,12 @@
   <strong>A <a href="https://bytecodealliance.org/">Bytecode Alliance</a> project</strong>
 
   <p>
-    <a href="https://github.com/bytecodealliance/wasmtime-py/actions?query=workflow%3ACI">
-      <img src="https://github.com/bytecodealliance/wasmtime-py/workflows/CI/badge.svg" alt="CI status"/>
-    </a>
-    <a href="https://pypi.org/project/wasmtime/">
-      <img src="https://img.shields.io/pypi/v/wasmtime.svg" alt="Latest Version"/>
-    </a>
-    <a href="https://pypi.org/project/wasmtime/">
-      <img src="https://img.shields.io/pypi/pyversions/wasmtime.svg" alt="Latest Version"/>
-    </a>
-    <a href="https://bytecodealliance.github.io/wasmtime-py/">
-      <img src="https://img.shields.io/badge/docs-main-green" alt="Documentation"/>
-    </a>
-    <a href="https://bytecodealliance.github.io/wasmtime-py/coverage/">
-      <img src="https://img.shields.io/badge/coverage-main-green" alt="Code Coverage"/>
-    </a>
+    <!-- Badge links contain no whitespace, to eliminate underlines in rendered page -->
+    <a href="https://github.com/bytecodealliance/wasmtime-py/actions?query=workflow%3ACI"><img src="https://github.com/bytecodealliance/wasmtime-py/workflows/CI/badge.svg" alt="CI status"/></a>
+    <a href="https://pypi.org/project/wasmtime/"><img src="https://img.shields.io/pypi/v/wasmtime.svg" alt="Latest Version"/></a>
+    <a href="https://pypi.org/project/wasmtime/"><img src="https://img.shields.io/pypi/pyversions/wasmtime.svg" alt="Latest Version"/></a>
+    <a href="https://bytecodealliance.github.io/wasmtime-py/"><img src="https://img.shields.io/badge/docs-main-green" alt="Documentation"/></a>
+    <a href="https://bytecodealliance.github.io/wasmtime-py/coverage/"><img src="https://img.shields.io/badge/coverage-main-green" alt="Code Coverage"/></a>
   </p>
 
 </div>
