@@ -6,7 +6,6 @@
 # other generate that does this already it seemed to not quite fit our purposes
 # with lots of extra an unnecessary boilerplate.
 
-import platform
 from pycparser import c_ast, parse_file
 
 
@@ -232,7 +231,7 @@ def type_name(ty, ptr=False, typing=False):
 ast = parse_file(
     './wasmtime/include/wasmtime.h',
     use_cpp=True,
-    cpp_path='clang' if platform.system() == 'Windows' else 'gcc',
+    cpp_path='gcc',
     cpp_args=[
         '-E',
         '-I./wasmtime/include',
