@@ -24,8 +24,9 @@ Otherwise if you have a local checkout of Wasmtime you can symlink its
 `libwasmtime.so` (or equivalent) to `wasmtime/linux-x86_64/_libwasmtime.so` (or
 equivalent).
 
-Next the bindings generation requires compiling some Rust code to WebAssembly,
-which can be done with:
+Next the bindings generation requires compiling some Rust code to WebAssembly.
+This requires the `wasip1` Rust target be installed (`rustup target add wasm32-wasip1`)
+as well as `wasm-tools` (`cargo install wasm-tools`), and then run:
 
 ```sh
 $ python ci/build-rust.py
