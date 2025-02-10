@@ -42,7 +42,9 @@ setuptools.setup(
             'pytest',
             'pycparser',
             'pytest-mypy',
-            'componentize-py',
+            # componentize-py only support x86_64 builds on Windows
+            # platform.machine() on Windows returns 'AMD64' for x86_64
+            "componentize-py; platform_system != 'Windows' or platform_machine == 'AMD64'",
         ],
     },
     classifiers=[

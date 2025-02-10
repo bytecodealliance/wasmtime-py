@@ -27,8 +27,8 @@ To install `wasmtime-py`, run this command in your terminal:
 $ pip install wasmtime
 ```
 
-The package currently supports 64-bit builds of Python 3.9+ on x86\_64 Windows,
-macOS, and Linux, as well as on arm64 macOS and Linux.
+The package currently supports 64-bit builds of Python 3.9+ on Windows,
+macOS, and Linux, for x86\_64 and arm64 architectures.
 
 ## Versioning
 

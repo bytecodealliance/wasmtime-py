@@ -24,8 +24,9 @@ Otherwise if you have a local checkout of Wasmtime you can symlink its
 `libwasmtime.so` (or equivalent) to `wasmtime/linux-x86_64/_libwasmtime.so` (or
 equivalent).
 
-Next the bindings generation requires compiling some Rust code to WebAssembly,
-which can be done with:
+Next the bindings generation requires compiling some Rust code to WebAssembly.
+This requires the `wasip1` Rust target be installed (`rustup target add wasm32-wasip1`)
+as well as `wasm-tools` (`cargo install wasm-tools`), and then run:
 
 ```sh
 $ python ci/build-rust.py
@@ -38,6 +39,12 @@ $ pip install -e ".[testing]"
 ```
 
 ## Testing
+
+On Windows, the below will require `gcc` to be installed locally and on the PATH.
+The easiest way to do this is via an installer such as `https://github.com/msys2/msys2-installer/releases/download/2024-12-08/msys2-x86_64-20241208.exe`,
+and then in the MSYS2 terminal run the command `pacman -S --needed base-devel mingw-w64-ucrt-x86_64-toolchain` to install GCC. Put `C:\msys64\ucrt64\bin` (or
+wherever you installed GCC to) on the end of the PATH (if earlier on the PATH its
+version of Python may get picked up before the desired version).
 
 After you've completed the set up steps, you can run the tests locally with
 `pytest`:

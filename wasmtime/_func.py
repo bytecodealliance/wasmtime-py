@@ -185,8 +185,8 @@ def extract_val(val: Val) -> Any:
     return val
 
 
-@ffi.wasmtime_func_callback_t  # type: ignore
-def trampoline(idx, caller, params, nparams, results, nresults):
+@ffi.wasmtime_func_callback_t
+def trampoline(idx, caller, params, nparams, results, nresults):  # type: ignore
     caller = Caller(caller)
     try:
         func, result_tys, access_caller = FUNCTIONS.get(idx or 0)

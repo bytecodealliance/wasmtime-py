@@ -79,24 +79,14 @@ jobs:
         python setup.py bdist_wheel --plat-name win-amd64
     - run: |
         git clean -fdx wasmtime build
+        python ci/download-wasmtime.py win32 arm64
+        python ci/build-rust.py
+        python setup.py bdist_wheel --plat-name win-arm64
+    - run: |
+        git clean -fdx wasmtime build
         python ci/download-wasmtime.py musl x86_64
         python ci/build-rust.py
         python setup.py bdist_wheel --plat-name musllinux_1_2_x86_64
-
-    # Build an "any" wheel with:
-    #
-    #   * MinGW
-    #
-    # because at this time I don't know what the `--plat-name` tags supported on
-    # PyPI are for these platforms. Our hope is that any platform not matching
-    # the above `--plat-name` arguments will install this `any` wheel instead,
-    # and then when the wheel runs it'll dynamically select from the available
-    # shared libraries.
-    - run: |
-        git clean -fdx wasmtime build
-        python ci/download-wasmtime.py win32 x86_64
-        python ci/build-rust.py
-        python setup.py bdist_wheel
 
     - uses: actions/upload-artifact@v4
       with:

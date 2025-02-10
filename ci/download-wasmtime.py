@@ -21,7 +21,7 @@ def main(platform, arch):
 
     if arch == 'AMD64':
         arch = 'x86_64'
-    if arch == 'arm64':
+    if arch == 'arm64' or arch == 'ARM64':
         arch = 'aarch64'
     dirname = '{}-{}'.format(platform, arch)
     if platform == 'linux' or platform == 'musl':
