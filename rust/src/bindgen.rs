@@ -214,6 +214,34 @@ impl WasmtimePy {
                 Trampoline::ResourceExitCall => unimplemented!(),
                 Trampoline::ResourceTransferOwn => unimplemented!(),
                 Trampoline::ResourceTransferBorrow => unimplemented!(),
+                Trampoline::TaskBackpressure { .. } => unimplemented!(),
+                Trampoline::TaskReturn => unimplemented!(),
+                Trampoline::TaskWait { .. } => unimplemented!(),
+                Trampoline::TaskPoll { .. } => unimplemented!(),
+                Trampoline::TaskYield { .. } => unimplemented!(),
+                Trampoline::SubtaskDrop { .. } => unimplemented!(),
+                Trampoline::StreamNew { .. } => unimplemented!(),
+                Trampoline::StreamRead { .. } => unimplemented!(),
+                Trampoline::StreamWrite { .. } => unimplemented!(),
+                Trampoline::StreamCancelRead { .. } => unimplemented!(),
+                Trampoline::StreamCancelWrite { .. } => unimplemented!(),
+                Trampoline::StreamCloseReadable { .. } => unimplemented!(),
+                Trampoline::StreamCloseWritable { .. } => unimplemented!(),
+                Trampoline::FutureNew { .. } => unimplemented!(),
+                Trampoline::FutureRead { .. } => unimplemented!(),
+                Trampoline::FutureWrite { .. } => unimplemented!(),
+                Trampoline::FutureCancelRead { .. } => unimplemented!(),
+                Trampoline::FutureCancelWrite { .. } => unimplemented!(),
+                Trampoline::FutureCloseReadable { .. } => unimplemented!(),
+                Trampoline::FutureCloseWritable { .. } => unimplemented!(),
+                Trampoline::ErrorContextNew { .. } => unimplemented!(),
+                Trampoline::ErrorContextDebugMessage { .. } => unimplemented!(),
+                Trampoline::ErrorContextDrop { .. } => unimplemented!(),
+                Trampoline::AsyncEnterCall => unimplemented!(),
+                Trampoline::AsyncExitCall { .. } => unimplemented!(),
+                Trampoline::FutureTransfer => unimplemented!(),
+                Trampoline::StreamTransfer => unimplemented!(),
+                Trampoline::ErrorContextTransfer => unimplemented!(),
             }
         }
 
@@ -565,6 +593,8 @@ impl<'a> Instantiator<'a> {
             GlobalInitializer::LowerImport { index, import } => self.lower_import(*index, *import),
 
             GlobalInitializer::Resource(_) => {}
+
+            GlobalInitializer::ExtractCallback(_) => unimplemented!(),
         }
     }
 
