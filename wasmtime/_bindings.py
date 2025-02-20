@@ -3261,7 +3261,7 @@ class wasmtime_stack_memory(Structure):
 
 wasmtime_stack_memory_t = wasmtime_stack_memory
 
-wasmtime_new_stack_memory_callback_t = CFUNCTYPE(c_size_t, c_void_p, c_size_t, POINTER(wasmtime_stack_memory_t))
+wasmtime_new_stack_memory_callback_t = CFUNCTYPE(c_size_t, c_void_p, c_size_t, c_bool, POINTER(wasmtime_stack_memory_t))
 
 class wasmtime_stack_creator(Structure):
     _fields_ = [
