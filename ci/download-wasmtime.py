@@ -32,6 +32,10 @@ def main(platform, arch):
         filename = 'wasmtime-{}-{}-windows-c-api.zip'.format(version, arch)
         is_zip = True
         libname = '_wasmtime.dll'
+    elif platform == 'mingw':
+        filename = 'wasmtime-{}-{}-mingw-c-api.zip'.format(version, arch)
+        is_zip = True
+        libname = '_wasmtime.dll'
     elif platform == 'darwin':
         filename = 'wasmtime-{}-{}-macos-c-api.tar.xz'.format(version, arch)
         libname = '_libwasmtime.dylib'
