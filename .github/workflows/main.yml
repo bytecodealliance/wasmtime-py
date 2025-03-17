@@ -87,11 +87,6 @@ jobs:
         python ci/download-wasmtime.py musl x86_64
         python ci/build-rust.py
         python setup.py bdist_wheel --plat-name musllinux_1_2_x86_64
-    - run: |
-        git clean -fdx wasmtime build
-        python ci/download-wasmtime.py mingw x86_64
-        python ci/build-rust.py
-        python setup.py bdist_wheel --plat-name mingw_x86_64_msvcrt_gnu
 
     - uses: actions/upload-artifact@v4
       with:
