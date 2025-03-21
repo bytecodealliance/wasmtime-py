@@ -520,6 +520,7 @@ fn array_ty(resolve: &Resolve, ty: &Type) -> Option<&'static str> {
         Type::F64 => Some("c_double"),
         Type::Char => None,
         Type::String => None,
+        Type::ErrorContext => None,
         Type::Id(id) => match &resolve.types[*id].kind {
             TypeDefKind::Type(t) => array_ty(resolve, t),
             _ => None,
@@ -1360,6 +1361,7 @@ impl InterfaceGenerator<'_> {
             Type::F32 | Type::F64 => self.src.push_str("float"),
             Type::Char => self.src.push_str("str"),
             Type::String => self.src.push_str("str"),
+            Type::ErrorContext => unimplemented!(),
             Type::Id(id) => {
                 let ty = &self.resolve.types[*id];
                 if let Some(name) = &ty.name {
@@ -1439,7 +1441,6 @@ impl InterfaceGenerator<'_> {
                         }
                     }
                     TypeDefKind::Unknown => unreachable!(),
-                    TypeDefKind::ErrorContext => unimplemented!(),
                 }
             }
         }
@@ -1514,24 +1515,14 @@ impl InterfaceGenerator<'_> {
             self.print_ty(ty, true);
         }
         self.src.push_str(") -> ");
-        match func.results.len() {
-            0 => self.src.push_str("None"),
-            1 => match func.kind {
+        if func.result.is_some() {
+            match func.kind {
                 // The return type of `__init__` in Python is always `None`.
                 FunctionKind::Constructor(_) => self.src.push_str("None"),
-                _ => self.print_ty(func.results.iter_types().next().unwrap(), true),
-            },
-            _ => {
-                self.src.pyimport("typing", "Tuple");
-                self.src.push_str("Tuple[");
-                for (i, ty) in func.results.iter_types().enumerate() {
-                    if i > 0 {
-                        self.src.push_str(", ");
-                    }
-                    self.print_ty(ty, true);
-                }
-                self.src.push_str("]");
+                _ => self.print_ty(&func.result.unwrap(), true),
             }
+        } else {
+            self.src.push_str("None")
         }
         params
     }
@@ -1555,7 +1546,6 @@ impl InterfaceGenerator<'_> {
                 TypeDefKind::Resource => self.type_resource(ty, id, name, interface),
                 TypeDefKind::Handle(_) => unimplemented!(),
                 TypeDefKind::Unknown => unreachable!(),
-                TypeDefKind::ErrorContext => unreachable!(),
             }
         }
     }
@@ -1823,7 +1813,14 @@ impl FunctionBindgen<'_, '_> {
         results.push(format!("{clamp}({}, {min}, {max})", operands[0]));
     }
 
-    fn load(&mut self, ty: &str, offset: i32, operands: &[String], results: &mut Vec<String>) {
+    fn load(
+        &mut self,
+        ty: &str,
+        offset: ArchitectureSize,
+        operands: &[String],
+        results: &mut Vec<String>,
+    ) {
+        let offset = offset.size_wasm32();
         let load = self.print_load();
         let memory = self.memory.as_ref().unwrap();
         let tmp = self.locals.tmp("load");
@@ -1836,10 +1833,11 @@ impl FunctionBindgen<'_, '_> {
         results.push(tmp);
     }
 
-    fn store(&mut self, ty: &str, offset: i32, operands: &[String]) {
+    fn store(&mut self, ty: &str, offset: ArchitectureSize, operands: &[String]) {
         let store = self.print_store();
         let memory = self.memory.as_ref().unwrap();
         self.gen.src.pyimport("ctypes", None);
+        let offset = offset.size_wasm32();
         uwriteln!(
             self.gen.src,
             "{store}(ctypes.{ty}, {memory}, caller, {}, {offset}, {})",
@@ -2211,7 +2209,7 @@ impl Bindgen for FunctionBindgen<'_, '_> {
         self.blocks.push((src, mem::take(operands)));
     }
 
-    fn return_pointer(&mut self, _size: usize, _align: usize) -> String {
+    fn return_pointer(&mut self, _size: ArchitectureSize, _align: Alignment) -> String {
         unimplemented!()
     }
 
@@ -2857,15 +2855,10 @@ impl Bindgen for FunctionBindgen<'_, '_> {
             }
             Instruction::CallInterface { func, async_ } => {
                 assert!(!async_);
-                for i in 0..func.results.len() {
-                    if i > 0 {
-                        self.gen.src.push_str(", ");
-                    }
+                if func.result.is_some() {
                     let result = self.locals.tmp("ret");
                     self.gen.src.push_str(&result);
                     results.push(result);
-                }
-                if func.results.len() > 0 {
                     self.gen.src.push_str(" = ");
                 }
                 match &func.kind {
@@ -2874,7 +2867,10 @@ impl Bindgen for FunctionBindgen<'_, '_> {
                             .src
                             .push_str(&format!("{}({})", self.callee, operands.join(", "),));
                     }
-                    FunctionKind::Method(_)
+                    FunctionKind::AsyncFreestanding
+                    | FunctionKind::AsyncMethod(_)
+                    | FunctionKind::AsyncStatic(_)
+                    | FunctionKind::Method(_)
                     | FunctionKind::Static(_)
                     | FunctionKind::Constructor(_) => {
                         unimplemented!()
@@ -2925,6 +2921,8 @@ impl Bindgen for FunctionBindgen<'_, '_> {
             Instruction::Malloc { size, align, .. } => {
                 let realloc = self.realloc.as_ref().unwrap();
                 let ptr = self.locals.tmp("ptr");
+                let align = align.align_wasm32();
+                let size = size.size_wasm32();
                 uwriteln!(
                     self.gen.src,
                     "{ptr} = {realloc}(caller, 0, 0, {align}, {size})"
