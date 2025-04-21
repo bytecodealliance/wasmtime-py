@@ -43,9 +43,9 @@ class TestTrap(unittest.TestCase):
 
         self.assertEqual(str(trap), """\
 error while executing at wasm backtrace:
-    0:   0x2d - module!bar
-    1:   0x28 - module!foo
-    2:   0x23 - module!<wasm function 0>
+    0:     0x2d - module!bar
+    1:     0x28 - module!foo
+    2:     0x23 - module!<wasm function 0>
 
 Caused by:
     wasm trap: wasm `unreachable` instruction executed\

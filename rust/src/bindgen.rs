@@ -214,11 +214,14 @@ impl WasmtimePy {
                 Trampoline::ResourceExitCall => unimplemented!(),
                 Trampoline::ResourceTransferOwn => unimplemented!(),
                 Trampoline::ResourceTransferBorrow => unimplemented!(),
-                Trampoline::TaskBackpressure { .. } => unimplemented!(),
-                Trampoline::TaskReturn => unimplemented!(),
-                Trampoline::TaskWait { .. } => unimplemented!(),
-                Trampoline::TaskPoll { .. } => unimplemented!(),
-                Trampoline::TaskYield { .. } => unimplemented!(),
+                Trampoline::BackpressureSet { .. } => unimplemented!(),
+                Trampoline::TaskReturn { .. } => unimplemented!(),
+                Trampoline::WaitableSetWait { .. } => unimplemented!(),
+                Trampoline::WaitableSetPoll { .. } => unimplemented!(),
+                Trampoline::WaitableSetNew { .. } => unimplemented!(),
+                Trampoline::WaitableSetDrop { .. } => unimplemented!(),
+                Trampoline::WaitableJoin { .. } => unimplemented!(),
+                Trampoline::Yield { .. } => unimplemented!(),
                 Trampoline::SubtaskDrop { .. } => unimplemented!(),
                 Trampoline::StreamNew { .. } => unimplemented!(),
                 Trampoline::StreamRead { .. } => unimplemented!(),
@@ -242,6 +245,8 @@ impl WasmtimePy {
                 Trampoline::FutureTransfer => unimplemented!(),
                 Trampoline::StreamTransfer => unimplemented!(),
                 Trampoline::ErrorContextTransfer => unimplemented!(),
+                Trampoline::SyncEnterCall => unimplemented!(),
+                Trampoline::SyncExitCall { .. } => unimplemented!(),
             }
         }
 
@@ -596,6 +601,7 @@ impl<'a> Instantiator<'a> {
             GlobalInitializer::Resource(_) => {}
 
             GlobalInitializer::ExtractCallback(_) => unimplemented!(),
+            GlobalInitializer::ExtractTable(_) => unimplemented!(),
         }
     }
 

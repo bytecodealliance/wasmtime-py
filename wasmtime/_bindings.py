@@ -2288,6 +2288,147 @@ _wasmtime_config_memory_init_cow_set.argtypes = [POINTER(wasm_config_t), c_bool]
 def wasmtime_config_memory_init_cow_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_memory_init_cow_set(arg0, arg1)  # type: ignore
 
+class wasmtime_pooling_allocation_config_t(Structure):
+    pass
+
+_wasmtime_pooling_allocation_config_new = dll.wasmtime_pooling_allocation_config_new
+_wasmtime_pooling_allocation_config_new.restype = POINTER(wasmtime_pooling_allocation_config_t)
+_wasmtime_pooling_allocation_config_new.argtypes = []
+def wasmtime_pooling_allocation_config_new() -> ctypes._Pointer:
+    return _wasmtime_pooling_allocation_config_new()  # type: ignore
+
+_wasmtime_pooling_allocation_config_delete = dll.wasmtime_pooling_allocation_config_delete
+_wasmtime_pooling_allocation_config_delete.restype = None
+_wasmtime_pooling_allocation_config_delete.argtypes = [POINTER(wasmtime_pooling_allocation_config_t)]
+def wasmtime_pooling_allocation_config_delete(arg0: Any) -> None:
+    return _wasmtime_pooling_allocation_config_delete(arg0)  # type: ignore
+
+_wasmtime_pooling_allocation_config_max_unused_warm_slots_set = dll.wasmtime_pooling_allocation_config_max_unused_warm_slots_set
+_wasmtime_pooling_allocation_config_max_unused_warm_slots_set.restype = None
+_wasmtime_pooling_allocation_config_max_unused_warm_slots_set.argtypes = [POINTER(wasmtime_pooling_allocation_config_t), c_uint32]
+def wasmtime_pooling_allocation_config_max_unused_warm_slots_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_pooling_allocation_config_max_unused_warm_slots_set(arg0, arg1)  # type: ignore
+
+_wasmtime_pooling_allocation_config_decommit_batch_size_set = dll.wasmtime_pooling_allocation_config_decommit_batch_size_set
+_wasmtime_pooling_allocation_config_decommit_batch_size_set.restype = None
+_wasmtime_pooling_allocation_config_decommit_batch_size_set.argtypes = [POINTER(wasmtime_pooling_allocation_config_t), c_size_t]
+def wasmtime_pooling_allocation_config_decommit_batch_size_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_pooling_allocation_config_decommit_batch_size_set(arg0, arg1)  # type: ignore
+
+_wasmtime_pooling_allocation_config_async_stack_keep_resident_set = dll.wasmtime_pooling_allocation_config_async_stack_keep_resident_set
+_wasmtime_pooling_allocation_config_async_stack_keep_resident_set.restype = None
+_wasmtime_pooling_allocation_config_async_stack_keep_resident_set.argtypes = [POINTER(wasmtime_pooling_allocation_config_t), c_size_t]
+def wasmtime_pooling_allocation_config_async_stack_keep_resident_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_pooling_allocation_config_async_stack_keep_resident_set(arg0, arg1)  # type: ignore
+
+_wasmtime_pooling_allocation_config_linear_memory_keep_resident_set = dll.wasmtime_pooling_allocation_config_linear_memory_keep_resident_set
+_wasmtime_pooling_allocation_config_linear_memory_keep_resident_set.restype = None
+_wasmtime_pooling_allocation_config_linear_memory_keep_resident_set.argtypes = [POINTER(wasmtime_pooling_allocation_config_t), c_size_t]
+def wasmtime_pooling_allocation_config_linear_memory_keep_resident_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_pooling_allocation_config_linear_memory_keep_resident_set(arg0, arg1)  # type: ignore
+
+_wasmtime_pooling_allocation_config_table_keep_resident_set = dll.wasmtime_pooling_allocation_config_table_keep_resident_set
+_wasmtime_pooling_allocation_config_table_keep_resident_set.restype = None
+_wasmtime_pooling_allocation_config_table_keep_resident_set.argtypes = [POINTER(wasmtime_pooling_allocation_config_t), c_size_t]
+def wasmtime_pooling_allocation_config_table_keep_resident_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_pooling_allocation_config_table_keep_resident_set(arg0, arg1)  # type: ignore
+
+_wasmtime_pooling_allocation_config_total_component_instances_set = dll.wasmtime_pooling_allocation_config_total_component_instances_set
+_wasmtime_pooling_allocation_config_total_component_instances_set.restype = None
+_wasmtime_pooling_allocation_config_total_component_instances_set.argtypes = [POINTER(wasmtime_pooling_allocation_config_t), c_uint32]
+def wasmtime_pooling_allocation_config_total_component_instances_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_pooling_allocation_config_total_component_instances_set(arg0, arg1)  # type: ignore
+
+_wasmtime_pooling_allocation_config_max_component_instance_size_set = dll.wasmtime_pooling_allocation_config_max_component_instance_size_set
+_wasmtime_pooling_allocation_config_max_component_instance_size_set.restype = None
+_wasmtime_pooling_allocation_config_max_component_instance_size_set.argtypes = [POINTER(wasmtime_pooling_allocation_config_t), c_size_t]
+def wasmtime_pooling_allocation_config_max_component_instance_size_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_pooling_allocation_config_max_component_instance_size_set(arg0, arg1)  # type: ignore
+
+_wasmtime_pooling_allocation_config_max_core_instances_per_component_set = dll.wasmtime_pooling_allocation_config_max_core_instances_per_component_set
+_wasmtime_pooling_allocation_config_max_core_instances_per_component_set.restype = None
+_wasmtime_pooling_allocation_config_max_core_instances_per_component_set.argtypes = [POINTER(wasmtime_pooling_allocation_config_t), c_uint32]
+def wasmtime_pooling_allocation_config_max_core_instances_per_component_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_pooling_allocation_config_max_core_instances_per_component_set(arg0, arg1)  # type: ignore
+
+_wasmtime_pooling_allocation_config_max_memories_per_component_set = dll.wasmtime_pooling_allocation_config_max_memories_per_component_set
+_wasmtime_pooling_allocation_config_max_memories_per_component_set.restype = None
+_wasmtime_pooling_allocation_config_max_memories_per_component_set.argtypes = [POINTER(wasmtime_pooling_allocation_config_t), c_uint32]
+def wasmtime_pooling_allocation_config_max_memories_per_component_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_pooling_allocation_config_max_memories_per_component_set(arg0, arg1)  # type: ignore
+
+_wasmtime_pooling_allocation_config_max_tables_per_component_set = dll.wasmtime_pooling_allocation_config_max_tables_per_component_set
+_wasmtime_pooling_allocation_config_max_tables_per_component_set.restype = None
+_wasmtime_pooling_allocation_config_max_tables_per_component_set.argtypes = [POINTER(wasmtime_pooling_allocation_config_t), c_uint32]
+def wasmtime_pooling_allocation_config_max_tables_per_component_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_pooling_allocation_config_max_tables_per_component_set(arg0, arg1)  # type: ignore
+
+_wasmtime_pooling_allocation_config_total_memories_set = dll.wasmtime_pooling_allocation_config_total_memories_set
+_wasmtime_pooling_allocation_config_total_memories_set.restype = None
+_wasmtime_pooling_allocation_config_total_memories_set.argtypes = [POINTER(wasmtime_pooling_allocation_config_t), c_uint32]
+def wasmtime_pooling_allocation_config_total_memories_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_pooling_allocation_config_total_memories_set(arg0, arg1)  # type: ignore
+
+_wasmtime_pooling_allocation_config_total_tables_set = dll.wasmtime_pooling_allocation_config_total_tables_set
+_wasmtime_pooling_allocation_config_total_tables_set.restype = None
+_wasmtime_pooling_allocation_config_total_tables_set.argtypes = [POINTER(wasmtime_pooling_allocation_config_t), c_uint32]
+def wasmtime_pooling_allocation_config_total_tables_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_pooling_allocation_config_total_tables_set(arg0, arg1)  # type: ignore
+
+_wasmtime_pooling_allocation_config_total_stacks_set = dll.wasmtime_pooling_allocation_config_total_stacks_set
+_wasmtime_pooling_allocation_config_total_stacks_set.restype = None
+_wasmtime_pooling_allocation_config_total_stacks_set.argtypes = [POINTER(wasmtime_pooling_allocation_config_t), c_uint32]
+def wasmtime_pooling_allocation_config_total_stacks_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_pooling_allocation_config_total_stacks_set(arg0, arg1)  # type: ignore
+
+_wasmtime_pooling_allocation_config_total_core_instances_set = dll.wasmtime_pooling_allocation_config_total_core_instances_set
+_wasmtime_pooling_allocation_config_total_core_instances_set.restype = None
+_wasmtime_pooling_allocation_config_total_core_instances_set.argtypes = [POINTER(wasmtime_pooling_allocation_config_t), c_uint32]
+def wasmtime_pooling_allocation_config_total_core_instances_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_pooling_allocation_config_total_core_instances_set(arg0, arg1)  # type: ignore
+
+_wasmtime_pooling_allocation_config_max_core_instance_size_set = dll.wasmtime_pooling_allocation_config_max_core_instance_size_set
+_wasmtime_pooling_allocation_config_max_core_instance_size_set.restype = None
+_wasmtime_pooling_allocation_config_max_core_instance_size_set.argtypes = [POINTER(wasmtime_pooling_allocation_config_t), c_size_t]
+def wasmtime_pooling_allocation_config_max_core_instance_size_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_pooling_allocation_config_max_core_instance_size_set(arg0, arg1)  # type: ignore
+
+_wasmtime_pooling_allocation_config_max_tables_per_module_set = dll.wasmtime_pooling_allocation_config_max_tables_per_module_set
+_wasmtime_pooling_allocation_config_max_tables_per_module_set.restype = None
+_wasmtime_pooling_allocation_config_max_tables_per_module_set.argtypes = [POINTER(wasmtime_pooling_allocation_config_t), c_uint32]
+def wasmtime_pooling_allocation_config_max_tables_per_module_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_pooling_allocation_config_max_tables_per_module_set(arg0, arg1)  # type: ignore
+
+_wasmtime_pooling_allocation_config_table_elements_set = dll.wasmtime_pooling_allocation_config_table_elements_set
+_wasmtime_pooling_allocation_config_table_elements_set.restype = None
+_wasmtime_pooling_allocation_config_table_elements_set.argtypes = [POINTER(wasmtime_pooling_allocation_config_t), c_size_t]
+def wasmtime_pooling_allocation_config_table_elements_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_pooling_allocation_config_table_elements_set(arg0, arg1)  # type: ignore
+
+_wasmtime_pooling_allocation_config_max_memories_per_module_set = dll.wasmtime_pooling_allocation_config_max_memories_per_module_set
+_wasmtime_pooling_allocation_config_max_memories_per_module_set.restype = None
+_wasmtime_pooling_allocation_config_max_memories_per_module_set.argtypes = [POINTER(wasmtime_pooling_allocation_config_t), c_uint32]
+def wasmtime_pooling_allocation_config_max_memories_per_module_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_pooling_allocation_config_max_memories_per_module_set(arg0, arg1)  # type: ignore
+
+_wasmtime_pooling_allocation_config_max_memory_size_set = dll.wasmtime_pooling_allocation_config_max_memory_size_set
+_wasmtime_pooling_allocation_config_max_memory_size_set.restype = None
+_wasmtime_pooling_allocation_config_max_memory_size_set.argtypes = [POINTER(wasmtime_pooling_allocation_config_t), c_size_t]
+def wasmtime_pooling_allocation_config_max_memory_size_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_pooling_allocation_config_max_memory_size_set(arg0, arg1)  # type: ignore
+
+_wasmtime_pooling_allocation_config_total_gc_heaps_set = dll.wasmtime_pooling_allocation_config_total_gc_heaps_set
+_wasmtime_pooling_allocation_config_total_gc_heaps_set.restype = None
+_wasmtime_pooling_allocation_config_total_gc_heaps_set.argtypes = [POINTER(wasmtime_pooling_allocation_config_t), c_uint32]
+def wasmtime_pooling_allocation_config_total_gc_heaps_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_pooling_allocation_config_total_gc_heaps_set(arg0, arg1)  # type: ignore
+
+_wasmtime_pooling_allocation_strategy_set = dll.wasmtime_pooling_allocation_strategy_set
+_wasmtime_pooling_allocation_strategy_set.restype = None
+_wasmtime_pooling_allocation_strategy_set.argtypes = [POINTER(wasm_config_t), POINTER(wasmtime_pooling_allocation_config_t)]
+def wasmtime_pooling_allocation_strategy_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_pooling_allocation_strategy_set(arg0, arg1)  # type: ignore
+
 _wasmtime_engine_clone = dll.wasmtime_engine_clone
 _wasmtime_engine_clone.restype = POINTER(wasm_engine_t)
 _wasmtime_engine_clone.argtypes = [POINTER(wasm_engine_t)]
