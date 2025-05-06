@@ -8,14 +8,21 @@ import typing
 if sys.maxsize <= 2**32:
     raise RuntimeError("wasmtime only works on 64-bit platforms right now")
 
-if sys.platform == 'linux':
+sys_platform = sys.platform
+
+# For Python versions <=3.12. 3.13+ supports PEP 738 and uses sys.platform
+if hasattr(sys, 'getandroidapilevel'):
+    sys_platform = 'android'
+
+if sys_platform == 'linux' or sys_platform == 'android':
     libname = '_libwasmtime.so'
-elif sys.platform == 'win32':
+elif sys_platform == 'win32':
     libname = '_wasmtime.dll'
-elif sys.platform == 'darwin':
+elif sys_platform == 'darwin':
     libname = '_libwasmtime.dylib'
 else:
-    raise RuntimeError("unsupported platform `{}` for wasmtime".format(sys.platform))
+    raise RuntimeError("unsupported platform `{}` for wasmtime".format(sys_platform))
+
 
 machine = platform.machine()
 if machine == 'AMD64':
@@ -25,9 +32,8 @@ if machine == 'arm64' or machine == 'ARM64':
 if machine != 'x86_64' and machine != 'aarch64':
     raise RuntimeError("unsupported architecture for wasmtime: {}".format(machine))
 
-filename = Path(__file__).parent / (sys.platform + '-' + machine) / libname
-if not filename.exists():
-    raise RuntimeError("precompiled wasmtime binary not found at `{}`".format(filename))
+filename = Path(__file__).parent / (sys_platform + '-' + machine) / libname
+
 dll = cdll.LoadLibrary(str(filename))
 
 WASM_I32 = c_uint8(0)
