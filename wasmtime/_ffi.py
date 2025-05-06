@@ -8,23 +8,21 @@ import typing
 if sys.maxsize <= 2**32:
     raise RuntimeError("wasmtime only works on 64-bit platforms right now")
 
-if sys.platform == 'linux' or sys.platform == 'android':
-    libname = '_libwasmtime.so'
-elif sys.platform == 'win32':
-    libname = '_wasmtime.dll'
-elif sys.platform == 'darwin':
-    libname = '_libwasmtime.dylib'
-else:
-    raise RuntimeError("unsupported platform `{}` for wasmtime".format(sys.platform))
-
 sys_platform = sys.platform
 
-if sys_platform == 'linux':
-    try:
-        sys.getandroidapilevel()
-        sys_platform = 'android'
-    except:
-        pass
+# For Python versions <=3.12. 3.13+ supports PEP 738 and uses sys.platform
+if hasattr(sys, 'getandroidapilevel'):
+    sys_platform = 'android'
+
+if sys_platform == 'linux' or sys_platform == 'android':
+    libname = '_libwasmtime.so'
+elif sys_platform == 'win32':
+    libname = '_wasmtime.dll'
+elif sys_platform == 'darwin':
+    libname = '_libwasmtime.dylib'
+else:
+    raise RuntimeError("unsupported platform `{}` for wasmtime".format(sys_platform))
+
 
 machine = platform.machine()
 if machine == 'AMD64':
