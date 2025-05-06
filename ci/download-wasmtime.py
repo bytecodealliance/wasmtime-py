@@ -24,7 +24,7 @@ def main(platform, arch):
     if arch == 'arm64' or arch == 'ARM64':
         arch = 'aarch64'
     dirname = '{}-{}'.format(platform, arch)
-    if platform == 'linux' or platform == 'musl':
+    if platform == 'linux' or platform == 'musl' or platform == 'android':
         filename = 'wasmtime-{}-{}-{}-c-api.tar.xz'.format(version, arch, platform)
         libname = '_libwasmtime.so'
         dirname = 'linux-{}'.format(arch)

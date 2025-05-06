@@ -87,6 +87,16 @@ jobs:
         python ci/download-wasmtime.py musl x86_64
         python ci/build-rust.py
         python setup.py bdist_wheel --plat-name musllinux_1_2_x86_64
+    - run: |
+        git clean -fdx wasmtime build
+        python ci/download-wasmtime.py android x86_64
+        python ci/build-rust.py
+        python setup.py bdist_wheel --plat-name android_26_x86_64
+    - run: |
+        git clean -fdx wasmtime build
+        python ci/download-wasmtime.py android aarch64
+        python ci/build-rust.py
+        python setup.py bdist_wheel --plat-name android_26_arm64_v8a
 
     # Build an "any" wheel with:
     #
