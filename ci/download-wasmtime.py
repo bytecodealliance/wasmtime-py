@@ -24,7 +24,7 @@ def main(platform, arch):
     if arch == 'arm64' or arch == 'ARM64':
         arch = 'aarch64'
     dirname = '{}-{}'.format(platform, arch)
-    if platform == 'linux' or platform == 'musl' or platform == 'android':
+    if platform == 'linux' or platform == 'musl':
         filename = 'wasmtime-{}-{}-{}-c-api.tar.xz'.format(version, arch, platform)
         libname = '_libwasmtime.so'
         dirname = 'linux-{}'.format(arch)
@@ -39,6 +39,10 @@ def main(platform, arch):
     elif platform == 'darwin':
         filename = 'wasmtime-{}-{}-macos-c-api.tar.xz'.format(version, arch)
         libname = '_libwasmtime.dylib'
+    elif platform == 'android':
+        filename = 'wasmtime-{}-{}-android-c-api.tar.xz'.format(version, arch)
+        libname = '_libwasmtime.so'
+        dirname = 'android-{}'.format(arch)
     else:
         raise RuntimeError("unknown platform: " + sys.platform)
 
