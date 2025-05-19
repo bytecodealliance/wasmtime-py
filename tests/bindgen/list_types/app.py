@@ -1,7 +1,7 @@
 from typing import List
 
 
-class Lists:
+class WitWorld:
     def strings(self, a: str) -> str:
         return a
 
