@@ -353,7 +353,7 @@ impl WasmtimePy {
             world: id,
             instances: PrimaryMap::default(),
             lifts: 0,
-            resource_tables_initialized: vec![false; component.num_resource_tables],
+            resource_tables_initialized: vec![false; component.num_runtime_instances as usize],
             types,
         };
         i.gen_canon_resources();
@@ -1446,6 +1446,7 @@ impl InterfaceGenerator<'_> {
                             self.src.push_str(&name.to_upper_camel_case().escape());
                         }
                     }
+                    TypeDefKind::FixedSizeList(..) => unimplemented!(),
                     TypeDefKind::Unknown => unreachable!(),
                 }
             }
@@ -1551,6 +1552,7 @@ impl InterfaceGenerator<'_> {
                 TypeDefKind::Stream(_) => todo!("generate for stream"),
                 TypeDefKind::Resource => self.type_resource(ty, id, name, interface),
                 TypeDefKind::Handle(_) => unimplemented!(),
+                TypeDefKind::FixedSizeList(..) => unimplemented!(),
                 TypeDefKind::Unknown => unreachable!(),
             }
         }

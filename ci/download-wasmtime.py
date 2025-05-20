@@ -12,7 +12,7 @@ from pathlib import Path
 
 # set to "dev" to download the latest or pick a tag from
 # https://github.com/bytecodealliance/wasmtime/tags
-WASMTIME_VERSION = "v32.0.0"
+WASMTIME_VERSION = "v33.0.0"
 
 
 def main(platform, arch):
@@ -58,8 +58,6 @@ def main(platform, arch):
         shutil.rmtree(Path('wasmtime/include'))
     except Exception:
         pass
-    Path(dst).parent.mkdir(parents=True)
-    (Path('wasmtime') / 'include/wasmtime').mkdir(parents=True)
 
     with urllib.request.urlopen(url) as f:
         contents = f.read()
@@ -83,6 +81,7 @@ def main(platform, arch):
             loc = final_loc(member)
             if not loc:
                 continue
+            loc.parent.mkdir(parents=True, exist_ok=True)
             print(f'{member} => {loc}')
             contents = t.read(member)
             with open(loc, "wb") as f:
@@ -93,6 +92,7 @@ def main(platform, arch):
             loc = final_loc(member.name)
             if not loc:
                 continue
+            loc.parent.mkdir(parents=True, exist_ok=True)
             print(f'{member.name} => {loc}')
             contents = t.extractfile(member).read()
             with open(loc, "wb") as f:

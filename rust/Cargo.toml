@@ -9,12 +9,12 @@ crate-type = ['cdylib', 'rlib']
 [dependencies]
 anyhow = "1.0"
 heck = { version = "0.4", features = ["unicode"] }
-wit-parser = "0.227.0"
-wit-component = "0.227.0"
+wit-parser = "0.230.0"
+wit-component = "0.230.0"
 indexmap = "2.0"
-wasmtime-environ = { version = "32.0.0", features = ['component-model', 'compile'] }
-wit-bindgen = "0.41.0"
-wit-bindgen-core = "0.41.0"
+wasmtime-environ = { version = "33.0.0", features = ['component-model', 'compile'] }
+wit-bindgen = "0.42.1"
+wit-bindgen-core = "0.42.1"
 
 
 [features]
