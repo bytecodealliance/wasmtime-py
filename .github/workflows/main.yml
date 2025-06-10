@@ -52,6 +52,10 @@ jobs:
     # If this is a tagged build use real version numbers
     - run: echo "PROD=true" >> $GITHUB_ENV
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+    - name: Build source distribution
+      run: |
+        git clean -fdx wasmtime build
+        python setup.py sdist
     - run: |
         git clean -fdx wasmtime build
         python ci/download-wasmtime.py linux x86_64
@@ -115,6 +119,8 @@ jobs:
 
     - uses: actions/upload-artifact@v4
       with:
+        # Although the artifacts store is called "wheels", it now also
+        # contains other distribution packages (e.g. source tar.gz).
         name: wheels
         path: dist
 
@@ -164,7 +170,8 @@ jobs:
       with:
         path: generated-docs
 
-  upload_wheels:
+  upload_dists:
+    # Upload distribution packages (source tar.gz, wheels) to a package index
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -176,6 +183,8 @@ jobs:
     - uses: ./.github/actions/setup
     - uses: actions/download-artifact@v4
       with:
+        # Although the artifacts store is called "wheels", it now also
+        # contains other distribution packages (e.g. source tar.gz).
         name: wheels
         path: dist
     - run: find .

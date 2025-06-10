@@ -30,10 +30,23 @@ setuptools.setup(
         "Documentation": "https://bytecodealliance.github.io/wasmtime-py/",
         "Source Code": "https://github.com/bytecodealliance/wasmtime-py",
     },
-    packages=['wasmtime'],
+    packages=setuptools.find_packages(
+        include=['wasmtime*'],
+        exclude=['wasmtime.include'],
+    ),
     install_requires=['importlib_resources>=5.10'],
     include_package_data=True,
-    package_data={"wasmtime": ["py.typed"]},
+    package_data={
+        "wasmtime": [
+            "*-*/*.dll",
+            "*-*/*.dylib",
+            "*-*/*.so",
+            "py.typed",
+        ],
+        "wasmtime.bindgen.generated": [
+            "*.wasm",
+        ],
+    },
     python_requires='>=3.9',
     test_suite="tests",
     extras_require={

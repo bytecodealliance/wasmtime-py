@@ -1,1 +1,25 @@
-recursive-include wasmtime *.py *.wasm *.so *.dll *.dylib
+# Specify files to be included in source distributions (source tar.gz).
+# Some files are included by default already (e.g. LICENSE, README*).
+# https://setuptools.pypa.io/en/stable/userguide/miscellaneous.html#controlling-files-in-the-distribution
+
+graft ci
+graft examples
+graft rust
+graft tests
+
+prune rust/target
+prune tests/bindgen/generated
+prune tests/codegen/generated
+prune wasmtime/bindgen/generated
+prune wasmtime/include
+
+include .flake8
+include CONTRIBUTING.md
+include mypy.ini
+include pytest.ini
+
+global-exclude *.dll
+global-exclude *.dylib
+global-exclude *.py[cod]
+global-exclude *.so
+global-exclude *~
