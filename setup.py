@@ -35,7 +35,6 @@ setuptools.setup(
     include_package_data=True,
     package_data={"wasmtime": ["py.typed"]},
     python_requires='>=3.9',
-    test_suite="tests",
     extras_require={
         'testing': [
             'coverage',
