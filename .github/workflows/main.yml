@@ -52,50 +52,36 @@ jobs:
     # If this is a tagged build use real version numbers
     - run: echo "PROD=true" >> $GITHUB_ENV
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+    - name: Build sdist (source distribution)
+      run: |
+        git clean -fdx wasmtime build
+        python -m build --sdist
     - run: |
         git clean -fdx wasmtime build
-        python ci/download-wasmtime.py linux x86_64
-        python ci/build-rust.py
         python -m build --wheel -C=--build-option=--plat-name -C=--build-option=manylinux1-x86_64
     - run: |
         git clean -fdx wasmtime build
-        python ci/download-wasmtime.py linux aarch64
-        python ci/build-rust.py
         python -m build --wheel -C=--build-option=--plat-name -C=--build-option=manylinux2014_aarch64
     - run: |
         git clean -fdx wasmtime build
-        python ci/download-wasmtime.py darwin x86_64
-        python ci/build-rust.py
         python -m build --wheel -C=--build-option=--plat-name -C=--build-option=macosx-10-13-x86_64
     - run: |
         git clean -fdx wasmtime build
-        python ci/download-wasmtime.py darwin arm64
-        python ci/build-rust.py
         python -m build --wheel -C=--build-option=--plat-name -C=--build-option=macosx-11-0-arm64
     - run: |
         git clean -fdx wasmtime build
-        python ci/download-wasmtime.py win32 x86_64
-        python ci/build-rust.py
         python -m build --wheel -C=--build-option=--plat-name -C=--build-option=win-amd64
     - run: |
         git clean -fdx wasmtime build
-        python ci/download-wasmtime.py win32 arm64
-        python ci/build-rust.py
         python -m build --wheel -C=--build-option=--plat-name -C=--build-option=win-arm64
     - run: |
         git clean -fdx wasmtime build
-        python ci/download-wasmtime.py musl x86_64
-        python ci/build-rust.py
         python -m build --wheel -C=--build-option=--plat-name -C=--build-option=musllinux_1_2_x86_64
     - run: |
         git clean -fdx wasmtime build
-        python ci/download-wasmtime.py android x86_64
-        python ci/build-rust.py
         python -m build --wheel -C=--build-option=--plat-name -C=--build-option=android_26_x86_64
     - run: |
         git clean -fdx wasmtime build
-        python ci/download-wasmtime.py android aarch64
-        python ci/build-rust.py
         python -m build --wheel -C=--build-option=--plat-name -C=--build-option=android_26_arm64_v8a
 
     # Build an "any" wheel with:
@@ -109,13 +95,11 @@ jobs:
     # shared libraries.
     - run: |
         git clean -fdx wasmtime build
-        python ci/download-wasmtime.py win32 x86_64
-        python ci/build-rust.py
-        python -m build --wheel
+        python -m build --wheel -C=--wasmtime-py-mingw-any
 
     - uses: actions/upload-artifact@v4
       with:
-        name: wheels
+        name: dists
         path: dist
 
   docs:
@@ -164,7 +148,7 @@ jobs:
       with:
         path: generated-docs
 
-  upload_wheels:
+  upload_dists:
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -176,7 +160,7 @@ jobs:
     - uses: ./.github/actions/setup
     - uses: actions/download-artifact@v4
       with:
-        name: wheels
+        name: dists
         path: dist
     - run: find .
 

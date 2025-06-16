@@ -2,4 +2,8 @@
 requires = [
     "setuptools",
 ]
-build-backend = "setuptools.build_meta"
+# Use an in-tree build backend, to customise the wheels we generate
+build-backend = "backend"
+backend-path = [
+    "ci/_custom_build",
+]
