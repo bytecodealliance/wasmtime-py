@@ -64,6 +64,7 @@ packages = [
 ]
 
 [tool.setuptools.package-data]
+# NB Coordinate changes here with .gitignore
 "wasmtime" = [
     # Wasmtime shared library. Downloaded by ci/download-wasmtime.py
     "*-*/*.dll",
