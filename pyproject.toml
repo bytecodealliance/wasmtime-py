@@ -1,6 +1,7 @@
 [build-system]
 requires = [
     "setuptools",
+    "setuptools-git-versioning>=2.0,<3",
 ]
 # Use an in-tree build backend, to customise the wheels we generate
 build-backend = "backend"
@@ -10,7 +11,9 @@ backend-path = [
 
 [project]
 name = "wasmtime"
-version = "33.0.0"
+dynamic = [
+    "version",
+]
 description = "A WebAssembly runtime powered by Wasmtime"
 license = "Apache-2.0 WITH LLVM-exception"
 readme = "README.md"
@@ -48,7 +51,7 @@ testing = [
 ]
 
 [project.urls]
-"Homepacge" = "https://github.com/bytecodealliance/wasmtime-py"
+"Homepage" = "https://github.com/bytecodealliance/wasmtime-py"
 "Bug Tracker" = "https://github.com/bytecodealliance/wasmtime-py/issues"
 "Documentation" = "https://bytecodealliance.github.io/wasmtime-py/"
 "Source Code" = "https://github.com/bytecodealliance/wasmtime-py"
@@ -74,3 +77,14 @@ packages = [
     "generated/*.wasm",
     "generated/imports/*.py",
 ]
+
+[tool.setuptools-git-versioning]
+# https://setuptools-git-versioning.readthedocs.io/en/stable/options/index.html
+enabled = true
+version_file = "VERSION"
+count_commits_from_version_file = true
+# Version for distributions built from an untagged commit.
+# Version "1.0.0.dev4" is a treated as a pre-release of Version "1.0.0".
+# {tag}: Version under development, read from `version_file`
+# {ccount}: Count of commits since `version_file` was last changed
+dev_template = "{tag}.dev{ccount}"
