@@ -8,8 +8,8 @@ module = """
         (instance
             (type $runtime-value (variant
                 (case "id" string) (case "id2" string)))
-            (export $runtime-value-export "runtime-value"
-                (type (eq $runtime-value)))
+            (export "runtime-value"
+                (type $runtime-value-export (eq $runtime-value)))
         )
     )
     (import "types" (instance $types (type $types)))
@@ -17,7 +17,7 @@ module = """
 
     (import "host" (instance $inst
         (alias outer $OuterComp 1 (type $runtime-value))
-        (export $export "runtime-value" (type (eq $runtime-value)))
+        (export "runtime-value" (type $export (eq $runtime-value)))
         (export "some-fn" (func (param "v" $export) (result $export)))
     ))
 

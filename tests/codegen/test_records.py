@@ -25,11 +25,11 @@ module = """
             (export "multiple-results" (func (result (tuple u8 u16))))
             (export "swap" (func (param "a" $tuple) (result $tuple)))
 
-            (export $f1 "flag1" (type (eq $flag1)))
-            (export $f2 "flag2" (type (eq $flag2)))
-            (export $f8 "flag8" (type (eq $flag8)))
-            (export $f16 "flag16" (type (eq $flag16)))
-            (export $f32 "flag32" (type (eq $flag32)))
+            (export "flag1" (type $f1 (eq $flag1)))
+            (export "flag2" (type $f2 (eq $flag2)))
+            (export "flag8" (type $f8 (eq $flag8)))
+            (export "flag16" (type $f16 (eq $flag16)))
+            (export "flag32" (type $f32 (eq $flag32)))
 
             (export "roundtrip-flag1" (func (param "a" $f1) (result $f1)))
             (export "roundtrip-flag2" (func (param "a" $f2) (result $f2)))
@@ -38,7 +38,7 @@ module = """
             (export "roundtrip-flag32" (func (param "a" $f32) (result $f32)))
 
             (type $r1 (record (field "a" u8) (field "b" $f1)))
-            (export $r1' "r1" (type (eq $r1)))
+            (export "r1" (type $r1' (eq $r1)))
             (export "roundtrip-r1" (func (param "a" $r1') (result $r1')))
         ))
 
