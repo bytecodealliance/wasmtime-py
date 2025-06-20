@@ -44,14 +44,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        # fetch all history so the git-commit-length-appended-to-version for
-        # publishes to `test.pypi.org` works. (see `git` command in `setup.py`)
+        # Fetch history & tags so setuptools-git-versioning can generate a
+        # unique .devN suffix on untagged builds uploaded to test.pypi.org.
+        # See `tool.setuptools-git-versioning` in `pyproject.toml`.
         fetch-depth: 0
     - uses: ./.github/actions/setup
     - run: pip install build
-    # If this is a tagged build use real version numbers
-    - run: echo "PROD=true" >> $GITHUB_ENV
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
     - name: Build sdist (source distribution)
       run: |
         git clean -fdx wasmtime build
@@ -152,12 +150,6 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-      with:
-        # fetch all history so the git-commit-length-appended-to-version for
-        # publishes to `test.pypi.org` works. (see `git` command in `setup.py`)
-        fetch-depth: 0
-    - uses: ./.github/actions/setup
     - uses: actions/download-artifact@v4
       with:
         name: dists

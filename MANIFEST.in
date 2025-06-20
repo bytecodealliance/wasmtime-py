@@ -21,6 +21,7 @@ include .flake8
 include CONTRIBUTING.md
 include mypy.ini
 include pytest.ini
+include VERSION
 
 # Wasmtime shared library. Downloaded by ci/download-wasmtime.py
 # Included in binary distributions
