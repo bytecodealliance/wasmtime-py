@@ -22,6 +22,7 @@ class Visitor(c_ast.NodeVisitor):
         self.ret += 'from typing import Any\n'
         self.ret += 'from enum import Enum, auto\n'
         self.ret += 'from ._ffi import dll, wasm_val_t, wasm_ref_t\n'
+        self.forward_declared = {}
 
     # Skip all function definitions, we don't bind those
     def visit_FuncDef(self, node):
@@ -36,35 +37,51 @@ class Visitor(c_ast.NodeVisitor):
             return
 
         self.ret += "\n"
-        self.ret += "class {}(Structure):\n".format(node.name)
-        if node.decls:
+        if not node.decls:
+            self.forward_declared[node.name] = True
+            self.ret += "class {}(Structure):\n".format(node.name)
+            self.ret += "    pass\n"
+            return
+
+        anon_decl = 0
+        for decl in node.decls:
+            if not decl.name:
+                assert(isinstance(decl.type, c_ast.Struct))
+                decl.type.name = node.name + '_anon_' + str(anon_decl)
+                self.visit_Struct(decl.type)
+                anon_decl += 1
+                decl.name = '_anon_' + str(anon_decl)
+
+        if node.name in self.forward_declared:
+            self.ret += "{}._fields = [ # type: ignore\n".format(node.name)
+        else:
+            self.ret += "class {}(Structure):\n".format(node.name)
             self.ret += "    _fields_ = [\n"
-            for decl in node.decls:
-                self.ret += "        (\"{}\", {}),\n".format(decl.name, type_name(decl.type))
-            self.ret += "    ]\n"
+
+        for decl in node.decls:
+            self.ret += "        (\"{}\", {}),\n".format(decl.name, type_name(decl.type))
+        self.ret += "    ]\n"
+
+        if not node.name in self.forward_declared:
             for decl in node.decls:
                 self.ret += "    {}: {}\n".format(decl.name, type_name(decl.type, typing=True))
-        else:
-            self.ret += "    pass\n"
 
     def visit_Union(self, node):
         if not node.name or not node.name.startswith('was'):
             return
+        assert(node.decls)
 
         self.ret += "\n"
         self.ret += "class {}(Union):\n".format(node.name)
-        if node.decls:
-            self.ret += "    _fields_ = [\n"
-            for decl in node.decls:
-                self.ret += "        (\"{}\", {}),\n".format(name(decl.name), type_name(decl.type))
-            self.ret += "    ]\n"
-            for decl in node.decls:
-                self.ret += "    {}: {}".format(name(decl.name), type_name(decl.type, typing=True))
-                if decl.name == 'v128':
-                    self.ret += '  # type: ignore'
-                self.ret += "\n"
-        else:
-            self.ret += "    pass\n"
+        self.ret += "    _fields_ = [\n"
+        for decl in node.decls:
+            self.ret += "        (\"{}\", {}),\n".format(name(decl.name), type_name(decl.type))
+        self.ret += "    ]\n"
+        for decl in node.decls:
+            self.ret += "    {}: {}".format(name(decl.name), type_name(decl.type, typing=True))
+            if decl.name == 'v128':
+                self.ret += '  # type: ignore'
+            self.ret += "\n"
 
     def visit_Enum(self, node):
         if not node.name or not node.name.startswith('was'):
@@ -85,7 +102,8 @@ class Visitor(c_ast.NodeVisitor):
 
         # Given anonymous structs in typedefs names by default.
         if isinstance(node.type, c_ast.TypeDecl):
-            if isinstance(node.type.type, c_ast.Struct):
+            if isinstance(node.type.type, c_ast.Struct) or \
+                isinstance(node.type.type, c_ast.Union):
                 if node.type.type.name is None:
                     if node.name.endswith('_t'):
                         node.type.type.name = node.name[:-2]
@@ -178,8 +196,14 @@ def type_name(ty, ptr=False, typing=False):
             return "bool" if typing else "c_bool"
         elif ty.names[0] == "byte_t":
             return "c_ubyte"
+        elif ty.names[0] == "int8_t":
+            return "c_int8"
         elif ty.names[0] == "uint8_t":
             return "c_uint8"
+        elif ty.names[0] == "int16_t":
+            return "c_int16"
+        elif ty.names[0] == "uint16_t":
+            return "c_uint16"
         elif ty.names[0] == "int32_t":
             return "int" if typing else "c_int32"
         elif ty.names[0] == "uint32_t":
@@ -218,7 +242,7 @@ def type_name(ty, ptr=False, typing=False):
             tys.append("c_size_t")
         else:
             tys.append(type_name(ty.type))
-        if ty.args.params:
+        if ty.args and ty.args.params:
             for param in ty.args.params:
                 tys.append(type_name(param.type))
         return "CFUNCTYPE({})".format(', '.join(tys))

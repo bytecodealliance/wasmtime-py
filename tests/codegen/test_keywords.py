@@ -5,11 +5,11 @@ module = """
     (component
         (import "false" (instance $i
             (type $c1 (variant (case "break" s32) (case "class" s64) (case "true" s64)))
-            (export $c1' "none" (type (eq $c1)))
+            (export "none" (type $c1' (eq $c1)))
             (export "as" (func (param "import" $c1') (result s64)))
 
             (type $r1 (record (field "else" u8) (field "not" u8) (field "except" u8)))
-            (export $r1' "true" (type (eq $r1)))
+            (export "true" (type $r1' (eq $r1)))
             (export "lambda" (func (param "def" $r1') (result u32)))
         ))
 
