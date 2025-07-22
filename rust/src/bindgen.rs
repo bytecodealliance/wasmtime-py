@@ -35,10 +35,10 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::Write;
 use std::mem;
 use wasmtime_environ::component::{
-    CanonicalOptions, Component, ComponentTypes, ComponentTypesBuilder, CoreDef, CoreExport,
-    Export, ExportItem, GlobalInitializer, InstantiateModule, InterfaceType, LoweredIndex,
-    RuntimeImportIndex, RuntimeInstanceIndex, StaticModuleIndex, StringEncoding, Trampoline,
-    TrampolineIndex, Translator, TypeFuncIndex, TypeResourceTableIndex,
+    CanonicalOptions, CanonicalOptionsDataModel, Component, ComponentTypes, ComponentTypesBuilder,
+    CoreDef, CoreExport, Export, ExportItem, GlobalInitializer, InstantiateModule, InterfaceType,
+    LoweredIndex, RuntimeImportIndex, RuntimeInstanceIndex, StaticModuleIndex, StringEncoding,
+    Trampoline, TrampolineIndex, Translator, TypeFuncIndex, TypeResourceTableIndex,
 };
 use wasmtime_environ::prelude::*;
 use wasmtime_environ::{EntityIndex, ModuleTranslation, PrimaryMap, ScopeVec, Tunables};
@@ -228,25 +228,28 @@ impl WasmtimePy {
                 Trampoline::StreamWrite { .. } => unimplemented!(),
                 Trampoline::StreamCancelRead { .. } => unimplemented!(),
                 Trampoline::StreamCancelWrite { .. } => unimplemented!(),
-                Trampoline::StreamCloseReadable { .. } => unimplemented!(),
-                Trampoline::StreamCloseWritable { .. } => unimplemented!(),
+                Trampoline::StreamDropReadable { .. } => unimplemented!(),
+                Trampoline::StreamDropWritable { .. } => unimplemented!(),
                 Trampoline::FutureNew { .. } => unimplemented!(),
                 Trampoline::FutureRead { .. } => unimplemented!(),
                 Trampoline::FutureWrite { .. } => unimplemented!(),
                 Trampoline::FutureCancelRead { .. } => unimplemented!(),
                 Trampoline::FutureCancelWrite { .. } => unimplemented!(),
-                Trampoline::FutureCloseReadable { .. } => unimplemented!(),
-                Trampoline::FutureCloseWritable { .. } => unimplemented!(),
+                Trampoline::FutureDropReadable { .. } => unimplemented!(),
+                Trampoline::FutureDropWritable { .. } => unimplemented!(),
                 Trampoline::ErrorContextNew { .. } => unimplemented!(),
                 Trampoline::ErrorContextDebugMessage { .. } => unimplemented!(),
                 Trampoline::ErrorContextDrop { .. } => unimplemented!(),
-                Trampoline::AsyncEnterCall => unimplemented!(),
-                Trampoline::AsyncExitCall { .. } => unimplemented!(),
                 Trampoline::FutureTransfer => unimplemented!(),
                 Trampoline::StreamTransfer => unimplemented!(),
                 Trampoline::ErrorContextTransfer => unimplemented!(),
-                Trampoline::SyncEnterCall => unimplemented!(),
-                Trampoline::SyncExitCall { .. } => unimplemented!(),
+                Trampoline::TaskCancel { .. } => unimplemented!(),
+                Trampoline::SubtaskCancel { .. } => unimplemented!(),
+                Trampoline::PrepareCall { .. } => unimplemented!(),
+                Trampoline::SyncStartCall { .. } => unimplemented!(),
+                Trampoline::AsyncStartCall { .. } => unimplemented!(),
+                Trampoline::ContextGet(_) => unimplemented!(),
+                Trampoline::ContextSet(_) => unimplemented!(),
             }
         }
 
@@ -892,11 +895,15 @@ impl<'a> Instantiator<'a> {
         // can be plumbed through to string lifting/lowering below.
         assert_eq!(opts.string_encoding, StringEncoding::Utf8);
 
-        let memory = match opts.memory {
+        let model = match opts.data_model {
+            CanonicalOptionsDataModel::LinearMemory(opts) => opts,
+            CanonicalOptionsDataModel::Gc { .. } => todo!(),
+        };
+        let memory = match model.memory {
             Some(idx) => Some(format!("{this}._core_memory{}", idx.as_u32())),
             None => None,
         };
-        let realloc = match opts.realloc {
+        let realloc = match model.realloc {
             Some(idx) => Some(format!("{this}._realloc{}", idx.as_u32())),
             None => None,
         };

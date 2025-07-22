@@ -2148,6 +2148,12 @@ _wasmtime_config_wasm_wide_arithmetic_set.argtypes = [POINTER(wasm_config_t), c_
 def wasmtime_config_wasm_wide_arithmetic_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_wasm_wide_arithmetic_set(arg0, arg1)  # type: ignore
 
+_wasmtime_config_wasm_stack_switching_set = dll.wasmtime_config_wasm_stack_switching_set
+_wasmtime_config_wasm_stack_switching_set.restype = None
+_wasmtime_config_wasm_stack_switching_set.argtypes = [POINTER(wasm_config_t), c_bool]
+def wasmtime_config_wasm_stack_switching_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_wasm_stack_switching_set(arg0, arg1)  # type: ignore
+
 _wasmtime_config_strategy_set = dll.wasmtime_config_strategy_set
 _wasmtime_config_strategy_set.restype = None
 _wasmtime_config_strategy_set.argtypes = [POINTER(wasm_config_t), wasmtime_strategy_t]
@@ -2571,6 +2577,45 @@ _wasmtime_sharedmemory_grow.argtypes = [POINTER(wasmtime_sharedmemory_t), c_uint
 def wasmtime_sharedmemory_grow(memory: Any, delta: Any, prev_size: Any) -> ctypes._Pointer:
     return _wasmtime_sharedmemory_grow(memory, delta, prev_size)  # type: ignore
 
+class wasmtime_wasip2_config_t(Structure):
+    pass
+
+_wasmtime_wasip2_config_new = dll.wasmtime_wasip2_config_new
+_wasmtime_wasip2_config_new.restype = POINTER(wasmtime_wasip2_config_t)
+_wasmtime_wasip2_config_new.argtypes = []
+def wasmtime_wasip2_config_new() -> ctypes._Pointer:
+    return _wasmtime_wasip2_config_new()  # type: ignore
+
+_wasmtime_wasip2_config_inherit_stdin = dll.wasmtime_wasip2_config_inherit_stdin
+_wasmtime_wasip2_config_inherit_stdin.restype = None
+_wasmtime_wasip2_config_inherit_stdin.argtypes = [POINTER(wasmtime_wasip2_config_t)]
+def wasmtime_wasip2_config_inherit_stdin(config: Any) -> None:
+    return _wasmtime_wasip2_config_inherit_stdin(config)  # type: ignore
+
+_wasmtime_wasip2_config_inherit_stdout = dll.wasmtime_wasip2_config_inherit_stdout
+_wasmtime_wasip2_config_inherit_stdout.restype = None
+_wasmtime_wasip2_config_inherit_stdout.argtypes = [POINTER(wasmtime_wasip2_config_t)]
+def wasmtime_wasip2_config_inherit_stdout(config: Any) -> None:
+    return _wasmtime_wasip2_config_inherit_stdout(config)  # type: ignore
+
+_wasmtime_wasip2_config_inherit_stderr = dll.wasmtime_wasip2_config_inherit_stderr
+_wasmtime_wasip2_config_inherit_stderr.restype = None
+_wasmtime_wasip2_config_inherit_stderr.argtypes = [POINTER(wasmtime_wasip2_config_t)]
+def wasmtime_wasip2_config_inherit_stderr(config: Any) -> None:
+    return _wasmtime_wasip2_config_inherit_stderr(config)  # type: ignore
+
+_wasmtime_wasip2_config_arg = dll.wasmtime_wasip2_config_arg
+_wasmtime_wasip2_config_arg.restype = None
+_wasmtime_wasip2_config_arg.argtypes = [POINTER(wasmtime_wasip2_config_t), POINTER(c_char), c_size_t]
+def wasmtime_wasip2_config_arg(config: Any, arg: Any, arg_len: Any) -> None:
+    return _wasmtime_wasip2_config_arg(config, arg, arg_len)  # type: ignore
+
+_wasmtime_wasip2_config_delete = dll.wasmtime_wasip2_config_delete
+_wasmtime_wasip2_config_delete.restype = None
+_wasmtime_wasip2_config_delete.argtypes = [POINTER(wasmtime_wasip2_config_t)]
+def wasmtime_wasip2_config_delete(config: Any) -> None:
+    return _wasmtime_wasip2_config_delete(config)  # type: ignore
+
 class wasmtime_store(Structure):
     pass
 
@@ -2640,6 +2685,12 @@ _wasmtime_context_set_wasi.restype = POINTER(wasmtime_error_t)
 _wasmtime_context_set_wasi.argtypes = [POINTER(wasmtime_context_t), POINTER(wasi_config_t)]
 def wasmtime_context_set_wasi(context: Any, wasi: Any) -> ctypes._Pointer:
     return _wasmtime_context_set_wasi(context, wasi)  # type: ignore
+
+_wasmtime_context_set_wasip2 = dll.wasmtime_context_set_wasip2
+_wasmtime_context_set_wasip2.restype = None
+_wasmtime_context_set_wasip2.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_wasip2_config_t)]
+def wasmtime_context_set_wasip2(context: Any, config: Any) -> None:
+    return _wasmtime_context_set_wasip2(context, config)  # type: ignore
 
 _wasmtime_context_set_epoch_deadline = dll.wasmtime_context_set_epoch_deadline
 _wasmtime_context_set_epoch_deadline.restype = None
@@ -3880,6 +3931,12 @@ _wasmtime_component_linker_instance_add_func.restype = POINTER(wasmtime_error_t)
 _wasmtime_component_linker_instance_add_func.argtypes = [POINTER(wasmtime_component_linker_instance_t), POINTER(c_char), c_size_t, wasmtime_component_func_callback_t, c_void_p, CFUNCTYPE(None)]
 def wasmtime_component_linker_instance_add_func(linker_instance: Any, name: Any, name_len: Any, callback: Any, data: Any, finalizer: Any) -> ctypes._Pointer:
     return _wasmtime_component_linker_instance_add_func(linker_instance, name, name_len, callback, data, finalizer)  # type: ignore
+
+_wasmtime_component_linker_add_wasip2 = dll.wasmtime_component_linker_add_wasip2
+_wasmtime_component_linker_add_wasip2.restype = POINTER(wasmtime_error_t)
+_wasmtime_component_linker_add_wasip2.argtypes = [POINTER(wasmtime_component_linker_t)]
+def wasmtime_component_linker_add_wasip2(linker: Any) -> ctypes._Pointer:
+    return _wasmtime_component_linker_add_wasip2(linker)  # type: ignore
 
 _wasmtime_component_linker_instance_delete = dll.wasmtime_component_linker_instance_delete
 _wasmtime_component_linker_instance_delete.restype = None
