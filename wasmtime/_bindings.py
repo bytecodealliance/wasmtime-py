@@ -3928,7 +3928,7 @@ wasmtime_component_func_callback_t = CFUNCTYPE(c_size_t, c_void_p, POINTER(wasmt
 
 _wasmtime_component_linker_instance_add_func = dll.wasmtime_component_linker_instance_add_func
 _wasmtime_component_linker_instance_add_func.restype = POINTER(wasmtime_error_t)
-_wasmtime_component_linker_instance_add_func.argtypes = [POINTER(wasmtime_component_linker_instance_t), POINTER(c_char), c_size_t, wasmtime_component_func_callback_t, c_void_p, CFUNCTYPE(None)]
+_wasmtime_component_linker_instance_add_func.argtypes = [POINTER(wasmtime_component_linker_instance_t), POINTER(c_char), c_size_t, wasmtime_component_func_callback_t, c_void_p, CFUNCTYPE(None, c_void_p)]
 def wasmtime_component_linker_instance_add_func(linker_instance: Any, name: Any, name_len: Any, callback: Any, data: Any, finalizer: Any) -> ctypes._Pointer:
     return _wasmtime_component_linker_instance_add_func(linker_instance, name, name_len, callback, data, finalizer)  # type: ignore
 

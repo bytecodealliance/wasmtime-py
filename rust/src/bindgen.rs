@@ -35,10 +35,10 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::Write;
 use std::mem;
 use wasmtime_environ::component::{
-    CanonicalOptions, CanonicalOptionsDataModel, Component, ComponentTypes, ComponentTypesBuilder,
-    CoreDef, CoreExport, Export, ExportItem, GlobalInitializer, InstantiateModule, InterfaceType,
-    LoweredIndex, RuntimeImportIndex, RuntimeInstanceIndex, StaticModuleIndex, StringEncoding,
-    Trampoline, TrampolineIndex, Translator, TypeFuncIndex, TypeResourceTableIndex,
+    CanonicalOptionsDataModel, Component, ComponentTypes, ComponentTypesBuilder, CoreDef,
+    CoreExport, Export, ExportItem, GlobalInitializer, InstantiateModule, InterfaceType,
+    LoweredIndex, OptionsIndex, RuntimeImportIndex, RuntimeInstanceIndex, StaticModuleIndex,
+    StringEncoding, Trampoline, TrampolineIndex, Translator, TypeFuncIndex, TypeResourceTableIndex,
 };
 use wasmtime_environ::prelude::*;
 use wasmtime_environ::{EntityIndex, ModuleTranslation, PrimaryMap, ScopeVec, Tunables};
@@ -75,7 +75,7 @@ pub struct WasmtimePy {
     imported_interfaces: HashMap<InterfaceId, String>,
     exported_interfaces: HashMap<InterfaceId, String>,
 
-    lowerings: PrimaryMap<LoweredIndex, (TrampolineIndex, TypeFuncIndex, CanonicalOptions)>,
+    lowerings: PrimaryMap<LoweredIndex, (TrampolineIndex, TypeFuncIndex, OptionsIndex)>,
     resource_trampolines: Vec<(TrampolineIndex, Trampoline)>,
 }
 
@@ -551,7 +551,7 @@ struct Instantiator<'a> {
 
 struct Lift<'a> {
     callee: String,
-    opts: &'a CanonicalOptions,
+    opts: OptionsIndex,
     func: &'a Function,
     interface: Option<InterfaceId>,
 }
@@ -845,7 +845,7 @@ impl<'a> Instantiator<'a> {
         self.bindgen(
             params,
             callee,
-            &options,
+            options,
             func,
             AbiVariant::GuestImport,
             "self",
@@ -880,7 +880,7 @@ impl<'a> Instantiator<'a> {
         &mut self,
         params: Vec<String>,
         callee: String,
-        opts: &CanonicalOptions,
+        opts: OptionsIndex,
         func: &Function,
         abi: AbiVariant,
         this: &str,
@@ -888,6 +888,7 @@ impl<'a> Instantiator<'a> {
         at_root: bool,
         resource_map: Option<&ResourceMap>,
     ) {
+        let opts = &self.component.options[opts];
         // Technically it wouldn't be the hardest thing in the world to support
         // other string encodings, but for now the code generator was originally
         // written to support utf-8 so let's just leave it at that for now. In
@@ -1020,7 +1021,7 @@ impl<'a> Instantiator<'a> {
                     };
                     toplevel.push(Lift {
                         callee,
-                        opts: options,
+                        opts: *options,
                         func,
                         interface: None,
                     });
@@ -1046,7 +1047,7 @@ impl<'a> Instantiator<'a> {
                         self.create_resource_fn_map(func, func_ty, &mut resource_map);
                         lifts.push(Lift {
                             callee,
-                            opts: options,
+                            opts: *options,
                             func,
                             interface: Some(id),
                         });
