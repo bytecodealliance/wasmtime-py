@@ -221,7 +221,7 @@ impl WasmtimePy {
                 Trampoline::WaitableSetNew { .. } => unimplemented!(),
                 Trampoline::WaitableSetDrop { .. } => unimplemented!(),
                 Trampoline::WaitableJoin { .. } => unimplemented!(),
-                Trampoline::Yield { .. } => unimplemented!(),
+                Trampoline::ThreadYield { .. } => unimplemented!(),
                 Trampoline::SubtaskDrop { .. } => unimplemented!(),
                 Trampoline::StreamNew { .. } => unimplemented!(),
                 Trampoline::StreamRead { .. } => unimplemented!(),
@@ -250,6 +250,8 @@ impl WasmtimePy {
                 Trampoline::AsyncStartCall { .. } => unimplemented!(),
                 Trampoline::ContextGet(_) => unimplemented!(),
                 Trampoline::ContextSet(_) => unimplemented!(),
+                Trampoline::BackpressureInc { .. } => unimplemented!(),
+                Trampoline::BackpressureDec { .. } => unimplemented!(),
             }
         }
 

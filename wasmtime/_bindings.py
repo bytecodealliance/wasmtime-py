@@ -2811,10 +2811,12 @@ class wasmtime_anyref(Structure):
         ("store_id", c_uint64),
         ("__private1", c_uint32),
         ("__private2", c_uint32),
+        ("__private3", c_void_p),
     ]
     store_id: int
     __private1: int
     __private2: int
+    __private3: ctypes._Pointer
 
 wasmtime_anyref_t = wasmtime_anyref
 
@@ -2865,10 +2867,12 @@ class wasmtime_externref(Structure):
         ("store_id", c_uint64),
         ("__private1", c_uint32),
         ("__private2", c_uint32),
+        ("__private3", c_void_p),
     ]
     store_id: int
     __private1: int
     __private2: int
+    __private3: ctypes._Pointer
 
 wasmtime_externref_t = wasmtime_externref
 

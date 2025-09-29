@@ -121,6 +121,7 @@ class TestExternRef(unittest.TestCase):
         g = Global(store, ty, Val.externref(SetHitOnDrop(obj)))
         assert(not obj['hit'])
         g.set_value(store, None)
+        store.gc()
         assert(obj['hit'])
 
     def test_dtor_func(self):
