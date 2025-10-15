@@ -2441,6 +2441,12 @@ _wasmtime_config_wasm_component_model_set.argtypes = [POINTER(wasm_config_t), c_
 def wasmtime_config_wasm_component_model_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_wasm_component_model_set(arg0, arg1)  # type: ignore
 
+_wasmtime_config_wasm_exceptions_set = dll.wasmtime_config_wasm_exceptions_set
+_wasmtime_config_wasm_exceptions_set.restype = None
+_wasmtime_config_wasm_exceptions_set.argtypes = [POINTER(wasm_config_t), c_bool]
+def wasmtime_config_wasm_exceptions_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_wasm_exceptions_set(arg0, arg1)  # type: ignore
+
 _wasmtime_engine_clone = dll.wasmtime_engine_clone
 _wasmtime_engine_clone.restype = POINTER(wasm_engine_t)
 _wasmtime_engine_clone.argtypes = [POINTER(wasm_engine_t)]
