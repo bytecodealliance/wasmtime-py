@@ -161,6 +161,18 @@ class Config(Managed["ctypes._Pointer[ffi.wasm_config_t]"]):
         ffi.wasmtime_config_wasm_relaxed_simd_deterministic_set(self.ptr(), enable)
 
     @setter_property
+    def wasm_exceptions(self, enable: bool) -> None:
+        """
+        Configures whether the wasm [exceptions proposal] is enabled.
+
+        [exceptions proposal]: https://github.com/WebAssembly/exception-handling
+        """
+
+        if not isinstance(enable, bool):
+            raise TypeError('expected a bool')
+        ffi.wasmtime_config_wasm_exceptions_set(self.ptr(), enable)
+
+    @setter_property
     def strategy(self, strategy: str) -> None:
         """
         Configures the compilation strategy used for wasm code.
