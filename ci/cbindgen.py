@@ -7,7 +7,7 @@
 # with lots of extra an unnecessary boilerplate.
 
 from pycparser import c_ast, parse_file
-
+import sys
 
 class Visitor(c_ast.NodeVisitor):
     def __init__(self):
@@ -280,7 +280,7 @@ v.visit(ast)
 if __name__ == "__main__":
     with open("wasmtime/_bindings.py", "w") as f:
         f.write(v.ret)
-else:
+elif sys.platform == 'linux':
     with open("wasmtime/_bindings.py", "r") as f:
         contents = f.read()
         if contents != v.ret:
