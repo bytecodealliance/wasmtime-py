@@ -187,7 +187,7 @@ class Val:
             raise WasmtimeError("Unkown `wasmtime_valkind_t`: {}".format(raw.kind))
 
         if owned:
-            wasmtime_val_unroot(store._context(), byref(raw))
+            wasmtime_val_unroot(byref(raw))
 
         return Val(raw.kind, val)
 

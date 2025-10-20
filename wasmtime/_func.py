@@ -103,7 +103,7 @@ class Func:
                     raise WasmtimeError._from_ptr(error)
         finally:
             for i in range(0, params_set):
-                ffi.wasmtime_val_unroot(store._context(), byref(params_ptr[i]))
+                ffi.wasmtime_val_unroot(byref(params_ptr[i]))
 
         results = []
         for i in range(0, len(result_tys)):
