@@ -198,17 +198,32 @@ impl WasmtimePy {
                 }
                 Trampoline::Transcoder { .. } => unimplemented!(),
                 Trampoline::AlwaysTrap => unimplemented!(),
-                Trampoline::ResourceNew(idx) => {
-                    self.resource_trampolines
-                        .push((trampoline_index, Trampoline::ResourceNew(*idx)));
+                Trampoline::ResourceNew { ty, instance } => {
+                    self.resource_trampolines.push((
+                        trampoline_index,
+                        Trampoline::ResourceNew {
+                            ty: *ty,
+                            instance: *instance,
+                        },
+                    ));
                 }
-                Trampoline::ResourceRep(idx) => {
-                    self.resource_trampolines
-                        .push((trampoline_index, Trampoline::ResourceRep(*idx)));
+                Trampoline::ResourceRep { ty, instance } => {
+                    self.resource_trampolines.push((
+                        trampoline_index,
+                        Trampoline::ResourceRep {
+                            ty: *ty,
+                            instance: *instance,
+                        },
+                    ));
                 }
-                Trampoline::ResourceDrop(idx) => {
-                    self.resource_trampolines
-                        .push((trampoline_index, Trampoline::ResourceDrop(*idx)));
+                Trampoline::ResourceDrop { ty, instance } => {
+                    self.resource_trampolines.push((
+                        trampoline_index,
+                        Trampoline::ResourceDrop {
+                            ty: *ty,
+                            instance: *instance,
+                        },
+                    ));
                 }
                 Trampoline::ResourceEnterCall => unimplemented!(),
                 Trampoline::ResourceExitCall => unimplemented!(),
@@ -248,8 +263,8 @@ impl WasmtimePy {
                 Trampoline::PrepareCall { .. } => unimplemented!(),
                 Trampoline::SyncStartCall { .. } => unimplemented!(),
                 Trampoline::AsyncStartCall { .. } => unimplemented!(),
-                Trampoline::ContextGet(_) => unimplemented!(),
-                Trampoline::ContextSet(_) => unimplemented!(),
+                Trampoline::ContextGet { .. } => unimplemented!(),
+                Trampoline::ContextSet { .. } => unimplemented!(),
                 Trampoline::BackpressureInc { .. } => unimplemented!(),
                 Trampoline::BackpressureDec { .. } => unimplemented!(),
             }
@@ -615,7 +630,7 @@ impl<'a> Instantiator<'a> {
         for (tid, trampoline) in self.gen.resource_trampolines.iter() {
             let tidx = tid.as_u32();
             match trampoline {
-                Trampoline::ResourceNew(rid) => {
+                Trampoline::ResourceNew { ty: rid, .. } => {
                     let resource_id = rid.as_u32();
                     let handle_add = &format!("_handle_add_{resource_id}");
                     uwriteln!(self.gen.init, "def _resource_new_{resource_id}(rep):");
@@ -631,7 +646,7 @@ impl<'a> Instantiator<'a> {
                         "trampoline{tidx} = wasmtime.Func(store, _resource_new_{resource_id}_ty, _resource_new_{resource_id})"
                     )
                 }
-                Trampoline::ResourceDrop(rid) => {
+                Trampoline::ResourceDrop { ty: rid, .. } => {
                     let resource_id = rid.as_u32();
                     uwriteln!(self.gen.init, "def _resource_drop_{resource_id}(rep):");
                     self.gen.init.indent();
@@ -646,7 +661,7 @@ impl<'a> Instantiator<'a> {
                         "trampoline{tidx} = wasmtime.Func(store, _resource_drop_{resource_id}_ty, _resource_drop_{resource_id})"
                     );
                 }
-                Trampoline::ResourceRep(rid) => {
+                Trampoline::ResourceRep { ty: rid, .. } => {
                     let resource_id = rid.as_u32();
                     uwriteln!(self.gen.init, "def _resource_rep_{resource_id}(handle):");
                     self.gen.init.indent();
@@ -672,9 +687,9 @@ impl<'a> Instantiator<'a> {
             .resource_trampolines
             .iter()
             .map(|(_, trampoline)| match trampoline {
-                Trampoline::ResourceNew(idx)
-                | Trampoline::ResourceRep(idx)
-                | Trampoline::ResourceDrop(idx) => *idx,
+                Trampoline::ResourceNew { ty, .. }
+                | Trampoline::ResourceRep { ty, .. }
+                | Trampoline::ResourceDrop { ty, .. } => *ty,
                 _ => unreachable!(),
             })
             .collect::<Vec<_>>();

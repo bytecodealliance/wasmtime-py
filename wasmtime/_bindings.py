@@ -2822,15 +2822,15 @@ wasmtime_anyref_t = wasmtime_anyref
 
 _wasmtime_anyref_clone = dll.wasmtime_anyref_clone
 _wasmtime_anyref_clone.restype = None
-_wasmtime_anyref_clone.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_anyref_t), POINTER(wasmtime_anyref_t)]
-def wasmtime_anyref_clone(context: Any, anyref: Any, out: Any) -> None:
-    return _wasmtime_anyref_clone(context, anyref, out)  # type: ignore
+_wasmtime_anyref_clone.argtypes = [POINTER(wasmtime_anyref_t), POINTER(wasmtime_anyref_t)]
+def wasmtime_anyref_clone(anyref: Any, out: Any) -> None:
+    return _wasmtime_anyref_clone(anyref, out)  # type: ignore
 
 _wasmtime_anyref_unroot = dll.wasmtime_anyref_unroot
 _wasmtime_anyref_unroot.restype = None
-_wasmtime_anyref_unroot.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_anyref_t)]
-def wasmtime_anyref_unroot(context: Any, ref: Any) -> None:
-    return _wasmtime_anyref_unroot(context, ref)  # type: ignore
+_wasmtime_anyref_unroot.argtypes = [POINTER(wasmtime_anyref_t)]
+def wasmtime_anyref_unroot(ref: Any) -> None:
+    return _wasmtime_anyref_unroot(ref)  # type: ignore
 
 _wasmtime_anyref_from_raw = dll.wasmtime_anyref_from_raw
 _wasmtime_anyref_from_raw.restype = None
@@ -2890,15 +2890,15 @@ def wasmtime_externref_data(context: Any, data: Any) -> int:
 
 _wasmtime_externref_clone = dll.wasmtime_externref_clone
 _wasmtime_externref_clone.restype = None
-_wasmtime_externref_clone.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_externref_t), POINTER(wasmtime_externref_t)]
-def wasmtime_externref_clone(context: Any, ref: Any, out: Any) -> None:
-    return _wasmtime_externref_clone(context, ref, out)  # type: ignore
+_wasmtime_externref_clone.argtypes = [POINTER(wasmtime_externref_t), POINTER(wasmtime_externref_t)]
+def wasmtime_externref_clone(ref: Any, out: Any) -> None:
+    return _wasmtime_externref_clone(ref, out)  # type: ignore
 
 _wasmtime_externref_unroot = dll.wasmtime_externref_unroot
 _wasmtime_externref_unroot.restype = None
-_wasmtime_externref_unroot.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_externref_t)]
-def wasmtime_externref_unroot(context: Any, ref: Any) -> None:
-    return _wasmtime_externref_unroot(context, ref)  # type: ignore
+_wasmtime_externref_unroot.argtypes = [POINTER(wasmtime_externref_t)]
+def wasmtime_externref_unroot(ref: Any) -> None:
+    return _wasmtime_externref_unroot(ref)  # type: ignore
 
 _wasmtime_externref_from_raw = dll.wasmtime_externref_from_raw
 _wasmtime_externref_from_raw.restype = None
@@ -2972,15 +2972,15 @@ wasmtime_val_t = wasmtime_val
 
 _wasmtime_val_unroot = dll.wasmtime_val_unroot
 _wasmtime_val_unroot.restype = None
-_wasmtime_val_unroot.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_val_t)]
-def wasmtime_val_unroot(context: Any, val: Any) -> None:
-    return _wasmtime_val_unroot(context, val)  # type: ignore
+_wasmtime_val_unroot.argtypes = [POINTER(wasmtime_val_t)]
+def wasmtime_val_unroot(val: Any) -> None:
+    return _wasmtime_val_unroot(val)  # type: ignore
 
 _wasmtime_val_clone = dll.wasmtime_val_clone
 _wasmtime_val_clone.restype = None
-_wasmtime_val_clone.argtypes = [POINTER(wasmtime_context_t), POINTER(wasmtime_val_t), POINTER(wasmtime_val_t)]
-def wasmtime_val_clone(context: Any, src: Any, dst: Any) -> None:
-    return _wasmtime_val_clone(context, src, dst)  # type: ignore
+_wasmtime_val_clone.argtypes = [POINTER(wasmtime_val_t), POINTER(wasmtime_val_t)]
+def wasmtime_val_clone(src: Any, dst: Any) -> None:
+    return _wasmtime_val_clone(src, dst)  # type: ignore
 
 class wasmtime_caller(Structure):
     pass
