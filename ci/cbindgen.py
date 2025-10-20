@@ -252,36 +252,38 @@ def type_name(ty, ptr=False, typing=False):
         raise RuntimeError("unknown {}".format(ty))
 
 
-ast = parse_file(
-    './wasmtime/include/wasmtime.h',
-    use_cpp=True,
-    cpp_path='gcc',
-    cpp_args=[
-        '-E',
-        '-I./wasmtime/include',
-        '-D__attribute__(x)=',
-        '-D__asm__(x)=',
-        '-D__asm(x)=',
-        '-D__volatile__(x)=',
-        '-D_Static_assert(x, y)=',
-        '-Dstatic_assert(x, y)=',
-        '-D__restrict=',
-        '-D__restrict__=',
-        '-D__extension__=',
-        '-D__inline__=',
-        '-D__signed=',
-        '-D__builtin_va_list=int',
-    ]
-)
+def run():
+    ast = parse_file(
+        './wasmtime/include/wasmtime.h',
+        use_cpp=True,
+        cpp_path='gcc',
+        cpp_args=[
+            '-E',
+            '-I./wasmtime/include',
+            '-D__attribute__(x)=',
+            '-D__asm__(x)=',
+            '-D__asm(x)=',
+            '-D__volatile__(x)=',
+            '-D_Static_assert(x, y)=',
+            '-Dstatic_assert(x, y)=',
+            '-D__restrict=',
+            '-D__restrict__=',
+            '-D__extension__=',
+            '-D__inline__=',
+            '-D__signed=',
+            '-D__builtin_va_list=int',
+        ]
+    )
 
-v = Visitor()
-v.visit(ast)
+    v = Visitor()
+    v.visit(ast)
+    return v.ret
 
 if __name__ == "__main__":
     with open("wasmtime/_bindings.py", "w") as f:
-        f.write(v.ret)
+        f.write(run())
 elif sys.platform == 'linux':
     with open("wasmtime/_bindings.py", "r") as f:
         contents = f.read()
-        if contents != v.ret:
+        if contents != run():
             raise RuntimeError("bindings need an update, run this script")
