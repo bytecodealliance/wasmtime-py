@@ -77,6 +77,9 @@ jobs:
         python -m build --wheel -C=--build-option=--plat-name -C=--build-option=musllinux_1_2_x86_64
     - run: |
         git clean -fdx wasmtime build
+        python -m build --wheel -C=--build-option=--plat-name -C=--build-option=musllinux_1_2_aarch64
+    - run: |
+        git clean -fdx wasmtime build
         python -m build --wheel -C=--build-option=--plat-name -C=--build-option=android_26_x86_64
     - run: |
         git clean -fdx wasmtime build
