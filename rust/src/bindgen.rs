@@ -752,11 +752,11 @@ impl<'a> Instantiator<'a> {
         let i = self.instances.push(idx);
         let core_file_name = self.gen.core_file_name(&self.name, idx.as_u32());
         self.gen.init.pyimport("pathlib", None);
-        self.gen.init.pyimport("importlib_resources", None);
+        self.gen.init.pyimport("importlib.resources", None);
 
         uwriteln!(
             self.gen.init,
-            "file = importlib_resources.files() / ('{}')",
+            "file = importlib.resources.files() / ('{}')",
             core_file_name,
         );
         uwriteln!(self.gen.init, "if isinstance(file, pathlib.Path):");

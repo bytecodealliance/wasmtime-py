@@ -21,9 +21,6 @@ authors = [
     {name="The Wasmtime Project Developers", email="hello@bytecodealliance.org"},
 ]
 requires-python=">=3.9"
-dependencies = [
-    "importlib_resources>=5.10",
-]
 classifiers=[
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
