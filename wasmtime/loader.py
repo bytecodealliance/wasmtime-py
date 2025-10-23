@@ -14,8 +14,12 @@ import sys
 import struct
 from pathlib import Path
 from importlib import import_module
-from importlib.abc import Loader, MetaPathFinder, ResourceReader
+from importlib.abc import Loader, MetaPathFinder
 from importlib.machinery import ModuleSpec
+if sys.version_info[:2] >= (3, 11):
+    from importlib.resources.abc import ResourceReader
+else:
+    from importlib.abc import ResourceReader
 
 from wasmtime import Module, Linker, Store, WasiConfig
 from wasmtime import Func, Table, Global, Memory
