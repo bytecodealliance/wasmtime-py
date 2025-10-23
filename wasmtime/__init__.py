@@ -17,7 +17,7 @@ from ._managed import Managed
 from ._error import WasmtimeError, ExitTrap
 from ._config import Config
 from ._engine import Engine
-from ._store import Store, Storelike
+from ._store import Store, Storelike, StoreContext
 from ._types import FuncType, GlobalType, MemoryType, TableType
 from ._types import ValType, Limits, ImportType, ExportType
 from ._wat2wasm import wat2wasm
@@ -64,4 +64,5 @@ __all__ = [
     'DirPerms',
     'Linker',
     'WasmtimeError',
+    'StoreContext',
 ]
