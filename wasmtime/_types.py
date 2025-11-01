@@ -373,7 +373,7 @@ class ImportType(Managed["ctypes._Pointer[ffi.wasm_importtype_t]"]):
     _owner: Optional[Any]
 
     @classmethod
-    def _from_ptr(cls, ptr: "ctypes._Pointer[ffi.wasm_importtype_t]", owner: Optional[Any]) -> "ImportType":
+    def _from_ptr(cls, ptr: "ctypes._Pointer[ffi.wasm_importtype_t]", owner: Optional[Any] = None) -> "ImportType":
         if not isinstance(ptr, POINTER(ffi.wasm_importtype_t)):
             raise TypeError("wrong pointer type")
         ty: "ImportType" = cls.__new__(cls)
@@ -420,7 +420,7 @@ class ExportType(Managed["ctypes._Pointer[ffi.wasm_exporttype_t]"]):
     _owner: Optional[Any]
 
     @classmethod
-    def _from_ptr(cls, ptr: 'ctypes._Pointer[ffi.wasm_exporttype_t]', owner: Optional[Any]) -> "ExportType":
+    def _from_ptr(cls, ptr: 'ctypes._Pointer[ffi.wasm_exporttype_t]', owner: Optional[Any] = None) -> "ExportType":
         if not isinstance(ptr, POINTER(ffi.wasm_exporttype_t)):
             raise TypeError("wrong pointer type")
         ty: "ExportType" = cls.__new__(cls)

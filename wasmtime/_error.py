@@ -10,12 +10,13 @@ class WasmtimeError(Exception, Managed["ctypes._Pointer[ffi.wasmtime_error_t]"])
 
     def __init__(self, message: str):
         self.__message = message
+        self._set_ptr(ffi.wasmtime_error_new(message.encode('utf-8')))
 
     def _delete(self, ptr: "ctypes._Pointer[ffi.wasmtime_error_t]") -> None:
         ffi.wasmtime_error_delete(ptr)
 
     @classmethod
-    def _from_ptr(cls, ptr: "ctypes._Pointer") -> 'WasmtimeError':
+    def _from_ptr(cls, ptr: "ctypes._Pointer[ffi.wasmtime_error_t]") -> 'WasmtimeError':
         from . import _ffi as ffi
         if not isinstance(ptr, POINTER(ffi.wasmtime_error_t)):
             raise TypeError("wrong pointer type")

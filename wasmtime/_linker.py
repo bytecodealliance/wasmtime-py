@@ -32,8 +32,6 @@ class Linker(Managed["ctypes._Pointer[ffi.wasmtime_linker_t]"]):
         Configures whether definitions are allowed to shadow one another within
         this linker
         """
-        if not isinstance(allow, bool):
-            raise TypeError("expected a boolean")
         ffi.wasmtime_linker_allow_shadowing(self.ptr(), allow)
 
     def define(self, store: Storelike, module: str, name: str, item: AsExtern) -> None:

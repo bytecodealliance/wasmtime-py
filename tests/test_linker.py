@@ -99,8 +99,6 @@ class TestLinker(unittest.TestCase):
 
     def test_errors(self):
         linker = Linker(Engine())
-        with self.assertRaises(TypeError):
-            linker.allow_shadowing = 2
         with self.assertRaises(AttributeError):
             Linker(2)  # type: ignore
         with self.assertRaises(AttributeError):
