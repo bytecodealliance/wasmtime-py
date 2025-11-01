@@ -284,7 +284,8 @@ class TableType(Managed["ctypes._Pointer[ffi.wasm_tabletype_t]"]):
 
 
 class MemoryType(Managed["ctypes._Pointer[ffi.wasm_memorytype_t]"]):
-    def __init__(self, limits: Limits, is_64: bool = False, shared: bool = False):
+    def __init__(self, limits: Limits, is_64: bool = False, shared: bool = False,
+                 page_size_log2: int = 16):
         if not isinstance(limits, Limits):
             raise TypeError("expected Limits")
         if is_64:
@@ -295,13 +296,16 @@ class MemoryType(Managed["ctypes._Pointer[ffi.wasm_memorytype_t]"]):
             raise WasmtimeError("minimum size too large")
         if limits.max and limits.max >= maximum:
             raise WasmtimeError("maximum size too large")
-        ptr = ffi.wasmtime_memorytype_new(limits.min,
+        ptr = POINTER(ffi.wasm_memorytype_t)()
+        err = ffi.wasmtime_memorytype_new(limits.min,
                                           limits.max is not None,
                                           limits.max if limits.max else 0,
                                           is_64,
-                                          shared)
-        if not ptr:
-            raise WasmtimeError("failed to allocate MemoryType")
+                                          shared,
+                                          page_size_log2,
+                                          byref(ptr))
+        if err:
+            raise WasmtimeError._from_ptr(err)
         self._set_ptr(ptr)
         self._owner = None
 
@@ -334,7 +338,7 @@ class MemoryType(Managed["ctypes._Pointer[ffi.wasm_memorytype_t]"]):
         Returns whether or not this is a 64-bit memory
         """
         return ffi.wasmtime_memorytype_is64(self.ptr())
-    
+
     @property
     def is_shared(self) -> bool:
         """
@@ -345,7 +349,7 @@ class MemoryType(Managed["ctypes._Pointer[ffi.wasm_memorytype_t]"]):
 
     def _as_extern(self) -> "ctypes._Pointer[ffi.wasm_externtype_t]":
         return ffi.wasm_memorytype_as_externtype_const(self.ptr())
-    
+
 
 def wrap_externtype(ptr: "ctypes._Pointer[ffi.wasm_externtype_t]", owner: Optional[Any]) -> "AsExternType":
     if not isinstance(ptr, POINTER(ffi.wasm_externtype_t)):
