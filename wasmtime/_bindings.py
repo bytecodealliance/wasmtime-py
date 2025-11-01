@@ -3942,14 +3942,14 @@ class wasmtime_component_valunion(Union):
 
 wasmtime_component_valunion_t = wasmtime_component_valunion
 
-wasmtime_component_val._fields = [ # type: ignore
+wasmtime_component_val._fields_ = [
         ("kind", wasmtime_component_valkind_t),
         ("of", wasmtime_component_valunion_t),
     ]
 
 wasmtime_component_val_t = wasmtime_component_val
 
-wasmtime_component_valrecord_entry._fields = [ # type: ignore
+wasmtime_component_valrecord_entry._fields_ = [
         ("name", wasm_name_t),
         ("val", wasmtime_component_val_t),
     ]

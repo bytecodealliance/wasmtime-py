@@ -53,7 +53,7 @@ class Visitor(c_ast.NodeVisitor):
                 decl.name = '_anon_' + str(anon_decl)
 
         if node.name in self.forward_declared:
-            self.ret += "{}._fields = [ # type: ignore\n".format(node.name)
+            self.ret += "{}._fields_ = [\n".format(node.name)
         else:
             self.ret += "class {}(Structure):\n".format(node.name)
             self.ret += "    _fields_ = [\n"
