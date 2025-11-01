@@ -1,3 +1,6 @@
+import ctypes
+
+from . import _bindings
 from . import _ffi as ffi
 from ctypes import POINTER, byref
 from wasmtime import Module, WasmtimeError
@@ -9,7 +12,7 @@ from ._func import enter_wasm
 
 
 class Instance:
-    _instance: ffi.wasmtime_instance_t
+    _instance: _bindings.wasmtime_instance_t
     _exports: Optional["InstanceExports"]
 
     def __init__(self, store: Storelike, module: Module, imports: Sequence[AsExtern]):
@@ -25,13 +28,13 @@ class Instance:
         otherwise initializes the new instance.
         """
 
-        imports_ptr = (ffi.wasmtime_extern_t * len(imports))()
+        imports_ptr = (_bindings.wasmtime_extern_t * len(imports))()
         for i, val in enumerate(imports):
             imports_ptr[i] = get_extern_ptr(val)
 
-        instance = ffi.wasmtime_instance_t()
+        instance = _bindings.wasmtime_instance_t()
         with enter_wasm(store) as trap:
-            error = ffi.wasmtime_instance_new(
+            error = _bindings.wasmtime_instance_new(
                 store._context(),
                 module.ptr(),
                 imports_ptr,
@@ -44,7 +47,7 @@ class Instance:
         self._exports = None
 
     @classmethod
-    def _from_raw(cls, instance: ffi.wasmtime_instance_t) -> "Instance":
+    def _from_raw(cls, instance: _bindings.wasmtime_instance_t) -> "Instance":
         ty: "Instance" = cls.__new__(cls)
         ty._exports = None
         ty._instance = instance
@@ -61,9 +64,9 @@ class Instance:
             self._exports = InstanceExports(store, self)
         return self._exports
 
-    def _as_extern(self) -> ffi.wasmtime_extern_t:
-        union = ffi.wasmtime_extern_union(instance=self._instance)
-        return ffi.wasmtime_extern_t(ffi.WASMTIME_EXTERN_INSTANCE, union)
+    def _as_extern(self) -> _bindings.wasmtime_extern_t:
+        union = _bindings.wasmtime_extern_union(instance=self._instance)
+        return _bindings.wasmtime_extern_t(ffi.WASMTIME_EXTERN_INSTANCE, union)
 
 
 class InstanceExports(Mapping[str, AsExtern]):
@@ -75,10 +78,10 @@ class InstanceExports(Mapping[str, AsExtern]):
 
         extern_list = []
         i = 0
-        item = ffi.wasmtime_extern_t()
-        name_ptr = POINTER(ffi.c_char)()
-        name_len = ffi.c_size_t(0)
-        while ffi.wasmtime_instance_export_nth(
+        item = _bindings.wasmtime_extern_t()
+        name_ptr = POINTER(ctypes.c_char)()
+        name_len = ctypes.c_size_t(0)
+        while _bindings.wasmtime_instance_export_nth(
                 store._context(),
                 byref(instance._instance),
                 i,
@@ -90,7 +93,7 @@ class InstanceExports(Mapping[str, AsExtern]):
             extern_list.append(extern)
             self._extern_map[name] = extern
             i += 1
-            item = ffi.wasmtime_extern_t()
+            item = _bindings.wasmtime_extern_t()
         self._extern_seq = tuple(extern_list)
 
     @property

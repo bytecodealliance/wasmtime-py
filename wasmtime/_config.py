@@ -1,8 +1,8 @@
-from . import _ffi as ffi
-from ctypes import *
 import ctypes
 from wasmtime import WasmtimeError, Managed
 import typing
+
+from . import _bindings
 
 
 def setter_property(fset: typing.Callable) -> property:
@@ -13,7 +13,7 @@ def setter_property(fset: typing.Callable) -> property:
     return prop
 
 
-class Config(Managed["ctypes._Pointer[ffi.wasm_config_t]"]):
+class Config(Managed["ctypes._Pointer[_bindings.wasm_config_t]"]):
     """
     Global configuration, used to create an `Engine`.
 
@@ -22,10 +22,10 @@ class Config(Managed["ctypes._Pointer[ffi.wasm_config_t]"]):
     """
 
     def __init__(self) -> None:
-        self._set_ptr(ffi.wasm_config_new())
+        self._set_ptr(_bindings.wasm_config_new())
 
-    def _delete(self, ptr: "ctypes._Pointer[ffi.wasm_config_t]") -> None:
-        ffi.wasm_config_delete(ptr)
+    def _delete(self, ptr: "ctypes._Pointer[_bindings.wasm_config_t]") -> None:
+        _bindings.wasm_config_delete(ptr)
 
     @setter_property
     def debug_info(self, enable: bool) -> None:
@@ -36,7 +36,7 @@ class Config(Managed["ctypes._Pointer[ffi.wasm_config_t]"]):
 
         if not isinstance(enable, bool):
             raise TypeError('expected a bool')
-        ffi.wasmtime_config_debug_info_set(self.ptr(), enable)
+        _bindings.wasmtime_config_debug_info_set(self.ptr(), enable)
 
     @setter_property
     def wasm_threads(self, enable: bool) -> None:
@@ -48,7 +48,7 @@ class Config(Managed["ctypes._Pointer[ffi.wasm_config_t]"]):
 
         if not isinstance(enable, bool):
             raise TypeError('expected a bool')
-        ffi.wasmtime_config_wasm_threads_set(self.ptr(), enable)
+        _bindings.wasmtime_config_wasm_threads_set(self.ptr(), enable)
 
     @setter_property
     def wasm_tail_call(self, enable: bool) -> None:
@@ -60,7 +60,7 @@ class Config(Managed["ctypes._Pointer[ffi.wasm_config_t]"]):
 
         if not isinstance(enable, bool):
             raise TypeError('expected a bool')
-        ffi.wasmtime_config_wasm_tail_call_set(self.ptr(), enable)
+        _bindings.wasmtime_config_wasm_tail_call_set(self.ptr(), enable)
 
     @setter_property
     def wasm_reference_types(self, enable: bool) -> None:
@@ -72,7 +72,7 @@ class Config(Managed["ctypes._Pointer[ffi.wasm_config_t]"]):
 
         if not isinstance(enable, bool):
             raise TypeError('expected a bool')
-        ffi.wasmtime_config_wasm_reference_types_set(self.ptr(), enable)
+        _bindings.wasmtime_config_wasm_reference_types_set(self.ptr(), enable)
 
     @setter_property
     def wasm_simd(self, enable: bool) -> None:
@@ -84,7 +84,7 @@ class Config(Managed["ctypes._Pointer[ffi.wasm_config_t]"]):
 
         if not isinstance(enable, bool):
             raise TypeError('expected a bool')
-        ffi.wasmtime_config_wasm_simd_set(self.ptr(), enable)
+        _bindings.wasmtime_config_wasm_simd_set(self.ptr(), enable)
 
     @setter_property
     def wasm_bulk_memory(self, enable: bool) -> None:
@@ -96,7 +96,7 @@ class Config(Managed["ctypes._Pointer[ffi.wasm_config_t]"]):
 
         if not isinstance(enable, bool):
             raise TypeError('expected a bool')
-        ffi.wasmtime_config_wasm_bulk_memory_set(self.ptr(), enable)
+        _bindings.wasmtime_config_wasm_bulk_memory_set(self.ptr(), enable)
 
     @setter_property
     def wasm_multi_value(self, enable: bool) -> None:
@@ -108,7 +108,7 @@ class Config(Managed["ctypes._Pointer[ffi.wasm_config_t]"]):
 
         if not isinstance(enable, bool):
             raise TypeError('expected a bool')
-        ffi.wasmtime_config_wasm_multi_value_set(self.ptr(), enable)
+        _bindings.wasmtime_config_wasm_multi_value_set(self.ptr(), enable)
 
     @setter_property
     def wasm_multi_memory(self, enable: bool) -> None:
@@ -120,7 +120,7 @@ class Config(Managed["ctypes._Pointer[ffi.wasm_config_t]"]):
 
         if not isinstance(enable, bool):
             raise TypeError('expected a bool')
-        ffi.wasmtime_config_wasm_multi_memory_set(self.ptr(), enable)
+        _bindings.wasmtime_config_wasm_multi_memory_set(self.ptr(), enable)
 
     @setter_property
     def wasm_memory64(self, enable: bool) -> None:
@@ -132,7 +132,7 @@ class Config(Managed["ctypes._Pointer[ffi.wasm_config_t]"]):
 
         if not isinstance(enable, bool):
             raise TypeError('expected a bool')
-        ffi.wasmtime_config_wasm_memory64_set(self.ptr(), enable)
+        _bindings.wasmtime_config_wasm_memory64_set(self.ptr(), enable)
 
     @setter_property
     def wasm_relaxed_simd(self, enable: bool) -> None:
@@ -144,7 +144,7 @@ class Config(Managed["ctypes._Pointer[ffi.wasm_config_t]"]):
 
         if not isinstance(enable, bool):
             raise TypeError('expected a bool')
-        ffi.wasmtime_config_wasm_relaxed_simd_set(self.ptr(), enable)
+        _bindings.wasmtime_config_wasm_relaxed_simd_set(self.ptr(), enable)
 
     @setter_property
     def wasm_relaxed_simd_deterministic(self, enable: bool) -> None:
@@ -158,7 +158,7 @@ class Config(Managed["ctypes._Pointer[ffi.wasm_config_t]"]):
 
         if not isinstance(enable, bool):
             raise TypeError('expected a bool')
-        ffi.wasmtime_config_wasm_relaxed_simd_deterministic_set(self.ptr(), enable)
+        _bindings.wasmtime_config_wasm_relaxed_simd_deterministic_set(self.ptr(), enable)
 
     @setter_property
     def strategy(self, strategy: str) -> None:
@@ -172,9 +172,9 @@ class Config(Managed["ctypes._Pointer[ffi.wasm_config_t]"]):
         """
 
         if strategy == "auto":
-            ffi.wasmtime_config_strategy_set(self.ptr(), 0)
+            _bindings.wasmtime_config_strategy_set(self.ptr(), 0)
         elif strategy == "cranelift":
-            ffi.wasmtime_config_strategy_set(self.ptr(), 1)
+            _bindings.wasmtime_config_strategy_set(self.ptr(), 1)
         else:
             raise WasmtimeError("unknown strategy: " + str(strategy))
 
@@ -182,25 +182,25 @@ class Config(Managed["ctypes._Pointer[ffi.wasm_config_t]"]):
     def cranelift_debug_verifier(self, enable: bool) -> None:
         if not isinstance(enable, bool):
             raise TypeError('expected a bool')
-        ffi.wasmtime_config_cranelift_debug_verifier_set(self.ptr(), enable)
+        _bindings.wasmtime_config_cranelift_debug_verifier_set(self.ptr(), enable)
 
     @setter_property
     def cranelift_opt_level(self, opt_level: str) -> None:
         if opt_level == "none":
-            ffi.wasmtime_config_cranelift_opt_level_set(self.ptr(), 0)
+            _bindings.wasmtime_config_cranelift_opt_level_set(self.ptr(), 0)
         elif opt_level == "speed":
-            ffi.wasmtime_config_cranelift_opt_level_set(self.ptr(), 1)
+            _bindings.wasmtime_config_cranelift_opt_level_set(self.ptr(), 1)
         elif opt_level == "speed_and_size":
-            ffi.wasmtime_config_cranelift_opt_level_set(self.ptr(), 2)
+            _bindings.wasmtime_config_cranelift_opt_level_set(self.ptr(), 2)
         else:
             raise WasmtimeError("unknown opt level: " + str(opt_level))
 
     @setter_property
     def profiler(self, profiler: str) -> None:
         if profiler == "none":
-            ffi.wasmtime_config_profiler_set(self.ptr(), 0)
+            _bindings.wasmtime_config_profiler_set(self.ptr(), 0)
         elif profiler == "jitdump":
-            ffi.wasmtime_config_profiler_set(self.ptr(), 1)
+            _bindings.wasmtime_config_profiler_set(self.ptr(), 1)
         else:
             raise WasmtimeError("unknown profiler: " + str(profiler))
 
@@ -220,10 +220,10 @@ class Config(Managed["ctypes._Pointer[ffi.wasm_config_t]"]):
         if isinstance(enabled, bool):
             if not enabled:
                 raise WasmtimeError("caching cannot be explicitly disabled")
-            error = ffi.wasmtime_config_cache_config_load(self.ptr(), None)
+            error = _bindings.wasmtime_config_cache_config_load(self.ptr(), None)
         elif isinstance(enabled, str):
-            error = ffi.wasmtime_config_cache_config_load(self.ptr(),
-                                                          c_char_p(enabled.encode('utf-8')))
+            error = _bindings.wasmtime_config_cache_config_load(self.ptr(),
+                                                          ctypes.c_char_p(enabled.encode('utf-8')))
         else:
             raise TypeError("expected string or bool")
         if error:
@@ -240,7 +240,7 @@ class Config(Managed["ctypes._Pointer[ffi.wasm_config_t]"]):
             val = 1
         else:
             val = 0
-        ffi.wasmtime_config_epoch_interruption_set(self.ptr(), val)
+        _bindings.wasmtime_config_epoch_interruption_set(self.ptr(), val)
 
     @setter_property
     def consume_fuel(self, instances: bool) -> None:
@@ -253,7 +253,7 @@ class Config(Managed["ctypes._Pointer[ffi.wasm_config_t]"]):
         """
         if not isinstance(instances, bool):
             raise TypeError('expected an bool')
-        ffi.wasmtime_config_consume_fuel_set(self.ptr(), instances)
+        _bindings.wasmtime_config_consume_fuel_set(self.ptr(), instances)
 
     @setter_property
     def parallel_compilation(self, enable: bool) -> None:
@@ -265,4 +265,4 @@ class Config(Managed["ctypes._Pointer[ffi.wasm_config_t]"]):
         """
         if not isinstance(enable, bool):
             raise TypeError('expected a bool')
-        ffi.wasmtime_config_parallel_compilation_set(self.ptr(), enable)
+        _bindings.wasmtime_config_parallel_compilation_set(self.ptr(), enable)

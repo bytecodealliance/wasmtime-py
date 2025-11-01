@@ -1,4 +1,3 @@
-from ctypes import *
 from pathlib import Path
 import ctypes
 import sys
@@ -34,49 +33,49 @@ if machine != 'x86_64' and machine != 'aarch64':
 
 filename = Path(__file__).parent / (sys_platform + '-' + machine) / libname
 
-dll = cdll.LoadLibrary(str(filename))
+dll = ctypes.cdll.LoadLibrary(str(filename))
 
-WASM_I32 = c_uint8(0)
-WASM_I64 = c_uint8(1)
-WASM_F32 = c_uint8(2)
-WASM_F64 = c_uint8(3)
-WASM_ANYREF = c_uint8(128)
-WASM_FUNCREF = c_uint8(129)
-# WASM_V128 = c_uint8(4)
+WASM_I32 = ctypes.c_uint8(0)
+WASM_I64 = ctypes.c_uint8(1)
+WASM_F32 = ctypes.c_uint8(2)
+WASM_F64 = ctypes.c_uint8(3)
+WASM_ANYREF = ctypes.c_uint8(128)
+WASM_FUNCREF = ctypes.c_uint8(129)
+# WASM_V128 = ctypes.c_uint8(4)
 
-WASMTIME_I32 = c_uint8(0)
-WASMTIME_I64 = c_uint8(1)
-WASMTIME_F32 = c_uint8(2)
-WASMTIME_F64 = c_uint8(3)
-WASMTIME_V128 = c_uint8(4)
-WASMTIME_FUNCREF = c_uint8(5)
-WASMTIME_EXTERNREF = c_uint8(6)
+WASMTIME_I32 = ctypes.c_uint8(0)
+WASMTIME_I64 = ctypes.c_uint8(1)
+WASMTIME_F32 = ctypes.c_uint8(2)
+WASMTIME_F64 = ctypes.c_uint8(3)
+WASMTIME_V128 = ctypes.c_uint8(4)
+WASMTIME_FUNCREF = ctypes.c_uint8(5)
+WASMTIME_EXTERNREF = ctypes.c_uint8(6)
 
-WASM_CONST = c_uint8(0)
-WASM_VAR = c_uint8(1)
+WASM_CONST = ctypes.c_uint8(0)
+WASM_VAR = ctypes.c_uint8(1)
 
-WASMTIME_EXTERN_FUNC = c_uint8(0)
-WASMTIME_EXTERN_GLOBAL = c_uint8(1)
-WASMTIME_EXTERN_TABLE = c_uint8(2)
-WASMTIME_EXTERN_MEMORY = c_uint8(3)
-WASMTIME_EXTERN_SHAREDMEMORY = c_uint8(4)
-WASMTIME_EXTERN_INSTANCE = c_uint8(4)
-WASMTIME_EXTERN_MODULE = c_uint8(5)
+WASMTIME_EXTERN_FUNC = ctypes.c_uint8(0)
+WASMTIME_EXTERN_GLOBAL = ctypes.c_uint8(1)
+WASMTIME_EXTERN_TABLE = ctypes.c_uint8(2)
+WASMTIME_EXTERN_MEMORY = ctypes.c_uint8(3)
+WASMTIME_EXTERN_SHAREDMEMORY = ctypes.c_uint8(4)
+WASMTIME_EXTERN_INSTANCE = ctypes.c_uint8(4)
+WASMTIME_EXTERN_MODULE = ctypes.c_uint8(5)
 
 WASMTIME_FUNCREF_NULL = (1 << 64) - 1
 
 
-class wasm_ref_t(Structure):
+class wasm_ref_t(ctypes.Structure):
     pass
 
 
-class wasm_val_union(Union):
+class wasm_val_union(ctypes.Union):
     _fields_ = [
-        ("i32", c_int32),
-        ("i64", c_int64),
-        ("f32", c_float),
-        ("f64", c_double),
-        ("ref", POINTER(wasm_ref_t)),
+        ("i32", ctypes.c_int32),
+        ("i64", ctypes.c_int64),
+        ("f32", ctypes.c_float),
+        ("f64", ctypes.c_double),
+        ("ref", ctypes.POINTER(wasm_ref_t)),
     ]
 
     i32: int
@@ -86,19 +85,19 @@ class wasm_val_union(Union):
     ref: "typing.Union[ctypes._Pointer[wasm_ref_t], None]"
 
 
-class wasm_val_t(Structure):
-    _fields_ = [("kind", c_uint8), ("of", wasm_val_union)]
+class wasm_val_t(ctypes.Structure):
+    _fields_ = [("kind", ctypes.c_uint8), ("of", wasm_val_union)]
 
     kind: int
     of: wasm_val_union
 
 
-from ._bindings import *  # noqa
+from ._bindings import wasm_byte_vec_t  # noqa
 
 
 def to_bytes(vec: wasm_byte_vec_t) -> bytearray:
-    ty = c_uint8 * vec.size
-    return bytearray(ty.from_address(addressof(vec.data.contents)))
+    ty = ctypes.c_uint8 * vec.size
+    return bytearray(ty.from_address(ctypes.addressof(vec.data.contents)))
 
 
 def to_str(vec: wasm_byte_vec_t) -> str:
@@ -106,14 +105,14 @@ def to_str(vec: wasm_byte_vec_t) -> str:
 
 
 def to_str_raw(ptr: "ctypes._Pointer", size: int) -> str:
-    return string_at(ptr, size).decode("utf-8")
+    return ctypes.string_at(ptr, size).decode("utf-8")
 
 
 def str_to_name(s: str, trailing_nul: bool = False) -> wasm_byte_vec_t:
     if not isinstance(s, str):
         raise TypeError("expected a string")
     s_bytes = s.encode('utf8')
-    buf = cast(create_string_buffer(s_bytes), POINTER(c_uint8))
+    buf = ctypes.cast(ctypes.create_string_buffer(s_bytes), ctypes.POINTER(ctypes.c_uint8))
     if trailing_nul:
         extra = 1
     else:

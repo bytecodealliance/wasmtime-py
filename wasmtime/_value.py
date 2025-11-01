@@ -1,15 +1,17 @@
 from ._error import WasmtimeError
-from ._ffi import *
 from ._types import ValType
 import ctypes
 import typing
+
+from . import _bindings
+from . import _ffi
 
 
 if typing.TYPE_CHECKING:
     from ._store import Storelike
 
 
-@ctypes.CFUNCTYPE(None, c_void_p)
+@ctypes.CFUNCTYPE(None, ctypes.c_void_p)
 def _externref_finalizer(extern_id: int) -> None:
     Val._id_to_ref_count[extern_id] -= 1
     if Val._id_to_ref_count[extern_id] == 0:
@@ -17,7 +19,7 @@ def _externref_finalizer(extern_id: int) -> None:
         del Val._id_to_extern[extern_id]
 
 
-def _intern(obj: typing.Any) -> c_void_p:
+def _intern(obj: typing.Any) -> ctypes.c_void_p:
     extern_id = id(obj)
     Val._id_to_ref_count.setdefault(extern_id, 0)
     Val._id_to_ref_count[extern_id] += 1
@@ -38,7 +40,7 @@ class Val:
     _id_to_extern: typing.Dict[int, typing.Any] = {}
     _id_to_ref_count: typing.Dict[int, int] = {}
 
-    _kind: wasmtime_valkind_t
+    _kind: _bindings.wasmtime_valkind_t
     _val: typing.Any
 
     @classmethod
@@ -48,8 +50,8 @@ class Val:
         """
         if not isinstance(val, int):
             raise TypeError("expected an integer")
-        val = wasmtime_valunion_t(i32=val).i32
-        return Val(WASMTIME_I32, val)
+        val = _bindings.wasmtime_valunion_t(i32=val).i32
+        return Val(_ffi.WASMTIME_I32, val)
 
     @classmethod
     def i64(cls, val: int) -> "Val":
@@ -58,8 +60,8 @@ class Val:
         """
         if not isinstance(val, int):
             raise TypeError("expected an integer")
-        val = wasmtime_valunion_t(i64=val).i64
-        return Val(WASMTIME_I64, val)
+        val = _bindings.wasmtime_valunion_t(i64=val).i64
+        return Val(_ffi.WASMTIME_I64, val)
 
     @classmethod
     def f32(cls, val: float) -> "Val":
@@ -68,8 +70,8 @@ class Val:
         """
         if not isinstance(val, float):
             raise TypeError("expected a float")
-        val = wasmtime_valunion_t(f32=val).f32
-        return Val(WASMTIME_F32, val)
+        val = _bindings.wasmtime_valunion_t(f32=val).f32
+        return Val(_ffi.WASMTIME_F32, val)
 
     @classmethod
     def f64(cls, val: float) -> "Val":
@@ -78,16 +80,16 @@ class Val:
         """
         if not isinstance(val, float):
             raise TypeError("expected a float")
-        val = wasmtime_valunion_t(f64=val).f64
-        return Val(WASMTIME_F64, val)
+        val = _bindings.wasmtime_valunion_t(f64=val).f64
+        return Val(_ffi.WASMTIME_F64, val)
 
     @classmethod
     def externref(cls, extern: typing.Optional[typing.Any]) -> "Val":
-        return Val(WASMTIME_EXTERNREF, extern)
+        return Val(_ffi.WASMTIME_EXTERNREF, extern)
 
     @classmethod
     def funcref(cls, f: "typing.Optional[wasmtime.Func]") -> "Val":
-        return Val(WASMTIME_FUNCREF, f)
+        return Val(_ffi.WASMTIME_FUNCREF, f)
 
     @classmethod
     def ref_null(cls, ty: ValType) -> "Val":
@@ -102,7 +104,7 @@ class Val:
             return Val.funcref(None)
         raise WasmtimeError("Invalid reference type for `ref_null`: %s" % ty)
 
-    def __init__(self, kind: wasmtime_valkind_t, val: typing.Any):
+    def __init__(self, kind: _bindings.wasmtime_valkind_t, val: typing.Any):
         self._kind = kind
         self._val = val
 
@@ -112,7 +114,7 @@ class Val:
         return self._val == rhs
 
     @classmethod
-    def _convert_to_raw(cls, store: 'Storelike', ty: ValType, val: Any) -> wasmtime_val_t:
+    def _convert_to_raw(cls, store: 'Storelike', ty: ValType, val: typing.Any) -> _bindings.wasmtime_val_t:
         if isinstance(val, Val):
             if ty != val.type:
                 raise TypeError("wrong type of `Val` provided")
@@ -139,26 +141,26 @@ class Val:
                 return Val.funcref(None)._new_raw(store)
         raise TypeError("don't know how to convert %r to %s" % (val, ty))
 
-    def _new_raw(self, store: 'Storelike') -> wasmtime_val_t:
-        ret = wasmtime_val_t(kind = self._kind)
-        if ret.kind == WASMTIME_I32.value:
+    def _new_raw(self, store: 'Storelike') -> _bindings.wasmtime_val_t:
+        ret = _bindings.wasmtime_val_t(kind = self._kind)
+        if ret.kind == _ffi.WASMTIME_I32.value:
             ret.of.i32 = self._val
-        elif ret.kind == WASMTIME_I64.value:
+        elif ret.kind == _ffi.WASMTIME_I64.value:
             ret.of.i64 = self._val
-        elif ret.kind == WASMTIME_F32.value:
+        elif ret.kind == _ffi.WASMTIME_F32.value:
             ret.of.f32 = self._val
-        elif ret.kind == WASMTIME_F64.value:
+        elif ret.kind == _ffi.WASMTIME_F64.value:
             ret.of.f64 = self._val
-        elif ret.kind == WASMTIME_EXTERNREF.value:
+        elif ret.kind == _ffi.WASMTIME_EXTERNREF.value:
             if self._val is not None:
                 extern_id = _intern(self._val)
-                if not wasmtime_externref_new(store._context(), extern_id, _externref_finalizer,
-                                              byref(ret.of.externref)):
+                if not _bindings.wasmtime_externref_new(store._context(), extern_id, _externref_finalizer,
+                                              ctypes.byref(ret.of.externref)):
                     raise WasmtimeError("failed to create an externref value")
             else:
 
                 ret.of.externref.store_id = 0
-        elif ret.kind == WASMTIME_FUNCREF.value:
+        elif ret.kind == _ffi.WASMTIME_FUNCREF.value:
             if self._val is not None:
                 ret.of.funcref = self._val._func
         else:
@@ -166,28 +168,29 @@ class Val:
         return ret
 
     @classmethod
-    def _from_raw(cls, store: 'Storelike', raw: wasmtime_val_t, owned: bool = True) -> 'Val':
+    def _from_raw(cls, store: 'Storelike', raw: _bindings.wasmtime_val_t, owned: bool = True) -> 'Val':
         val: typing.Any = None
-        if raw.kind == WASMTIME_I32.value:
+        if raw.kind == _ffi.WASMTIME_I32.value:
             val = raw.of.i32
-        elif raw.kind == WASMTIME_I64.value:
+        elif raw.kind == _ffi.WASMTIME_I64.value:
             val = raw.of.i64
-        elif raw.kind == WASMTIME_F32.value:
+        elif raw.kind == _ffi.WASMTIME_F32.value:
             val = raw.of.f32
-        elif raw.kind == WASMTIME_F64.value:
+        elif raw.kind == _ffi.WASMTIME_F64.value:
             val = raw.of.f64
-        elif raw.kind == WASMTIME_EXTERNREF.value:
+        elif raw.kind == _ffi.WASMTIME_EXTERNREF.value:
             if raw.of.externref:
-                extern_id = wasmtime_externref_data(store._context(), raw.of.externref)
-                val = _unintern(extern_id)
-        elif raw.kind == WASMTIME_FUNCREF.value:
+                extern_id = _bindings.wasmtime_externref_data(store._context(), raw.of.externref)
+                # TODO https://github.com/bytecodealliance/wasmtime-py/issues/303
+                val = _unintern(extern_id)  # type: ignore
+        elif raw.kind == _ffi.WASMTIME_FUNCREF.value:
             if raw.of.funcref.store_id != 0:
                 val = wasmtime.Func._from_raw(raw.of.funcref)
         else:
-            raise WasmtimeError("Unkown `wasmtime_valkind_t`: {}".format(raw.kind))
+            raise WasmtimeError("Unkown `_bindings.wasmtime_valkind_t`: {}".format(raw.kind))
 
         if owned:
-            wasmtime_val_unroot(byref(raw))
+            _bindings.wasmtime_val_unroot(ctypes.byref(raw))
 
         return Val(raw.kind, val)
 
@@ -202,7 +205,7 @@ class Val:
         """
         Get the 32-bit integer value of this value, or `None` if it's not an i32
         """
-        if self._kind == WASMTIME_I32:
+        if self._kind == _ffi.WASMTIME_I32:
             assert(isinstance(self._val, int))
             return self._val
         else:
@@ -212,7 +215,7 @@ class Val:
         """
         Get the 64-bit integer value of this value, or `None` if it's not an i64
         """
-        if self._kind == WASMTIME_I64:
+        if self._kind == _ffi.WASMTIME_I64:
             assert(isinstance(self._val, int))
             return self._val
         else:
@@ -222,7 +225,7 @@ class Val:
         """
         Get the 32-bit float value of this value, or `None` if it's not an f32
         """
-        if self._kind == WASMTIME_F32:
+        if self._kind == _ffi.WASMTIME_F32:
             assert(isinstance(self._val, float))
             return self._val
         else:
@@ -232,7 +235,7 @@ class Val:
         """
         Get the 64-bit float value of this value, or `None` if it's not an f64
         """
-        if self._kind == WASMTIME_F64:
+        if self._kind == _ffi.WASMTIME_F64:
             assert(isinstance(self._val, float))
             return self._val
         else:
@@ -243,7 +246,7 @@ class Val:
         Get the extern data referenced by this `externref` value, or `None` if
         it's not an `externref`.
         """
-        if self._kind == WASMTIME_EXTERNREF:
+        if self._kind == _ffi.WASMTIME_EXTERNREF:
             return self._val
         else:
             return None
@@ -253,7 +256,7 @@ class Val:
         Get the function that this `funcref` value is referencing, or `None` if
         this is not a `funcref` value, or is a null reference.
         """
-        if self._kind == WASMTIME_FUNCREF:
+        if self._kind == _ffi.WASMTIME_FUNCREF:
             assert(isinstance(self._val, wasmtime.Func))
             return self._val
         else:
@@ -265,19 +268,19 @@ class Val:
         Returns the `ValType` corresponding to this `Val`
         """
         kind = self._kind
-        if kind == WASMTIME_I32:
+        if kind == _ffi.WASMTIME_I32:
             return ValType.i32()
-        elif kind == WASMTIME_I64:
+        elif kind == _ffi.WASMTIME_I64:
             return ValType.i64()
-        elif kind == WASMTIME_F32:
+        elif kind == _ffi.WASMTIME_F32:
             return ValType.f32()
-        elif kind == WASMTIME_F64:
+        elif kind == _ffi.WASMTIME_F64:
             return ValType.f64()
-        elif kind == WASMTIME_V128:
+        elif kind == _ffi.WASMTIME_V128:
             raise Exception("unimplemented v128 type")
-        elif kind == WASMTIME_EXTERNREF:
+        elif kind == _ffi.WASMTIME_EXTERNREF:
             return ValType.externref()
-        elif kind == WASMTIME_FUNCREF:
+        elif kind == _ffi.WASMTIME_FUNCREF:
             return ValType.funcref()
         else:
             raise Exception("unknown kind %d" % kind.value)

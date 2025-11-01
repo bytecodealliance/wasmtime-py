@@ -1,7 +1,8 @@
-from . import _ffi as ffi
 from ctypes import byref, c_uint64, cast, c_void_p, CFUNCTYPE
 import ctypes
+
 from wasmtime import Engine, WasmtimeError, Managed
+from . import _bindings
 from . import _value as value
 import typing
 
@@ -9,8 +10,8 @@ if typing.TYPE_CHECKING:
     from ._wasi import WasiConfig
 
 
-class Store(Managed["ctypes._Pointer[ffi.wasmtime_store_t]"]):
-    __context: "typing.Optional[ctypes._Pointer[ffi.wasmtime_context_t]]"
+class Store(Managed["ctypes._Pointer[_bindings.wasmtime_store_t]"]):
+    __context: "typing.Optional[ctypes._Pointer[_bindings.wasmtime_context_t]]"
 
     def __init__(self, engine: typing.Optional[Engine] = None, data: typing.Optional[typing.Any] = None):
 
@@ -18,20 +19,20 @@ class Store(Managed["ctypes._Pointer[ffi.wasmtime_store_t]"]):
             engine = Engine()
         elif not isinstance(engine, Engine):
             raise TypeError("expected an Engine")
-        data_id = ffi.c_void_p(0)
+        data_id = ctypes.c_void_p(0)
         finalize = cast(0, CFUNCTYPE(None, c_void_p))
         if data:
             data_id = value._intern(data)
             finalize = value._externref_finalizer
-        self._set_ptr(ffi.wasmtime_store_new(engine.ptr(), data_id, finalize))
-        self.__context = ffi.wasmtime_store_context(self.ptr())
+        self._set_ptr(_bindings.wasmtime_store_new(engine.ptr(), data_id, finalize))
+        self.__context = _bindings.wasmtime_store_context(self.ptr())
         self.engine = engine
 
-    def _delete(self, ptr: "ctypes._Pointer[ffi.wasmtime_store_t]") -> None:
-        ffi.wasmtime_store_delete(ptr)
+    def _delete(self, ptr: "ctypes._Pointer[_bindings.wasmtime_store_t]") -> None:
+        _bindings.wasmtime_store_delete(ptr)
         self.__context = None
 
-    def _context(self) -> "ctypes._Pointer[ffi.wasmtime_context_t]":
+    def _context(self) -> "ctypes._Pointer[_bindings.wasmtime_context_t]":
         if self.__context is None:
             raise ValueError('already closed')
         return self.__context
@@ -40,9 +41,10 @@ class Store(Managed["ctypes._Pointer[ffi.wasmtime_store_t]"]):
         """
         TODO
         """
-        data = ffi.wasmtime_context_get_data(self._context())
+        data = _bindings.wasmtime_context_get_data(self._context())
         if data:
-            return value._unintern(data)
+            # TODO https://github.com/bytecodealliance/wasmtime-py/issues/303
+            return value._unintern(data)  # type: ignore
         else:
             return None
 
@@ -55,7 +57,7 @@ class Store(Managed["ctypes._Pointer[ffi.wasmtime_store_t]"]):
         like more precise control over when unreferenced `externref` values are
         deallocated.
         """
-        ffi.wasmtime_context_gc(self._context())
+        _bindings.wasmtime_context_gc(self._context())
 
     def set_fuel(self, fuel: int) -> None:
         """
@@ -69,7 +71,7 @@ class Store(Managed["ctypes._Pointer[ffi.wasmtime_store_t]"]):
         Raises a `WasmtimeError` if this store's configuration is not configured
         to consume fuel.
         """
-        err = ffi.wasmtime_context_set_fuel(self._context(), fuel)
+        err = _bindings.wasmtime_context_set_fuel(self._context(), fuel)
         if err:
             raise WasmtimeError._from_ptr(err)
 
@@ -83,7 +85,7 @@ class Store(Managed["ctypes._Pointer[ffi.wasmtime_store_t]"]):
         to consume fuel or if the store doesn't have enough fuel remaining.
         """
         remaining = c_uint64(0)
-        err = ffi.wasmtime_context_get_fuel(self._context(), byref(remaining))
+        err = _bindings.wasmtime_context_get_fuel(self._context(), byref(remaining))
         if err:
             raise WasmtimeError._from_ptr(err)
         return remaining.value
@@ -92,7 +94,7 @@ class Store(Managed["ctypes._Pointer[ffi.wasmtime_store_t]"]):
         """
         TODO
         """
-        error = ffi.wasmtime_context_set_wasi(self._context(), wasi._consume())
+        error = _bindings.wasmtime_context_set_wasi(self._context(), wasi._consume())
         if error:
             raise WasmtimeError._from_ptr(error)
 
@@ -101,7 +103,7 @@ class Store(Managed["ctypes._Pointer[ffi.wasmtime_store_t]"]):
         Configures the relative epoch deadline, after the current engine's
         epoch, after which WebAssembly code will trap.
         """
-        ffi.wasmtime_context_set_epoch_deadline(self._context(), ticks_after_current)
+        _bindings.wasmtime_context_set_epoch_deadline(self._context(), ticks_after_current)
 
     def set_limits(self,
                    memory_size: int = -1,
@@ -134,7 +136,7 @@ class Store(Managed["ctypes._Pointer[ffi.wasmtime_store_t]"]):
         If any limit is negative then the limit will not be set as a part of
         this invocation and it will be ignored.
         """
-        ffi.wasmtime_store_limiter(self.ptr(), memory_size, table_elements, instances, tables, memories)
+        _bindings.wasmtime_store_limiter(self.ptr(), memory_size, table_elements, instances, tables, memories)
 
 
 if typing.TYPE_CHECKING:

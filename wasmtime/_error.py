@@ -2,26 +2,27 @@ from ctypes import byref, POINTER, c_int
 from . import _ffi as ffi
 import ctypes
 from typing import Optional
+
+from . import _bindings
 from wasmtime import Managed
 
 
-class WasmtimeError(Exception, Managed["ctypes._Pointer[ffi.wasmtime_error_t]"]):
+class WasmtimeError(Exception, Managed["ctypes._Pointer[_bindings.wasmtime_error_t]"]):
     __message: Optional[str]
 
     def __init__(self, message: str):
         self.__message = message
 
-    def _delete(self, ptr: "ctypes._Pointer[ffi.wasmtime_error_t]") -> None:
-        ffi.wasmtime_error_delete(ptr)
+    def _delete(self, ptr: "ctypes._Pointer[_bindings.wasmtime_error_t]") -> None:
+        _bindings.wasmtime_error_delete(ptr)
 
     @classmethod
     def _from_ptr(cls, ptr: "ctypes._Pointer") -> 'WasmtimeError':
-        from . import _ffi as ffi
-        if not isinstance(ptr, POINTER(ffi.wasmtime_error_t)):
+        if not isinstance(ptr, POINTER(_bindings.wasmtime_error_t)):
             raise TypeError("wrong pointer type")
 
         exit_code = c_int(0)
-        if ffi.wasmtime_error_exit_status(ptr, byref(exit_code)):
+        if _bindings.wasmtime_error_exit_status(ptr, byref(exit_code)):
             exit_trap: ExitTrap = ExitTrap.__new__(ExitTrap)
             exit_trap._set_ptr(ptr)
             exit_trap.__message = None
@@ -36,10 +37,10 @@ class WasmtimeError(Exception, Managed["ctypes._Pointer[ffi.wasmtime_error_t]"])
     def __str__(self) -> str:
         if self.__message:
             return self.__message
-        message_vec = ffi.wasm_byte_vec_t()
-        ffi.wasmtime_error_message(self.ptr(), byref(message_vec))
+        message_vec = _bindings.wasm_byte_vec_t()
+        _bindings.wasmtime_error_message(self.ptr(), byref(message_vec))
         message = ffi.to_str(message_vec)
-        ffi.wasm_byte_vec_delete(byref(message_vec))
+        _bindings.wasm_byte_vec_delete(byref(message_vec))
         return message
 
 

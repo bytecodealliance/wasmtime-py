@@ -1,10 +1,11 @@
+from . import _bindings
 from . import _ffi as ffi
 import ctypes
 from ._exportable import AsExtern
 from wasmtime import WasmtimeError, Managed
 
 
-def wrap_extern(ptr: ffi.wasmtime_extern_t) -> AsExtern:
+def wrap_extern(ptr: _bindings.wasmtime_extern_t) -> AsExtern:
     from wasmtime import Func, Table, Global, Memory, SharedMemory, Module, Instance
 
     if ptr.kind == ffi.WASMTIME_EXTERN_FUNC.value:
@@ -24,7 +25,7 @@ def wrap_extern(ptr: ffi.wasmtime_extern_t) -> AsExtern:
     raise WasmtimeError("unknown extern")
 
 
-def get_extern_ptr(item: AsExtern) -> ffi.wasmtime_extern_t:
+def get_extern_ptr(item: AsExtern) -> _bindings.wasmtime_extern_t:
     from wasmtime import Func, Table, Global, Memory, SharedMemory, Module, Instance
 
     if isinstance(item, Func):
@@ -45,9 +46,9 @@ def get_extern_ptr(item: AsExtern) -> ffi.wasmtime_extern_t:
         raise TypeError("expected a Func, Global, Memory, Table, Module, or Instance")
 
 
-class Extern(Managed["ctypes._Pointer[ffi.wasm_extern_t]"]):
-    def __init__(self, ptr: "ctypes._Pointer[ffi.wasm_extern_t]"):
+class Extern(Managed["ctypes._Pointer[_bindings.wasm_extern_t]"]):
+    def __init__(self, ptr: "ctypes._Pointer[_bindings.wasm_extern_t]"):
         self._set_ptr(ptr)
 
-    def _delete(self, ptr: "ctypes._Pointer[ffi.wasm_extern_t]") -> None:
-        ffi.wasm_extern_delete(ptr)
+    def _delete(self, ptr: "ctypes._Pointer[_bindings.wasm_extern_t]") -> None:
+        _bindings.wasm_extern_delete(ptr)

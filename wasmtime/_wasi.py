@@ -6,7 +6,7 @@ from typing import Iterable, List, Union
 
 from wasmtime import Managed, WasmtimeError
 
-from . import _ffi as ffi
+from . import _bindings
 from ._config import setter_property
 
 
@@ -20,22 +20,22 @@ def _encode_path(path: Union[str, bytes, PathLike]) -> bytes:
     return path2.encode('utf8')
 
 class DirPerms(Enum):
-    READ_ONLY = ffi.wasi_dir_perms_flags.WASMTIME_WASI_DIR_PERMS_READ.value
-    WRITE_ONLY = ffi.wasi_dir_perms_flags.WASMTIME_WASI_DIR_PERMS_WRITE.value
-    READ_WRITE = ffi.wasi_dir_perms_flags.WASMTIME_WASI_DIR_PERMS_READ.value | ffi.wasi_dir_perms_flags.WASMTIME_WASI_DIR_PERMS_WRITE.value
+    READ_ONLY = _bindings.wasi_dir_perms_flags.WASMTIME_WASI_DIR_PERMS_READ.value
+    WRITE_ONLY = _bindings.wasi_dir_perms_flags.WASMTIME_WASI_DIR_PERMS_WRITE.value
+    READ_WRITE = _bindings.wasi_dir_perms_flags.WASMTIME_WASI_DIR_PERMS_READ.value | _bindings.wasi_dir_perms_flags.WASMTIME_WASI_DIR_PERMS_WRITE.value
 
 class FilePerms(Enum):
-    READ_ONLY = ffi.wasi_file_perms_flags.WASMTIME_WASI_FILE_PERMS_READ.value
-    WRITE_ONLY = ffi.wasi_file_perms_flags.WASMTIME_WASI_FILE_PERMS_WRITE.value
-    READ_WRITE = ffi.wasi_file_perms_flags.WASMTIME_WASI_FILE_PERMS_READ.value | ffi.wasi_file_perms_flags.WASMTIME_WASI_FILE_PERMS_WRITE.value
+    READ_ONLY = _bindings.wasi_file_perms_flags.WASMTIME_WASI_FILE_PERMS_READ.value
+    WRITE_ONLY = _bindings.wasi_file_perms_flags.WASMTIME_WASI_FILE_PERMS_WRITE.value
+    READ_WRITE = _bindings.wasi_file_perms_flags.WASMTIME_WASI_FILE_PERMS_READ.value | _bindings.wasi_file_perms_flags.WASMTIME_WASI_FILE_PERMS_WRITE.value
 
-class WasiConfig(Managed["ctypes._Pointer[ffi.wasi_config_t]"]):
+class WasiConfig(Managed["ctypes._Pointer[_bindings.wasi_config_t]"]):
 
     def __init__(self) -> None:
-        self._set_ptr(ffi.wasi_config_new())
+        self._set_ptr(_bindings.wasi_config_new())
 
-    def _delete(self, ptr: "ctypes._Pointer[ffi.wasi_config_t]") -> None:
-        ffi.wasi_config_delete(ptr)
+    def _delete(self, ptr: "ctypes._Pointer[_bindings.wasi_config_t]") -> None:
+        _bindings.wasi_config_delete(ptr)
 
     @setter_property
     def argv(self, argv: List[str]) -> None:
@@ -43,11 +43,11 @@ class WasiConfig(Managed["ctypes._Pointer[ffi.wasi_config_t]"]):
         Explicitly configure the `argv` for this WASI configuration
         """
         ptrs = to_char_array(argv)
-        if not ffi.wasi_config_set_argv(self.ptr(), len(argv), ptrs):
+        if not _bindings.wasi_config_set_argv(self.ptr(), len(argv), ptrs):
             raise WasmtimeError("failed to configure argv")
 
     def inherit_argv(self) -> None:
-        ffi.wasi_config_inherit_argv(self.ptr())
+        _bindings.wasi_config_inherit_argv(self.ptr())
 
     @setter_property
     def env(self, pairs: Iterable[Iterable]) -> None:
@@ -65,7 +65,7 @@ class WasiConfig(Managed["ctypes._Pointer[ffi.wasi_config_t]"]):
             values.append(value)
         name_ptrs = to_char_array(names)
         value_ptrs = to_char_array(values)
-        if not ffi.wasi_config_set_env(self.ptr(), len(names), name_ptrs, value_ptrs):
+        if not _bindings.wasi_config_set_env(self.ptr(), len(names), name_ptrs, value_ptrs):
             raise WasmtimeError("failed to configure environment")
 
     def inherit_env(self) -> None:
@@ -74,7 +74,7 @@ class WasiConfig(Managed["ctypes._Pointer[ffi.wasi_config_t]"]):
         in this own process's environment. All environment variables are
         inherited.
         """
-        ffi.wasi_config_inherit_env(self.ptr())
+        _bindings.wasi_config_inherit_env(self.ptr())
 
     @setter_property
     def stdin_file(self, path: Union[str, bytes, PathLike]) -> None:
@@ -88,7 +88,7 @@ class WasiConfig(Managed["ctypes._Pointer[ffi.wasi_config_t]"]):
         opened then `WasmtimeError` is raised.
         """
 
-        res = ffi.wasi_config_set_stdin_file(
+        res = _bindings.wasi_config_set_stdin_file(
             self.ptr(), c_char_p(_encode_path(path)))
         if not res:
             raise WasmtimeError("failed to set stdin file")
@@ -100,7 +100,7 @@ class WasiConfig(Managed["ctypes._Pointer[ffi.wasi_config_t]"]):
 
         Reads of the stdin stream will read this process's stdin.
         """
-        ffi.wasi_config_inherit_stdin(self.ptr())
+        _bindings.wasi_config_inherit_stdin(self.ptr())
 
     @setter_property
     def stdout_file(self, path: str) -> None:
@@ -114,7 +114,7 @@ class WasiConfig(Managed["ctypes._Pointer[ffi.wasi_config_t]"]):
         it already exists. It must be available to open for writing. If it
         cannot be opened for writing then `WasmtimeError` is raised.
         """
-        res = ffi.wasi_config_set_stdout_file(
+        res = _bindings.wasi_config_set_stdout_file(
             self.ptr(), c_char_p(_encode_path(path)))
         if not res:
             raise WasmtimeError("failed to set stdout file")
@@ -126,7 +126,7 @@ class WasiConfig(Managed["ctypes._Pointer[ffi.wasi_config_t]"]):
 
         Writes to stdout stream will write to this process's stdout.
         """
-        ffi.wasi_config_inherit_stdout(self.ptr())
+        _bindings.wasi_config_inherit_stdout(self.ptr())
 
     @setter_property
     def stderr_file(self, path: str) -> None:
@@ -140,7 +140,7 @@ class WasiConfig(Managed["ctypes._Pointer[ffi.wasi_config_t]"]):
         it already exists. It must be available to open for writing. If it
         cannot be opened for writing then `WasmtimeError` is raised.
         """
-        res = ffi.wasi_config_set_stderr_file(
+        res = _bindings.wasi_config_set_stderr_file(
             self.ptr(), c_char_p(_encode_path(path)))
         if not res:
             raise WasmtimeError("failed to set stderr file")
@@ -152,7 +152,7 @@ class WasiConfig(Managed["ctypes._Pointer[ffi.wasi_config_t]"]):
 
         Writes to stderr stream will write to this process's stderr.
         """
-        ffi.wasi_config_inherit_stderr(self.ptr())
+        _bindings.wasi_config_inherit_stderr(self.ptr())
 
     def preopen_dir(self, path: str, guest_path: str, dir_perms: DirPerms = DirPerms.READ_WRITE, file_perms: FilePerms = FilePerms.READ_WRITE) -> None:
         """
@@ -168,7 +168,7 @@ class WasiConfig(Managed["ctypes._Pointer[ffi.wasi_config_t]"]):
         """
         path_ptr = c_char_p(path.encode('utf-8'))
         guest_path_ptr = c_char_p(guest_path.encode('utf-8'))
-        if not ffi.wasi_config_preopen_dir(self.ptr(), path_ptr, guest_path_ptr, dir_perms.value, file_perms.value):
+        if not _bindings.wasi_config_preopen_dir(self.ptr(), path_ptr, guest_path_ptr, dir_perms.value, file_perms.value):
             raise WasmtimeError('failed to add preopen dir')
 
 

@@ -1,6 +1,8 @@
 from contextlib import contextmanager
 from ctypes import POINTER, byref, CFUNCTYPE, c_void_p, cast
 import ctypes
+
+from . import _bindings
 from wasmtime import Store, FuncType, Val, Trap, WasmtimeError
 from . import _ffi as ffi
 from ._extern import wrap_extern
@@ -15,7 +17,7 @@ LAST_EXCEPTION: Optional[Exception] = None
 
 
 class Func:
-    _func: ffi.wasmtime_func_t
+    _func: _bindings.wasmtime_func_t
 
     def __init__(self, store: Storelike, ty: FuncType, func: Callable, access_caller: bool = False):
         """
@@ -33,8 +35,8 @@ class Func:
         if not isinstance(ty, FuncType):
             raise TypeError("expected a FuncType")
         idx = FUNCTIONS.allocate((func, ty.results, access_caller))
-        _func = ffi.wasmtime_func_t()
-        ffi.wasmtime_func_new(
+        _func = _bindings.wasmtime_func_t()
+        _bindings.wasmtime_func_new(
             store._context(),
             ty.ptr(),
             trampoline,
@@ -44,7 +46,7 @@ class Func:
         self._func = _func
 
     @classmethod
-    def _from_raw(cls, func: ffi.wasmtime_func_t) -> "Func":
+    def _from_raw(cls, func: _bindings.wasmtime_func_t) -> "Func":
         ty: "Func" = cls.__new__(cls)
         ty._func = func
         return ty
@@ -53,7 +55,7 @@ class Func:
         """
         Gets the type of this func as a `FuncType`
         """
-        ptr = ffi.wasmtime_func_type(store._context(), byref(self._func))
+        ptr = _bindings.wasmtime_func_type(store._context(), byref(self._func))
         return FuncType._from_ptr(ptr, None)
 
     def __call__(self, store: Storelike, *params: Any) -> Any:
@@ -80,7 +82,7 @@ class Func:
             raise WasmtimeError("too few parameters provided: given %s, expected %s" %
                                 (len(params), len(param_tys)))
 
-        params_ptr = (ffi.wasmtime_val_t * len(params))()
+        params_ptr = (_bindings.wasmtime_val_t * len(params))()
         params_set = 0
         try:
             for val in params:
@@ -88,10 +90,10 @@ class Func:
                 params_set += 1
 
             result_tys = ty.results
-            results_ptr = (ffi.wasmtime_val_t * len(result_tys))()
+            results_ptr = (_bindings.wasmtime_val_t * len(result_tys))()
 
             with enter_wasm(store) as trap:
-                error = ffi.wasmtime_func_call(
+                error = _bindings.wasmtime_func_call(
                     store._context(),
                     byref(self._func),
                     params_ptr,
@@ -103,7 +105,7 @@ class Func:
                     raise WasmtimeError._from_ptr(error)
         finally:
             for i in range(0, params_set):
-                ffi.wasmtime_val_unroot(byref(params_ptr[i]))
+                _bindings.wasmtime_val_unroot(byref(params_ptr[i]))
 
         results = []
         for i in range(0, len(result_tys)):
@@ -115,18 +117,18 @@ class Func:
         else:
             return results
 
-    def _as_extern(self) -> ffi.wasmtime_extern_t:
-        union = ffi.wasmtime_extern_union(func=self._func)
-        return ffi.wasmtime_extern_t(ffi.WASMTIME_EXTERN_FUNC, union)
+    def _as_extern(self) -> _bindings.wasmtime_extern_t:
+        union = _bindings.wasmtime_extern_union(func=self._func)
+        return _bindings.wasmtime_extern_t(ffi.WASMTIME_EXTERN_FUNC, union)
 
 
 class Caller:
-    __ptr: "Optional[ctypes._Pointer[ffi.wasmtime_caller_t]]"
-    __context: "Optional[ctypes._Pointer[ffi.wasmtime_context_t]]"
+    __ptr: "Optional[ctypes._Pointer[_bindings.wasmtime_caller_t]]"
+    __context: "Optional[ctypes._Pointer[_bindings.wasmtime_context_t]]"
 
-    def __init__(self, ptr: "ctypes._Pointer[ffi.wasmtime_caller_t]"):
+    def __init__(self, ptr: "ctypes._Pointer[_bindings.wasmtime_caller_t]"):
         self.__ptr = ptr
-        self.__context = ffi.wasmtime_caller_context(ptr)
+        self.__context = _bindings.wasmtime_caller_context(ptr)
 
     def __getitem__(self, name: str) -> AsExtern:
         """
@@ -154,21 +156,21 @@ class Caller:
 
         # First convert to a raw name so we can typecheck our argument
         name_bytes = name.encode('utf-8')
-        name_buf = ffi.create_string_buffer(name_bytes)
+        name_buf = ctypes.create_string_buffer(name_bytes)
 
         # Next see if we've been invalidated
         if self.__ptr is None:
             return None
 
         # And if we're not invalidated we can perform the actual lookup
-        item = ffi.wasmtime_extern_t()
-        ok = ffi.wasmtime_caller_export_get(self.__ptr, name_buf, len(name_bytes), byref(item))
+        item = _bindings.wasmtime_extern_t()
+        ok = _bindings.wasmtime_caller_export_get(self.__ptr, name_buf, len(name_bytes), byref(item))
         if ok:
             return wrap_extern(item)
         else:
             return None
 
-    def _context(self) -> "ctypes._Pointer[ffi.wasmtime_context_t]":
+    def _context(self) -> "ctypes._Pointer[_bindings.wasmtime_context_t]":
         if self.__context is None:
             raise ValueError("caller is no longer valid")
         return self.__context
@@ -185,7 +187,7 @@ def extract_val(val: Val) -> Any:
     return val
 
 
-@ffi.wasmtime_func_callback_t
+@_bindings.wasmtime_func_callback_t
 def trampoline(idx, caller, params, nparams, results, nresults):  # type: ignore
     caller = Caller(caller)
     try:
@@ -257,7 +259,7 @@ FUNCTIONS = Slab()
 @contextmanager
 def enter_wasm(store: Storelike):  # type: ignore
     try:
-        trap = POINTER(ffi.wasm_trap_t)()
+        trap = POINTER(_bindings.wasm_trap_t)()
         yield byref(trap)
         if trap:
             trap_obj = Trap._from_ptr(trap)

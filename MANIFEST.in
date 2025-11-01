@@ -20,6 +20,7 @@ recursive-exclude wasmtime/bindgen/generated *.py *.wasm
 include .flake8
 include CONTRIBUTING.md
 include mypy.ini
+include noxfile.py
 include pytest.ini
 include VERSION
 
