@@ -118,7 +118,6 @@ class Val:
                 raise TypeError("wrong type of `Val` provided")
             return val._new_raw(store)
         if ty == ValType.externref():
-            print('convert to externref', val);
             return Val.externref(val)._new_raw(store)
         elif isinstance(val, int):
             if ty == ValType.i32():

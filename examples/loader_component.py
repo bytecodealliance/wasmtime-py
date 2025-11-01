@@ -3,9 +3,12 @@
 
 import wasmtime, wasmtime.loader
 
-import loader_component_add  # type: ignore
+def run():
+    import loader_component_add  # type: ignore
 
+    store = wasmtime.Store()
+    component = loader_component_add.Root(store)
+    assert component.add(store, 1, 2) == 3
 
-store = wasmtime.Store()
-component = loader_component_add.Root(store)
-assert component.add(store, 1, 2) == 3
+if __name__ == '__main__':
+    run()
