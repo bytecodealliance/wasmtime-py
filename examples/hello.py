@@ -1,22 +1,26 @@
 from wasmtime import Store, Module, Instance, Func, FuncType
 
-# Almost all operations in wasmtime require a contextual "store" argument to be
-# shared amongst objects
-store = Store()
+def run():
+    # Almost all operations in wasmtime require a contextual "store" argument to be
+    # shared amongst objects
+    store = Store()
 
-# Here we can compile a `Module` which is then ready for instantiation
-# afterwards
-module = Module.from_file(store.engine, './examples/hello.wat')
+    # Here we can compile a `Module` which is then ready for instantiation
+    # afterwards
+    module = Module.from_file(store.engine, './examples/hello.wat')
 
-# Our module needs one import, so we'll create that here.
-
-
-def say_hello():
-    print("Hello from Python!")
+    # Our module needs one import, so we'll create that here.
 
 
-hello = Func(store, FuncType([], []), say_hello)
+    def say_hello():
+        print("Hello from Python!")
 
-# And with all that we can instantiate our module and call the export!
-instance = Instance(store, module, [hello])
-instance.exports(store)["run"](store)
+
+    hello = Func(store, FuncType([], []), say_hello)
+
+    # And with all that we can instantiate our module and call the export!
+    instance = Instance(store, module, [hello])
+    instance.exports(store)["run"](store)
+
+if __name__ == '__main__':
+    run()
