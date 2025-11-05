@@ -1,5 +1,0 @@
-package wasmtime:python;
-
-world bindgen {
-  export generate: func(name: string, wit: list<u8>) -> result<list<tuple<string, list<u8>>>, string>;
-}
