@@ -189,7 +189,10 @@ def type_name(ty, ptr=False, typing=False):
             return "POINTER({})".format(type_name(ty, False, typing))
 
     if isinstance(ty, c_ast.IdentifierType):
+        if ty.names == ['unsigned', 'char']:
+            return "int" if typing else "c_ubyte"
         assert(len(ty.names) == 1)
+
         if ty.names[0] == "void":
             return "None"
         elif ty.names[0] == "_Bool":
@@ -218,6 +221,8 @@ def type_name(ty, ptr=False, typing=False):
             return "float" if typing else "c_double"
         elif ty.names[0] == "size_t":
             return "int" if typing else "c_size_t"
+        elif ty.names[0] == "ptrdiff_t":
+            return "int" if typing else "c_ssize_t"
         elif ty.names[0] == "char":
             return "c_char"
         elif ty.names[0] == "int":

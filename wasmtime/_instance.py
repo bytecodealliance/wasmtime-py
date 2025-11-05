@@ -61,10 +61,6 @@ class Instance:
             self._exports = InstanceExports(store, self)
         return self._exports
 
-    def _as_extern(self) -> ffi.wasmtime_extern_t:
-        union = ffi.wasmtime_extern_union(instance=self._instance)
-        return ffi.wasmtime_extern_t(ffi.WASMTIME_EXTERN_INSTANCE, union)
-
 
 class InstanceExports(Mapping[str, AsExtern]):
     _extern_seq: Sequence[AsExtern]

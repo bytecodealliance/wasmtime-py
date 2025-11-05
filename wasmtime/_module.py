@@ -1,4 +1,5 @@
 from . import _ffi as ffi
+from ._wat2wasm import _to_wasm
 from ctypes import *
 import ctypes
 from wasmtime import Engine, wat2wasm, ImportType, ExportType, WasmtimeError, Managed
@@ -20,21 +21,10 @@ class Module(Managed["ctypes._Pointer[ffi.wasmtime_module_t]"]):
         return cls(engine, contents)
 
     def __init__(self, engine: Engine, wasm: typing.Union[str, bytes]):
-
         if not isinstance(engine, Engine):
             raise TypeError("expected an Engine")
 
-        # If this looks like a string, parse it as the text format. Note that
-        # in python 2 strings and bytes are basically the same, so we skip this
-        # if the first byte in the string is 0, meaning this is actually a wasm
-        # module.
-        if isinstance(wasm, str) and len(wasm) > 0 and ord(wasm[0]) != 0:
-            wasm = wat2wasm(wasm)
-        if isinstance(wasm, bytes) and len(wasm) > 0 and wasm[0] != 0:
-            wasm = wat2wasm(wasm)
-
-        if not isinstance(wasm, (bytes, bytearray)):
-            raise TypeError("expected wasm bytes")
+        wasm = _to_wasm(wasm)
 
         # TODO: can the copy be avoided here? I can't for the life of me
         # figure this out.
@@ -81,9 +71,7 @@ class Module(Managed["ctypes._Pointer[ffi.wasmtime_module_t]"]):
             byref(ptr))
         if error:
             raise WasmtimeError._from_ptr(error)
-        ret: "Module" = cls.__new__(cls)
-        ret._set_ptr(ptr)
-        return ret
+        return cls._from_ptr(ptr)
 
     @classmethod
     def deserialize_file(cls, engine: Engine, path: str) -> 'Module':
@@ -102,9 +90,7 @@ class Module(Managed["ctypes._Pointer[ffi.wasmtime_module_t]"]):
             byref(ptr))
         if error:
             raise WasmtimeError._from_ptr(error)
-        ret: "Module" = cls.__new__(cls)
-        ret._set_ptr(ptr)
-        return ret
+        return cls._from_ptr(ptr)
 
     @classmethod
     def validate(cls, engine: Engine, wasm: typing.Union[bytes, bytearray]) -> None:
@@ -125,15 +111,6 @@ class Module(Managed["ctypes._Pointer[ffi.wasmtime_module_t]"]):
 
         if error:
             raise WasmtimeError._from_ptr(error)
-
-#     @property
-#     def type(self) -> ModuleType:
-#         """
-#         Gets the type of this module as a `ModuleType`
-#         """
-
-#         ptr = ffi.wasmtime_module_type(self.ptr())
-#         return ModuleType._from_ptr(ptr, None)
 
     @property
     def imports(self) -> typing.List[ImportType]:
@@ -176,10 +153,6 @@ class Module(Managed["ctypes._Pointer[ffi.wasmtime_module_t]"]):
         ret = ffi.to_bytes(raw)
         ffi.wasm_byte_vec_delete(byref(raw))
         return ret
-
-    def _as_extern(self) -> ffi.wasmtime_extern_t:
-        union = ffi.wasmtime_extern_union(module=self.ptr())
-        return ffi.wasmtime_extern_t(ffi.WASMTIME_EXTERN_MODULE, union)
 
 
 class ImportTypeList:
