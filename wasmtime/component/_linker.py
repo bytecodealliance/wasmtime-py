@@ -5,7 +5,7 @@ from .._config import setter_property
 from ._instance import Instance
 from ._component import Component
 from ._resource_type import ResourceType
-from typing import Union, Tuple, Callable, Optional, List, Any, Concatenate
+from typing import Union, Tuple, Callable, Optional, List, Any
 from .._func import Slab
 from ._enter import catch_exceptions
 from ._types import ValType, FuncType
@@ -15,7 +15,7 @@ LinkerInstanceParent = Union['Linker', 'LinkerInstance']
 ResourceDtor = Callable[[StoreContext, int], None]
 RESOURCE_DTORS: Slab[ResourceDtor] = Slab()
 
-UserFunc = Callable[Concatenate[StoreContext, ...], Optional[Any]]
+UserFunc = Callable[..., Optional[Any]]
 FUNCTIONS: Slab[UserFunc] = Slab()
 
 
