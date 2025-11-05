@@ -502,12 +502,11 @@ class ListType(Managed["ctypes._Pointer[ffi.wasmtime_component_list_type_t]"], V
             ptr.contents.of.list = raw
             cleanup = False
         finally:
-            if not cleanup:
-                return
-            for j in range(i, len(val)):
-                raw.data[j].kind = ffi.WASMTIME_COMPONENT_BOOL
-                raw.data[j].of.boolean = False
-            ffi.wasmtime_component_vallist_delete(byref(raw))
+            if cleanup:
+                for j in range(i, len(val)):
+                    raw.data[j].kind = ffi.WASMTIME_COMPONENT_BOOL
+                    raw.data[j].of.boolean = False
+                ffi.wasmtime_component_vallist_delete(byref(raw))
 
 
     def convert_from_c(self, c: 'ffi.wasmtime_component_val_t') -> Any:
@@ -584,12 +583,11 @@ class RecordType(Managed["ctypes._Pointer[ffi.wasmtime_component_record_type_t]"
             ptr.contents.of.record = raw
             cleanup = False
         finally:
-            if not cleanup:
-                return
-            for j in range(i, len(fields)):
-                raw.data[j].val.kind = ffi.WASMTIME_COMPONENT_BOOL
-                raw.data[j].val.of.boolean = False
-            ffi.wasmtime_component_valrecord_delete(byref(raw))
+            if cleanup:
+                for j in range(i, len(fields)):
+                    raw.data[j].val.kind = ffi.WASMTIME_COMPONENT_BOOL
+                    raw.data[j].val.of.boolean = False
+                ffi.wasmtime_component_valrecord_delete(byref(raw))
 
 
     def convert_from_c(self, c: 'ffi.wasmtime_component_val_t') -> Any:
@@ -673,12 +671,11 @@ class TupleType(Managed["ctypes._Pointer[ffi.wasmtime_component_tuple_type_t]"],
             ptr.contents.of.tuple = raw
             cleanup = False
         finally:
-            if not cleanup:
-                return
-            for j in range(i, len(elements)):
-                raw.data[j].kind = ffi.WASMTIME_COMPONENT_BOOL
-                raw.data[j].of.boolean = False
-            ffi.wasmtime_component_valtuple_delete(byref(raw))
+            if cleanup:
+                for j in range(i, len(elements)):
+                    raw.data[j].kind = ffi.WASMTIME_COMPONENT_BOOL
+                    raw.data[j].of.boolean = False
+                ffi.wasmtime_component_valtuple_delete(byref(raw))
 
 
     def convert_from_c(self, c: 'ffi.wasmtime_component_val_t') -> Any:

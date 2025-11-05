@@ -1,6 +1,6 @@
 from .. import _ffi as ffi, WasmtimeError, Storelike
 from ctypes import byref
-from typing import Optional
+from typing import Optional, Union
 from ._component import ExportIndex
 from ._func import Func
 
@@ -41,7 +41,7 @@ class Instance:
             return ExportIndex._from_ptr(ptr)
         return None
 
-    def get_func(self, store: Storelike, index: ExportIndex | str) -> Optional[Func]:
+    def get_func(self, store: Storelike, index: Union[ExportIndex, str]) -> Optional[Func]:
         """
         Retrieves the function export for the given export index.
 

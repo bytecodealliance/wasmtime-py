@@ -96,7 +96,7 @@ class Linker(Managed["ctypes._Pointer[ffi.wasmtime_component_linker_t]"]):
         Configures this linker to define any unknown imports of `component` as
         traps which will error when invoked.
         """
-        sself._assert_not_locked()
+        self._assert_not_locked()
         err = ffi.wasmtime_component_linker_define_unknown_imports_as_traps(
             self.ptr(),
             component.ptr())
