@@ -1,8 +1,0 @@
-package wasi:snapshot-preview1
-
-world python {
-  import python: interface {
-    print: func(slice: list<u8>)
-    eprint: func(slice: list<u8>)
-  }
-}
