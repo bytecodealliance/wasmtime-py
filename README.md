@@ -93,87 +93,11 @@ print(your_wasm_file.run())
 
 ## Components
 
-The `wasmtime` package has initial support for running WebAssembly components in
-Python with high-level bindings. WebAssembly components are defined by the
-[component model] and are a flagship feature under development for Wasmtime and
-its bindings. Components enable communication between the host and WebAssembly
-guests with richer types than the numerical primitives supported by core
-WebAssembly. For example with a component Python can pass a string to wasm and
-back.
-
-Components are represented as `*.wasm` binaries in the same manner as core
-WebAssembly modules. With a component binary you can generate Python bindings
-with:
-
-```sh
-$ python -m wasmtime.bindgen the-component.wasm --out-dir the-bindings
-```
-
-An example of using this can be done with the [`wasm-tools`] repository. For
-example with this core wasm module at `demo.wat`:
-
-```wasm
-(module
-  (import "python" "print" (func $print (param i32 i32)))
-  (memory (export "memory") 1)
-
-  (func (export "run")
-    i32.const 100   ;; base pointer of string
-    i32.const 13    ;; length of string
-    call $print)
-
-  (data (i32.const 100) "Hello, world!")
-)
-```
-
-and with this [`*.wit`] interface at `demo.wit`:
-
-```text
-package my:demo;
-
-world demo {
-  import python: interface {
-    print: func(s: string);
-  }
-
-  export run: func();
-}
-```
-
-And this `demo.py` script
-
-```python
-from demo import Root, RootImports, imports
-from wasmtime import Store
-
-class Host(imports.Python):
-    def print(self, s: str):
-        print(s)
-
-def main():
-    store = Store()
-    demo = Root(store, RootImports(Host()))
-    demo.run(store)
-
-if __name__ == '__main__':
-    main()
-```
-
-```sh
-$ wasm-tools component embed demo.wit demo.wat -o demo.wasm
-$ wasm-tools component new demo.wasm -o demo.component.wasm
-$ python -m wasmtime.bindgen demo.component.wasm --out-dir demo
-$ python demo.py
-Hello, world!
-```
-
-The generated package `demo` has all of the requisite exports/imports into the
-component bound. The `demo` package is additionally annotated with types to
-assist with type-checking and self-documentation as much as possible.
-
-[component model]: https://github.com/WebAssembly/component-model
-[`wasm-tools`]: https://github.com/bytecodealliance/wasm-tools
-[`*.wit`]: https://github.com/WebAssembly/component-model/blob/main/design/mvp/WIT.md
+Components are also supported in `wasmtime-py`. For more information see the
+documentation of
+[`wasmtime.component`](https://bytecodealliance.github.io/wasmtime-py/component/index.html).
+Using a component is similar to using core wasm modules, and for examples see
+the `tests/component/` directory.
 
 ## Contributing
 
