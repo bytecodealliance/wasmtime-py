@@ -1,13 +1,15 @@
 import ctypes
-from ctypes import POINTER, c_char, c_char_p, cast
+import errno
+from ctypes import POINTER, c_char, c_char_p, cast, CFUNCTYPE, c_void_p
 from enum import Enum
 from os import PathLike
-from typing import Iterable, List, Union
+from typing import Iterable, List, Union, Callable
 
 from wasmtime import Managed, WasmtimeError
 
 from . import _ffi as ffi
 from ._config import setter_property
+from ._func import Slab
 
 
 def _encode_path(path: Union[str, bytes, PathLike]) -> bytes:
@@ -28,6 +30,11 @@ class FilePerms(Enum):
     READ_ONLY = ffi.wasi_file_perms_flags.WASMTIME_WASI_FILE_PERMS_READ.value
     WRITE_ONLY = ffi.wasi_file_perms_flags.WASMTIME_WASI_FILE_PERMS_WRITE.value
     READ_WRITE = ffi.wasi_file_perms_flags.WASMTIME_WASI_FILE_PERMS_READ.value | ffi.wasi_file_perms_flags.WASMTIME_WASI_FILE_PERMS_WRITE.value
+
+
+CustomOutput = Callable[[bytes], Union[int, None]]
+CUSTOM_OUTPUTS: Slab[CustomOutput] = Slab()
+
 
 class WasiConfig(Managed["ctypes._Pointer[ffi.wasi_config_t]"]):
 
@@ -119,6 +126,15 @@ class WasiConfig(Managed["ctypes._Pointer[ffi.wasi_config_t]"]):
         if not res:
             raise WasmtimeError("failed to set stdout file")
 
+    @setter_property
+    def stdout_custom(self, callback: CustomOutput) -> None:
+        """
+        Sets a custom `callback` that is invoked whenever stdout is written to.
+        """
+        ffi.wasi_config_set_stdout_custom(
+            self.ptr(), custom_call,
+            CUSTOM_OUTPUTS.allocate(callback), custom_finalize)
+
     def inherit_stdout(self) -> None:
         """
         Configures this own process's stdout to be used as the WASI program's
@@ -144,6 +160,15 @@ class WasiConfig(Managed["ctypes._Pointer[ffi.wasi_config_t]"]):
             self.ptr(), c_char_p(_encode_path(path)))
         if not res:
             raise WasmtimeError("failed to set stderr file")
+
+    @setter_property
+    def stderr_custom(self, callback: CustomOutput) -> None:
+        """
+        Sets a custom `callback` that is invoked whenever stderr is written to.
+        """
+        ffi.wasi_config_set_stderr_custom(
+            self.ptr(), custom_call,
+            CUSTOM_OUTPUTS.allocate(callback), custom_finalize)
 
     def inherit_stderr(self) -> None:
         """
@@ -177,3 +202,24 @@ def to_char_array(strings: List[str]) -> "ctypes._Pointer[ctypes._Pointer[c_char
     for i, s in enumerate(strings):
         ptrs[i] = c_char_p(s.encode('utf-8'))
     return cast(ptrs, POINTER(POINTER(c_char)))
+
+
+@CFUNCTYPE(ctypes.c_ssize_t, c_void_p, POINTER(ctypes.c_ubyte), ctypes.c_size_t)
+def custom_call(idx, ptr, size): # type: ignore
+    try:
+        ty = ctypes.c_uint8 * size
+        arg = bytes(ty.from_address(ctypes.addressof(ptr.contents)))
+        ret = CUSTOM_OUTPUTS.get(idx or 0)(arg)
+        if ret is None:
+            return size
+        return ret
+    except Exception as e:
+        print('failed custom output, required to catch exception:', e)
+        return -errno.EIO
+
+
+@CFUNCTYPE(None, c_void_p)
+def custom_finalize(idx): # type: ignore
+    if CUSTOM_OUTPUTS:
+        CUSTOM_OUTPUTS.deallocate(idx or 0)
+    return None
