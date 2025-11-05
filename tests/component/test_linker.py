@@ -142,3 +142,17 @@ class TestLinker(unittest.TestCase):
         linker.allow_shadowing = True
         with linker.root() as l:
             l.add_func('x', lambda: None)
+
+    def test_define_unknown_imports_as_traps(self):
+        engine = Engine()
+        store = Store(engine)
+        component = Component(engine, """
+            (component
+                (import "x" (func $x))
+            )
+        """)
+        linker = Linker(engine)
+        with self.assertRaises(WasmtimeError):
+            linker.instantiate(store, component)
+        linker.define_unknown_imports_as_traps(component)
+        linker.instantiate(store, component)

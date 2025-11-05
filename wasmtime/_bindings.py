@@ -1960,6 +1960,12 @@ _wasi_config_inherit_stdout.argtypes = [POINTER(wasi_config_t)]
 def wasi_config_inherit_stdout(config: Any) -> None:
     return _wasi_config_inherit_stdout(config)  # type: ignore
 
+_wasi_config_set_stdout_custom = dll.wasi_config_set_stdout_custom
+_wasi_config_set_stdout_custom.restype = None
+_wasi_config_set_stdout_custom.argtypes = [POINTER(wasi_config_t), CFUNCTYPE(c_ssize_t, c_void_p, POINTER(c_ubyte), c_size_t), c_void_p, CFUNCTYPE(None, c_void_p)]
+def wasi_config_set_stdout_custom(config: Any, callback: Any, data: Any, finalizer: Any) -> None:
+    return _wasi_config_set_stdout_custom(config, callback, data, finalizer)  # type: ignore
+
 _wasi_config_set_stderr_file = dll.wasi_config_set_stderr_file
 _wasi_config_set_stderr_file.restype = c_bool
 _wasi_config_set_stderr_file.argtypes = [POINTER(wasi_config_t), POINTER(c_char)]
@@ -1971,6 +1977,12 @@ _wasi_config_inherit_stderr.restype = None
 _wasi_config_inherit_stderr.argtypes = [POINTER(wasi_config_t)]
 def wasi_config_inherit_stderr(config: Any) -> None:
     return _wasi_config_inherit_stderr(config)  # type: ignore
+
+_wasi_config_set_stderr_custom = dll.wasi_config_set_stderr_custom
+_wasi_config_set_stderr_custom.restype = None
+_wasi_config_set_stderr_custom.argtypes = [POINTER(wasi_config_t), CFUNCTYPE(c_ssize_t, c_void_p, POINTER(c_ubyte), c_size_t), c_void_p, CFUNCTYPE(None, c_void_p)]
+def wasi_config_set_stderr_custom(config: Any, callback: Any, data: Any, finalizer: Any) -> None:
+    return _wasi_config_set_stderr_custom(config, callback, data, finalizer)  # type: ignore
 
 class wasi_dir_perms_flags(Enum):
     WASMTIME_WASI_DIR_PERMS_READ = 1
@@ -4659,6 +4671,12 @@ _wasmtime_component_linker_instantiate.restype = POINTER(wasmtime_error_t)
 _wasmtime_component_linker_instantiate.argtypes = [POINTER(wasmtime_component_linker_t), POINTER(wasmtime_context_t), POINTER(wasmtime_component_t), POINTER(wasmtime_component_instance_t)]
 def wasmtime_component_linker_instantiate(linker: Any, context: Any, component: Any, instance_out: Any) -> ctypes._Pointer:
     return _wasmtime_component_linker_instantiate(linker, context, component, instance_out)  # type: ignore
+
+_wasmtime_component_linker_define_unknown_imports_as_traps = dll.wasmtime_component_linker_define_unknown_imports_as_traps
+_wasmtime_component_linker_define_unknown_imports_as_traps.restype = POINTER(wasmtime_error_t)
+_wasmtime_component_linker_define_unknown_imports_as_traps.argtypes = [POINTER(wasmtime_component_linker_t), POINTER(wasmtime_component_t)]
+def wasmtime_component_linker_define_unknown_imports_as_traps(linker: Any, component: Any) -> ctypes._Pointer:
+    return _wasmtime_component_linker_define_unknown_imports_as_traps(linker, component)  # type: ignore
 
 _wasmtime_component_linker_delete = dll.wasmtime_component_linker_delete
 _wasmtime_component_linker_delete.restype = None

@@ -91,6 +91,18 @@ class Linker(Managed["ctypes._Pointer[ffi.wasmtime_component_linker_t]"]):
             raise WasmtimeError._from_ptr(err)
         return Instance._from_raw(instance)
 
+    def define_unknown_imports_as_traps(self, component: Component) -> None:
+        """
+        Configures this linker to define any unknown imports of `component` as
+        traps which will error when invoked.
+        """
+        sself._assert_not_locked()
+        err = ffi.wasmtime_component_linker_define_unknown_imports_as_traps(
+            self.ptr(),
+            component.ptr())
+        if err:
+            raise WasmtimeError._from_ptr(err)
+
 
 class LinkerInstance(Managed["ctypes._Pointer[ffi.wasmtime_component_linker_instance_t]"]):
     parent: Union[LinkerInstanceParent, None]
