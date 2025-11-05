@@ -85,9 +85,5 @@ def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
         [sys.executable, 'ci/download-wasmtime.py', *download_args],
         check=True,
     )
-    subprocess.run(
-        [sys.executable, 'ci/build-rust.py'],
-        check=True,
-    )
 
     return build_meta_orig.build_wheel(wheel_directory, config_settings, metadata_directory)
