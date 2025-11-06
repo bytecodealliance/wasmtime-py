@@ -59,8 +59,12 @@ testing = [
 
 [tool.setuptools]
 include-package-data = true
-packages = [
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = [
     "wasmtime",
+    "wasmtime.*",
 ]
 
 [tool.setuptools.package-data]
