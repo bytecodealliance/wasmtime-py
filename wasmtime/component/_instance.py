@@ -1,3 +1,5 @@
+import ctypes
+
 from .. import _ffi as ffi, WasmtimeError, Storelike
 from ctypes import byref
 from typing import Optional, Union
@@ -29,7 +31,7 @@ class Instance:
         index.
         """
         name_bytes = name.encode('utf-8')
-        name_buf = ffi.create_string_buffer(name_bytes)
+        name_buf = ctypes.create_string_buffer(name_bytes)
 
         ptr = ffi.wasmtime_component_instance_get_export_index(
             byref(self._instance),

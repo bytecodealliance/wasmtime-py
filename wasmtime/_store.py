@@ -18,7 +18,7 @@ class Store(Managed["ctypes._Pointer[ffi.wasmtime_store_t]"]):
             engine = Engine()
         elif not isinstance(engine, Engine):
             raise TypeError("expected an Engine")
-        data_id = ffi.c_void_p(0)
+        data_id = ctypes.c_void_p(0)
         finalize = cast(0, CFUNCTYPE(None, c_void_p))
         if data:
             data_id = value._intern(data)

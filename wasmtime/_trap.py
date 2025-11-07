@@ -39,7 +39,7 @@ class Trap(Exception, Managed["ctypes._Pointer[ffi.wasm_trap_t]"]):
         """
 
         vec = message.encode('utf-8')
-        self._set_ptr(ffi.wasmtime_trap_new(ffi.create_string_buffer(vec), len(vec)))
+        self._set_ptr(ffi.wasmtime_trap_new(ctypes.create_string_buffer(vec), len(vec)))
 
     def _delete(self, ptr: "ctypes._Pointer[ffi.wasm_trap_t]") -> None:
         ffi.wasm_trap_delete(ptr)

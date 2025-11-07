@@ -1,5 +1,6 @@
+import ctypes
+
 from . import _ffi as ffi
-from ctypes import *
 from wasmtime import GlobalType, Val, WasmtimeError
 from typing import Any
 from ._store import Storelike
@@ -16,9 +17,9 @@ class Global:
         error = ffi.wasmtime_global_new(
             store._context(),
             ty.ptr(),
-            byref(val),
-            byref(global_))
-        ffi.wasmtime_val_unroot(byref(val))
+            ctypes.byref(val),
+            ctypes.byref(global_))
+        ffi.wasmtime_val_unroot(ctypes.byref(val))
         if error:
             raise WasmtimeError._from_ptr(error)
         self._global = global_
@@ -34,7 +35,7 @@ class Global:
         Gets the type of this global as a `GlobalType`
         """
 
-        ptr = ffi.wasmtime_global_type(store._context(), byref(self._global))
+        ptr = ffi.wasmtime_global_type(store._context(), ctypes.byref(self._global))
         return GlobalType._from_ptr(ptr, None)
 
     def value(self, store: Storelike) -> Any:
@@ -44,7 +45,7 @@ class Global:
         Returns a native python type
         """
         raw = ffi.wasmtime_val_t()
-        ffi.wasmtime_global_get(store._context(), byref(self._global), byref(raw))
+        ffi.wasmtime_global_get(store._context(), ctypes.byref(self._global), ctypes.byref(raw))
         val = Val._from_raw(store, raw)
         if val.value is not None:
             return val.value
@@ -56,8 +57,8 @@ class Global:
         Sets the value of this global to a new value
         """
         val = Val._convert_to_raw(store, self.type(store).content, val)
-        error = ffi.wasmtime_global_set(store._context(), byref(self._global), byref(val))
-        ffi.wasmtime_val_unroot(byref(val))
+        error = ffi.wasmtime_global_set(store._context(), ctypes.byref(self._global), ctypes.byref(val))
+        ffi.wasmtime_val_unroot(ctypes.byref(val))
         if error:
             raise WasmtimeError._from_ptr(error)
 
