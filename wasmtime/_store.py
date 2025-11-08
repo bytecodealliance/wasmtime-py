@@ -42,7 +42,8 @@ class Store(Managed["ctypes._Pointer[ffi.wasmtime_store_t]"]):
         """
         data = ffi.wasmtime_context_get_data(self._context())
         if data:
-            return value._unintern(data)
+            # FIXME https://github.com/bytecodealliance/wasmtime-py/issues/303
+            return value._unintern(data)  # type: ignore
         else:
             return None
 

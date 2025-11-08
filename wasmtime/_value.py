@@ -178,7 +178,8 @@ class Val:
         elif raw.kind == ffi.WASMTIME_EXTERNREF.value:
             if raw.of.externref:
                 extern_id = ffi.wasmtime_externref_data(store._context(), raw.of.externref)
-                val = _unintern(extern_id)
+                # FIXME https://github.com/bytecodealliance/wasmtime-py/issues/303
+                val = _unintern(extern_id)  # type: ignore
         elif raw.kind == ffi.WASMTIME_FUNCREF.value:
             if raw.of.funcref.store_id != 0:
                 val = wasmtime.Func._from_raw(raw.of.funcref)
