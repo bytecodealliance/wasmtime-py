@@ -1,5 +1,4 @@
 import ctypes
-from ctypes import *
 from typing import Any
 from wasmtime import Instance, Engine, FuncType
 from wasmtime import Module, WasmtimeError, Func, Managed
@@ -47,9 +46,9 @@ class Linker(Managed["ctypes._Pointer[ffi.wasmtime_linker_t]"]):
         """
         raw_item = get_extern_ptr(item)
         module_bytes = module.encode('utf-8')
-        module_buf = create_string_buffer(module_bytes)
+        module_buf = ctypes.create_string_buffer(module_bytes)
         name_bytes = name.encode('utf-8')
-        name_buf = create_string_buffer(name_bytes)
+        name_buf = ctypes.create_string_buffer(name_bytes)
         error = ffi.wasmtime_linker_define(
             self.ptr(),
             store._context(),
@@ -57,7 +56,7 @@ class Linker(Managed["ctypes._Pointer[ffi.wasmtime_linker_t]"]):
             len(module_bytes),
             name_buf,
             len(name_bytes),
-            byref(raw_item))
+            ctypes.byref(raw_item))
         if error:
             raise WasmtimeError._from_ptr(error)
 
@@ -71,9 +70,9 @@ class Linker(Managed["ctypes._Pointer[ffi.wasmtime_linker_t]"]):
         the linker can be used to instantiate modules in multiple stores.
         """
         module_bytes = module.encode('utf-8')
-        module_buf = create_string_buffer(module_bytes)
+        module_buf = ctypes.create_string_buffer(module_bytes)
         name_bytes = name.encode('utf-8')
-        name_buf = create_string_buffer(name_bytes)
+        name_buf = ctypes.create_string_buffer(name_bytes)
         if not isinstance(ty, FuncType):
             raise TypeError("expected a FuncType")
         idx = FUNCTIONS.allocate((func, ty.results, access_caller))
@@ -104,12 +103,12 @@ class Linker(Managed["ctypes._Pointer[ffi.wasmtime_linker_t]"]):
         if not isinstance(instance, Instance):
             raise TypeError("expected an `Instance`")
         name_bytes = name.encode('utf8')
-        name_buf = create_string_buffer(name_bytes)
+        name_buf = ctypes.create_string_buffer(name_bytes)
         error = ffi.wasmtime_linker_define_instance(self.ptr(),
                                                     store._context(),
                                                     name_buf,
                                                     len(name_bytes),
-                                                    byref(instance._instance))
+                                                    ctypes.byref(instance._instance))
         if error:
             raise WasmtimeError._from_ptr(error)
 
@@ -144,7 +143,7 @@ class Linker(Managed["ctypes._Pointer[ffi.wasmtime_linker_t]"]):
         if not isinstance(module, Module):
             raise TypeError("expected a `Module`")
         name_bytes = name.encode('utf-8')
-        name_buf = create_string_buffer(name_bytes)
+        name_buf = ctypes.create_string_buffer(name_bytes)
         error = ffi.wasmtime_linker_module(self.ptr(), store._context(), name_buf, len(name_bytes), module.ptr())
         if error:
             raise WasmtimeError._from_ptr(error)
@@ -160,11 +159,11 @@ class Linker(Managed["ctypes._Pointer[ffi.wasmtime_linker_t]"]):
         Raises an error if an import of `module` hasn't been defined in this
         linker or if a trap happens while instantiating the instance.
         """
-        trap = POINTER(ffi.wasm_trap_t)()
+        trap = ctypes.POINTER(ffi.wasm_trap_t)()
         instance = ffi.wasmtime_instance_t()
         with enter_wasm(store) as trap:
             error = ffi.wasmtime_linker_instantiate(
-                self.ptr(), store._context(), module.ptr(), byref(instance), trap)
+                self.ptr(), store._context(), module.ptr(), ctypes.byref(instance), trap)
             if error:
                 raise WasmtimeError._from_ptr(error)
         return Instance._from_raw(instance)
@@ -179,10 +178,10 @@ class Linker(Managed["ctypes._Pointer[ffi.wasmtime_linker_t]"]):
         Raises an error if the default export wasn't present.
         """
         name_bytes = name.encode('utf-8')
-        name_buf = create_string_buffer(name_bytes)
+        name_buf = ctypes.create_string_buffer(name_bytes)
         func = ffi.wasmtime_func_t()
         error = ffi.wasmtime_linker_get_default(self.ptr(), store._context(),
-                                                name_buf, len(name_bytes), byref(func))
+                                                name_buf, len(name_bytes), ctypes.byref(func))
         if error:
             raise WasmtimeError._from_ptr(error)
         return Func._from_raw(func)
@@ -195,14 +194,14 @@ class Linker(Managed["ctypes._Pointer[ffi.wasmtime_linker_t]"]):
         defined twice with different types.
         """
         module_bytes = module.encode('utf-8')
-        module_buf = create_string_buffer(module_bytes)
+        module_buf = ctypes.create_string_buffer(module_bytes)
         name_bytes = name.encode('utf-8')
-        name_buf = create_string_buffer(name_bytes)
+        name_buf = ctypes.create_string_buffer(name_bytes)
         item = ffi.wasmtime_extern_t()
         ok = ffi.wasmtime_linker_get(self.ptr(), store._context(),
                                      module_buf, len(module_bytes),
                                      name_buf, len(name_bytes),
-                                     byref(item))
+                                     ctypes.byref(item))
         if ok:
             return wrap_extern(item)
         raise WasmtimeError("item not defined in linker")

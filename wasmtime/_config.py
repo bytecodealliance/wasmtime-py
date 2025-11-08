@@ -1,5 +1,4 @@
 from . import _ffi as ffi
-from ctypes import *
 import ctypes
 from wasmtime import WasmtimeError, Managed
 import typing
@@ -235,7 +234,8 @@ class Config(Managed["ctypes._Pointer[ffi.wasm_config_t]"]):
             error = ffi.wasmtime_config_cache_config_load(self.ptr(), None)
         elif isinstance(enabled, str):
             error = ffi.wasmtime_config_cache_config_load(self.ptr(),
-                                                          c_char_p(enabled.encode('utf-8')))
+                ctypes.c_char_p(enabled.encode('utf-8')),
+            )
         else:
             raise TypeError("expected string or bool")
         if error:

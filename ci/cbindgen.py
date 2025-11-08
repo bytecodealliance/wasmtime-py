@@ -17,7 +17,6 @@ class Visitor(c_ast.NodeVisitor):
         self.ret += '# This is a procedurally generated file, DO NOT EDIT\n'
         self.ret += '# instead edit `./ci/cbindgen.py` at the root of the repo\n'
         self.ret += '\n'
-        self.ret += 'from ctypes import *\n'
         self.ret += 'import ctypes\n'
         self.ret += 'from typing import Any\n'
         self.ret += 'from enum import Enum, auto\n'
@@ -39,7 +38,7 @@ class Visitor(c_ast.NodeVisitor):
         self.ret += "\n"
         if not node.decls:
             self.forward_declared[node.name] = True
-            self.ret += "class {}(Structure):\n".format(node.name)
+            self.ret += "class {}(ctypes.Structure):\n".format(node.name)
             self.ret += "    pass\n"
             return
 
@@ -55,7 +54,7 @@ class Visitor(c_ast.NodeVisitor):
         if node.name in self.forward_declared:
             self.ret += "{}._fields_ = [\n".format(node.name)
         else:
-            self.ret += "class {}(Structure):\n".format(node.name)
+            self.ret += "class {}(ctypes.Structure):\n".format(node.name)
             self.ret += "    _fields_ = [\n"
 
         for decl in node.decls:
@@ -72,7 +71,7 @@ class Visitor(c_ast.NodeVisitor):
         assert(node.decls)
 
         self.ret += "\n"
-        self.ret += "class {}(Union):\n".format(node.name)
+        self.ret += "class {}(ctypes.Union):\n".format(node.name)
         self.ret += "    _fields_ = [\n"
         for decl in node.decls:
             self.ret += "        (\"{}\", {}),\n".format(name(decl.name), type_name(decl.type))
@@ -184,49 +183,49 @@ def type_name(ty, ptr=False, typing=False):
         if typing:
             return "ctypes._Pointer"
         if isinstance(ty, c_ast.IdentifierType) and ty.names[0] == "void":
-            return "c_void_p"
+            return "ctypes.c_void_p"
         elif not isinstance(ty, c_ast.FuncDecl):
-            return "POINTER({})".format(type_name(ty, False, typing))
+            return "ctypes.POINTER({})".format(type_name(ty, False, typing))
 
     if isinstance(ty, c_ast.IdentifierType):
         if ty.names == ['unsigned', 'char']:
-            return "int" if typing else "c_ubyte"
+            return "int" if typing else "ctypes.c_ubyte"
         assert(len(ty.names) == 1)
 
         if ty.names[0] == "void":
             return "None"
         elif ty.names[0] == "_Bool":
-            return "bool" if typing else "c_bool"
+            return "bool" if typing else "ctypes.c_bool"
         elif ty.names[0] == "byte_t":
-            return "c_ubyte"
+            return "ctypes.c_ubyte"
         elif ty.names[0] == "int8_t":
-            return "c_int8"
+            return "ctypes.c_int8"
         elif ty.names[0] == "uint8_t":
-            return "c_uint8"
+            return "ctypes.c_uint8"
         elif ty.names[0] == "int16_t":
-            return "c_int16"
+            return "ctypes.c_int16"
         elif ty.names[0] == "uint16_t":
-            return "c_uint16"
+            return "ctypes.c_uint16"
         elif ty.names[0] == "int32_t":
-            return "int" if typing else "c_int32"
+            return "int" if typing else "ctypes.c_int32"
         elif ty.names[0] == "uint32_t":
-            return "int" if typing else "c_uint32"
+            return "int" if typing else "ctypes.c_uint32"
         elif ty.names[0] == "uint64_t":
-            return "int" if typing else "c_uint64"
+            return "int" if typing else "ctypes.c_uint64"
         elif ty.names[0] == "int64_t":
-            return "int" if typing else "c_int64"
+            return "int" if typing else "ctypes.c_int64"
         elif ty.names[0] == "float32_t":
-            return "float" if typing else "c_float"
+            return "float" if typing else "ctypes.c_float"
         elif ty.names[0] == "float64_t":
-            return "float" if typing else "c_double"
+            return "float" if typing else "ctypes.c_double"
         elif ty.names[0] == "size_t":
-            return "int" if typing else "c_size_t"
+            return "int" if typing else "ctypes.c_size_t"
         elif ty.names[0] == "ptrdiff_t":
-            return "int" if typing else "c_ssize_t"
+            return "int" if typing else "ctypes.c_ssize_t"
         elif ty.names[0] == "char":
-            return "c_char"
+            return "ctypes.c_char"
         elif ty.names[0] == "int":
-            return "int" if typing else "c_int"
+            return "int" if typing else "ctypes.c_int"
         # ctypes values can't stand as typedefs, so just use the pointer type here
         elif typing and 'callback_t' in ty.names[0]:
             return "ctypes._Pointer"
@@ -244,13 +243,13 @@ def type_name(ty, ptr=False, typing=False):
         # TODO: apparently errors are thrown if we faithfully represent the
         # pointer type here, seems odd?
         if isinstance(ty.type, c_ast.PtrDecl):
-            tys.append("c_size_t")
+            tys.append("ctypes.c_size_t")
         else:
             tys.append(type_name(ty.type))
         if ty.args and ty.args.params:
             for param in ty.args.params:
                 tys.append(type_name(param.type))
-        return "CFUNCTYPE({})".format(', '.join(tys))
+        return "ctypes.CFUNCTYPE({})".format(', '.join(tys))
     elif isinstance(ty, c_ast.PtrDecl) or isinstance(ty, c_ast.ArrayDecl):
         return type_name(ty.type, True, typing)
     else:

@@ -328,7 +328,7 @@ class MemoryType(Managed["ctypes._Pointer[ffi.wasm_memorytype_t]"]):
         Returns the limits on the size of this table
         """
         minimum = ffi.wasmtime_memorytype_minimum(self.ptr())
-        maximum = ffi.c_uint64(0)
+        maximum = ctypes.c_uint64(0)
         has_max = ffi.wasmtime_memorytype_maximum(self.ptr(), byref(maximum))
         return Limits(minimum, maximum.value if has_max else None)
 

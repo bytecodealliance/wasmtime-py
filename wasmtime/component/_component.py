@@ -1,7 +1,6 @@
 from .. import _ffi as ffi
 from .._wat2wasm import _to_wasm
 from ._types import ComponentType
-from ctypes import *
 import ctypes
 from wasmtime import Engine, wat2wasm, WasmtimeError, Managed, Module
 import typing
@@ -18,7 +17,7 @@ class ExportIndex(Managed["ctypes._Pointer[ffi.wasmtime_component_export_index_t
 
     @classmethod
     def _from_ptr(cls, ptr: "ctypes._Pointer[ffi.wasmtime_component_export_index_t]") -> "ExportIndex":
-        if not isinstance(ptr, POINTER(ffi.wasmtime_component_export_index_t)):
+        if not isinstance(ptr, ctypes.POINTER(ffi.wasmtime_component_export_index_t)):
             raise TypeError("wrong pointer type")
         ty: "ExportIndex" = cls.__new__(cls)
         ty._set_ptr(ptr)
@@ -46,9 +45,9 @@ class Component(Managed["ctypes._Pointer[ffi.wasmtime_component_t]"]):
 
         # TODO: can the copy be avoided here? I can't for the life of me
         # figure this out.
-        binary = (c_uint8 * len(wasm)).from_buffer_copy(wasm)
-        ptr = POINTER(ffi.wasmtime_component_t)()
-        error = ffi.wasmtime_component_new(engine.ptr(), binary, len(wasm), byref(ptr))
+        binary = (ctypes.c_uint8 * len(wasm)).from_buffer_copy(wasm)
+        ptr = ctypes.POINTER(ffi.wasmtime_component_t)()
+        error = ffi.wasmtime_component_new(engine.ptr(), binary, len(wasm), ctypes.byref(ptr))
         if error:
             raise WasmtimeError._from_ptr(error)
         self._set_ptr(ptr)
@@ -58,7 +57,7 @@ class Component(Managed["ctypes._Pointer[ffi.wasmtime_component_t]"]):
 
     @classmethod
     def _from_ptr(cls, ptr: "ctypes._Pointer[ffi.wasmtime_component_t]") -> "Component":
-        if not isinstance(ptr, POINTER(ffi.wasmtime_component_t)):
+        if not isinstance(ptr, ctypes.POINTER(ffi.wasmtime_component_t)):
             raise TypeError("wrong pointer type")
         ty: "Component" = cls.__new__(cls)
         ty._set_ptr(ptr)
@@ -78,15 +77,15 @@ class Component(Managed["ctypes._Pointer[ffi.wasmtime_component_t]"]):
         if not isinstance(encoded, (bytes, bytearray)):
             raise TypeError("expected bytes")
 
-        ptr = POINTER(ffi.wasmtime_component_t)()
+        ptr = ctypes.POINTER(ffi.wasmtime_component_t)()
 
         # TODO: can the copy be avoided here? I can't for the life of me
         # figure this out.
         error = ffi.wasmtime_component_deserialize(
             engine.ptr(),
-            (c_uint8 * len(encoded)).from_buffer_copy(encoded),
+            (ctypes.c_uint8 * len(encoded)).from_buffer_copy(encoded),
             len(encoded),
-            byref(ptr))
+            ctypes.byref(ptr))
         if error:
             raise WasmtimeError._from_ptr(error)
         return cls._from_ptr(ptr)
@@ -100,12 +99,12 @@ class Component(Managed["ctypes._Pointer[ffi.wasmtime_component_t]"]):
         Otherwise this function is the same as `Component.deserialize`.
         """
 
-        ptr = POINTER(ffi.wasmtime_component_t)()
+        ptr = ctypes.POINTER(ffi.wasmtime_component_t)()
         path_bytes = path.encode('utf-8')
         error = ffi.wasmtime_component_deserialize_file(
             engine.ptr(),
             path_bytes,
-            byref(ptr))
+            ctypes.byref(ptr))
         if error:
             raise WasmtimeError._from_ptr(error)
         return cls._from_ptr(ptr)
@@ -119,11 +118,11 @@ class Component(Managed["ctypes._Pointer[ffi.wasmtime_component_t]"]):
         recreate this component.
         """
         raw = ffi.wasm_byte_vec_t()
-        err = ffi.wasmtime_component_serialize(self.ptr(), byref(raw))
+        err = ffi.wasmtime_component_serialize(self.ptr(), ctypes.byref(raw))
         if err:
             raise WasmtimeError._from_ptr(err)
         ret = ffi.to_bytes(raw)
-        ffi.wasm_byte_vec_delete(byref(raw))
+        ffi.wasm_byte_vec_delete(ctypes.byref(raw))
         return ret
 
     def get_export_index(self, name: str, instance : typing.Optional[ExportIndex] = None) -> typing.Optional[ExportIndex]:
@@ -136,7 +135,7 @@ class Component(Managed["ctypes._Pointer[ffi.wasmtime_component_t]"]):
         instance for example.
         """
         name_bytes = name.encode('utf-8')
-        name_buf = create_string_buffer(name_bytes)
+        name_buf = ctypes.create_string_buffer(name_bytes)
         ret = ffi.wasmtime_component_get_export_index(
             self.ptr(),
             instance.ptr() if instance is not None else None,

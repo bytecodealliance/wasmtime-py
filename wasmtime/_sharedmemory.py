@@ -1,5 +1,4 @@
 from . import _ffi as ffi
-from ctypes import *
 import ctypes
 from typing import Optional, Any
 from wasmtime import MemoryType, WasmtimeError, Engine, Managed
@@ -13,8 +12,8 @@ class SharedMemory(Managed["ctypes._Pointer[ffi.wasmtime_sharedmemory_t]"]):
         Creates a new shared memory in `store` with the given `ty`
         """
 
-        sharedmemory_ptr = POINTER(ffi.wasmtime_sharedmemory_t)()
-        error = ffi.wasmtime_sharedmemory_new(engine.ptr(), ty.ptr(), byref(sharedmemory_ptr))
+        sharedmemory_ptr = ctypes.POINTER(ffi.wasmtime_sharedmemory_t)()
+        error = ffi.wasmtime_sharedmemory_new(engine.ptr(), ty.ptr(), ctypes.byref(sharedmemory_ptr))
         if error:
             raise WasmtimeError._from_ptr(error)
         self._set_ptr(sharedmemory_ptr)
@@ -24,7 +23,7 @@ class SharedMemory(Managed["ctypes._Pointer[ffi.wasmtime_sharedmemory_t]"]):
 
     @classmethod
     def _from_ptr(cls, ptr: "ctypes._Pointer[ffi.wasmtime_sharedmemory_t]") -> "SharedMemory":
-        if not isinstance(ptr, POINTER(ffi.wasmtime_sharedmemory_t)):
+        if not isinstance(ptr, ctypes.POINTER(ffi.wasmtime_sharedmemory_t)):
             raise TypeError("wrong shared memory pointer type provided to _from_ptr")
         
         ty: "SharedMemory" = cls.__new__(cls)
@@ -46,8 +45,8 @@ class SharedMemory(Managed["ctypes._Pointer[ffi.wasmtime_sharedmemory_t]"]):
 
         if delta < 0:
             raise WasmtimeError("cannot grow by negative amount")
-        prev = ffi.c_uint64(0)
-        error = ffi.wasmtime_sharedmemory_grow(self.ptr(), delta, byref(prev))
+        prev = ctypes.c_uint64(0)
+        error = ffi.wasmtime_sharedmemory_grow(self.ptr(), delta, ctypes.byref(prev))
         if error:
             raise WasmtimeError._from_ptr(error)
         return prev.value
@@ -57,9 +56,9 @@ class SharedMemory(Managed["ctypes._Pointer[ffi.wasmtime_sharedmemory_t]"]):
         Returns the size, in WebAssembly pages, of this shared memory.
         """
 
-        return ffi.wasmtime_sharedmemory_size(byref(self.ptr()))
+        return ffi.wasmtime_sharedmemory_size(ctypes.byref(self.ptr()))
 
-    def data_ptr(self) -> "ctypes._Pointer[c_ubyte]":
+    def data_ptr(self) -> "ctypes._Pointer[ctypes.c_ubyte]":
         """
         Returns the raw pointer in memory where this wasm shared memory lives.
 
@@ -76,5 +75,5 @@ class SharedMemory(Managed["ctypes._Pointer[ffi.wasmtime_sharedmemory_t]"]):
         return ffi.wasmtime_sharedmemory_data_size(self.ptr())
 
     def _as_extern(self) -> ffi.wasmtime_extern_t:
-        union = ffi.wasmtime_extern_union(sharedmemory=pointer(self.ptr()))
+        union = ffi.wasmtime_extern_union(sharedmemory=ctypes.pointer(self.ptr()))
         return ffi.wasmtime_extern_t(ffi.WASMTIME_EXTERN_SHAREDMEMORY, union)

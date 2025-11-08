@@ -1,4 +1,5 @@
-from ctypes import *
+from ctypes import POINTER, Structure, Union, addressof, byref, cdll, string_at
+from ctypes import c_double, c_float, c_int32, c_int64, c_uint8
 from pathlib import Path
 import ctypes
 import sys

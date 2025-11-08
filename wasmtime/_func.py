@@ -154,7 +154,7 @@ class Caller:
 
         # First convert to a raw name so we can typecheck our argument
         name_bytes = name.encode('utf-8')
-        name_buf = ffi.create_string_buffer(name_bytes)
+        name_buf = ctypes.create_string_buffer(name_bytes)
 
         # Next see if we've been invalidated
         if self.__ptr is None:
