@@ -8,7 +8,7 @@ runs:
   using: "composite"
   steps:
   # Setup Python and the Python dependencies of this project
-  - uses: actions/setup-python@v5
+  - uses: actions/setup-python@v6
     with:
       python-version: ${{ inputs.python-version }}
   - run: pip install -e ".[testing]"
