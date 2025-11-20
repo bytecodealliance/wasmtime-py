@@ -1,4 +1,4 @@
-# type: ignore
+# mypy: ignore-errors
 
 # This is a small script to parse the header files from wasmtime and generate
 # appropriate function definitions in Python for each exported function. This
