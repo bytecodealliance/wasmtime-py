@@ -12,7 +12,7 @@ from pathlib import Path
 
 # set to "dev" to download the latest or pick a tag from
 # https://github.com/bytecodealliance/wasmtime/tags
-WASMTIME_VERSION = "dev"
+WASMTIME_VERSION = "v39.0.0"
 
 
 def main(platform, arch):
