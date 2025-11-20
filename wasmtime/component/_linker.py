@@ -6,7 +6,7 @@ from ._instance import Instance
 from ._component import Component
 from ._resource_type import ResourceType
 from typing import Union, Tuple, Callable, Optional, List, Any
-from .._func import Slab
+from .._slab import Slab
 from ._enter import catch_exceptions
 from ._types import ValType, FuncType
 
