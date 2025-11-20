@@ -2,6 +2,7 @@ from ._error import WasmtimeError
 from ._types import ValType
 import ctypes
 import typing
+from ._slab import Slab
 
 from . import _ffi as ffi
 
@@ -9,35 +10,25 @@ if typing.TYPE_CHECKING:
     from ._store import Storelike
 
 
+SLAB: Slab[typing.Any] = Slab()
+
+
+# Note that 0 as a `c_void_p` is reserved for null-lookalike externrefs so
+# indices from the slabs are off-by-one.
 @ctypes.CFUNCTYPE(None, ctypes.c_void_p)
-def _externref_finalizer(extern_id: int) -> None:
-    Val._id_to_ref_count[extern_id] -= 1
-    if Val._id_to_ref_count[extern_id] == 0:
-        del Val._id_to_ref_count[extern_id]
-        del Val._id_to_extern[extern_id]
+def _externref_finalizer(idx: int) -> None:
+    SLAB.deallocate(idx - 1)
 
 
-def _intern(obj: typing.Any) -> ctypes.c_void_p:
-    extern_id = id(obj)
-    Val._id_to_ref_count.setdefault(extern_id, 0)
-    Val._id_to_ref_count[extern_id] += 1
-    Val._id_to_extern[extern_id] = obj
-    return ctypes.c_void_p(extern_id)
+def _intern(obj: typing.Any) -> int:
+    return SLAB.allocate(obj) + 1
 
 
-def _unintern(val: int) -> typing.Any:
-    return Val._id_to_extern.get(val)
+def _unintern(idx: int) -> typing.Any:
+    return SLAB.get(idx - 1)
 
 
 class Val:
-    # We can't let the extern values we wrap `externref`s around be GC'd, so we
-    # pin them in `_id_to_extern`. Additionally, we might make multiple
-    # `externref`s to the same extern value, so we count how many references
-    # we've created in `_id_to_ref_count`, and only remove a value's entry from
-    # `_id_to_extern` once the ref count is zero.
-    _id_to_extern: typing.Dict[int, typing.Any] = {}
-    _id_to_ref_count: typing.Dict[int, int] = {}
-
     _kind: ffi.wasmtime_valkind_t
     _val: typing.Any
 
@@ -179,7 +170,8 @@ class Val:
             if raw.of.externref:
                 extern_id = ffi.wasmtime_externref_data(store._context(), raw.of.externref)
                 # FIXME https://github.com/bytecodealliance/wasmtime-py/issues/303
-                val = _unintern(extern_id)  # type: ignore
+                if extern_id:
+                    val = _unintern(extern_id)  # type: ignore
         elif raw.kind == ffi.WASMTIME_FUNCREF.value:
             if raw.of.funcref.store_id != 0:
                 val = wasmtime.Func._from_raw(raw.of.funcref)

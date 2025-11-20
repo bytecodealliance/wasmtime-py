@@ -34,11 +34,10 @@ class TestComponent(unittest.TestCase):
             path = d + '/component.bin'
             with open(path, 'wb') as f:
                 f.write(encoded)
-            component = Component.deserialize_file(engine, path)
-
             # Run the destructor for `Component` which has an mmap to the file
             # which prevents deletion on Windows.
-            del component
+            with Component.deserialize_file(engine, path):
+                pass
 
     def test_exports(self):
         engine = Engine()

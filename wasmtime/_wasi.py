@@ -9,7 +9,7 @@ from wasmtime import Managed, WasmtimeError
 
 from . import _ffi as ffi
 from ._config import setter_property
-from ._func import Slab
+from ._slab import Slab
 
 
 def _encode_path(path: Union[str, bytes, PathLike]) -> bytes:
