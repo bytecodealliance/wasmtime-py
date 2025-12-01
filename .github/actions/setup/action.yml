@@ -11,9 +11,14 @@ runs:
   - uses: actions/setup-python@v6
     with:
       python-version: ${{ inputs.python-version }}
-  - run: pip install -e ".[testing]"
+
+  - name: Install uv
+    uses: astral-sh/setup-uv@v7
+
+  - name: Show python in-use
     shell: bash
+    run: uv run python --version
 
   # Download precompiled wasmtime binaries for running the project
-  - run: python ci/download-wasmtime.py
+  - run: uv run ci/download-wasmtime.py
     shell: bash

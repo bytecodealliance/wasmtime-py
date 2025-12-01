@@ -32,12 +32,7 @@ jobs:
       - uses: ./.github/actions/setup
         with:
           python-version: ${{ matrix.python-version }}
-      # Tests are flaky on Windows. It's something to do with generating modules
-      # on-the-go in the component codegen tests. I have no idea how to fix it.
-      # This is a last-ditch attempt to get things working.
-      - run: pytest --setup-only
-        continue-on-error: true
-      - run: pytest
+      - run: uv run --all-extras pytest
 
   build:
     runs-on: ubuntu-latest
