@@ -115,8 +115,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: ./.github/actions/setup
-    - run: coverage run -m pytest
-    - run: coverage html
+    - run: uv run --all-extras coverage run -m pytest
+    - run: uv run --all-extras coverage html
     - uses: actions/upload-artifact@v4
       with:
         name: coverage
