@@ -2087,6 +2087,12 @@ _wasmtime_config_wasm_threads_set.argtypes = [ctypes.POINTER(wasm_config_t), cty
 def wasmtime_config_wasm_threads_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_wasm_threads_set(arg0, arg1)  # type: ignore
 
+_wasmtime_config_shared_memory_set = dll.wasmtime_config_shared_memory_set
+_wasmtime_config_shared_memory_set.restype = None
+_wasmtime_config_shared_memory_set.argtypes = [ctypes.POINTER(wasm_config_t), ctypes.c_bool]
+def wasmtime_config_shared_memory_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_shared_memory_set(arg0, arg1)  # type: ignore
+
 _wasmtime_config_wasm_tail_call_set = dll.wasmtime_config_wasm_tail_call_set
 _wasmtime_config_wasm_tail_call_set.restype = None
 _wasmtime_config_wasm_tail_call_set.argtypes = [ctypes.POINTER(wasm_config_t), ctypes.c_bool]
@@ -3318,9 +3324,9 @@ wasmtime_guestprofiler_modules_t = wasmtime_guestprofiler_modules
 
 _wasmtime_guestprofiler_new = dll.wasmtime_guestprofiler_new
 _wasmtime_guestprofiler_new.restype = ctypes.POINTER(wasmtime_guestprofiler_t)
-_wasmtime_guestprofiler_new.argtypes = [ctypes.POINTER(wasm_name_t), ctypes.c_uint64, ctypes.POINTER(wasmtime_guestprofiler_modules_t), ctypes.c_size_t]
-def wasmtime_guestprofiler_new(module_name: Any, interval_nanos: Any, modules: Any, modules_len: Any) -> ctypes._Pointer:
-    return _wasmtime_guestprofiler_new(module_name, interval_nanos, modules, modules_len)  # type: ignore
+_wasmtime_guestprofiler_new.argtypes = [ctypes.POINTER(wasm_engine_t), ctypes.POINTER(wasm_name_t), ctypes.c_uint64, ctypes.POINTER(wasmtime_guestprofiler_modules_t), ctypes.c_size_t]
+def wasmtime_guestprofiler_new(engine: Any, module_name: Any, interval_nanos: Any, modules: Any, modules_len: Any) -> ctypes._Pointer:
+    return _wasmtime_guestprofiler_new(engine, module_name, interval_nanos, modules, modules_len)  # type: ignore
 
 _wasmtime_guestprofiler_sample = dll.wasmtime_guestprofiler_sample
 _wasmtime_guestprofiler_sample.restype = None
@@ -3965,6 +3971,12 @@ _wasmtime_component_func_type_delete.restype = None
 _wasmtime_component_func_type_delete.argtypes = [ctypes.POINTER(wasmtime_component_func_type_t)]
 def wasmtime_component_func_type_delete(ty: Any) -> None:
     return _wasmtime_component_func_type_delete(ty)  # type: ignore
+
+_wasmtime_component_func_type_async = dll.wasmtime_component_func_type_async
+_wasmtime_component_func_type_async.restype = ctypes.c_bool
+_wasmtime_component_func_type_async.argtypes = [ctypes.POINTER(wasmtime_component_func_type_t)]
+def wasmtime_component_func_type_async(ty: Any) -> bool:
+    return _wasmtime_component_func_type_async(ty)  # type: ignore
 
 _wasmtime_component_func_type_param_count = dll.wasmtime_component_func_type_param_count
 _wasmtime_component_func_type_param_count.restype = ctypes.c_size_t
