@@ -2,10 +2,14 @@ import unittest
 
 from wasmtime import *
 
+def engine_with_shared_memory() -> Engine:
+    config = Config()
+    config.shared_memory = True
+    return Engine(config)
 
 class TestSharedMemory(unittest.TestCase):
     def test_new(self):
-        engine = Store().engine
+        engine = engine_with_shared_memory()
         memory_type = MemoryType(Limits(1, 2), is_64=False, shared=True)
         assert(not memory_type.is_64)
         shared_memory = SharedMemory(engine, memory_type)
@@ -18,7 +22,7 @@ class TestSharedMemory(unittest.TestCase):
         self.assertTrue(isinstance(shared_memory.type(), MemoryType))
 
     def test_grow(self):
-        engine = Store().engine
+        engine = engine_with_shared_memory()
         memory_type = MemoryType(Limits(1, 2), shared=True)
         shared_memory = SharedMemory(engine, memory_type)
         assert(shared_memory.grow(1) == 1)
@@ -27,7 +31,7 @@ class TestSharedMemory(unittest.TestCase):
             shared_memory.grow(1)
 
     def test_errors(self):
-        engine = Store().engine
+        engine = engine_with_shared_memory()
         ty = MemoryType(Limits(1, 2), shared=True)
         with self.assertRaises(AttributeError):
             SharedMemory(1, ty)  # type: ignore
@@ -44,13 +48,13 @@ class TestSharedMemory(unittest.TestCase):
         assert(ty.limits.min == 0x100000000)
         assert(ty.limits.max == 0x100000000)
         assert(ty.is_64)
-        
+
     def test_shared_memory_type_fails_if_is_too_large(self):
         with self.assertRaises(WasmtimeError):
             MemoryType(Limits(1, 0x100000000), shared=True)
 
     def test_memory_type_has_to_be_shared(self):
-        engine = Store().engine
+        engine = engine_with_shared_memory()
         ty = MemoryType(Limits(1, 2))
         with self.assertRaises(WasmtimeError):
             SharedMemory(engine, ty)

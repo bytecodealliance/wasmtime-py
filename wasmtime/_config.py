@@ -278,3 +278,14 @@ class Config(Managed["ctypes._Pointer[ffi.wasm_config_t]"]):
         if not isinstance(enable, bool):
             raise TypeError('expected a bool')
         ffi.wasmtime_config_parallel_compilation_set(self.ptr(), enable)
+
+    @setter_property
+    def shared_memory(self, enable: bool) -> None:
+        """
+        Configures whether shared memories can be created.
+
+        This is disabled by default.
+        """
+        if not isinstance(enable, bool):
+            raise TypeError('expected a bool')
+        ffi.wasmtime_config_shared_memory_set(self.ptr(), enable)
