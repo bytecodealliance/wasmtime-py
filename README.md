@@ -77,20 +77,6 @@ as well as the [full API documentation][apidoc] of the `wasmtime-py` package.
 [`examples` directory]: https://github.com/bytecodealliance/wasmtime-py/tree/main/examples
 [apidoc]: https://bytecodealliance.github.io/wasmtime-py/
 
-If your WebAssembly module works this way, then you can also import the WebAssembly module
-directly into Python without explicitly compiling and instantiating it yourself:
-
-```python
-# Import the custom loader for `*.wasm` files
-import wasmtime.loader
-
-# Assuming `your_wasm_file.wasm` is in the python load path...
-import your_wasm_file
-
-# Now you're compiled and instantiated and ready to go!
-print(your_wasm_file.run())
-```
-
 ## Components
 
 Components are also supported in `wasmtime-py`. For more information see the
