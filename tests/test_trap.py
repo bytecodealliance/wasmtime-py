@@ -48,7 +48,7 @@ error while executing at wasm backtrace:
     2:     0x23 - module!<wasm function 0>
 
 Caused by:
-    wasm trap: wasm `unreachable` instruction executed\
+    wasm trap: wasm `unreachable` instruction executed
 """)
         self.assertEqual(trap.trap_code, TrapCode.UNREACHABLE)
 
