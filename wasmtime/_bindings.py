@@ -2659,9 +2659,9 @@ def wasmtime_context_set_data(context: Any, data: Any) -> None:
     return _wasmtime_context_set_data(context, data)  # type: ignore
 
 _wasmtime_context_gc = dll.wasmtime_context_gc
-_wasmtime_context_gc.restype = None
+_wasmtime_context_gc.restype = ctypes.POINTER(wasmtime_error_t)
 _wasmtime_context_gc.argtypes = [ctypes.POINTER(wasmtime_context_t)]
-def wasmtime_context_gc(context: Any) -> None:
+def wasmtime_context_gc(context: Any) -> ctypes._Pointer:
     return _wasmtime_context_gc(context)  # type: ignore
 
 _wasmtime_context_set_fuel = dll.wasmtime_context_set_fuel
@@ -3390,7 +3390,6 @@ class wasmtime_trap_code_enum(Enum):
     WASMTIME_TRAP_CODE_BAD_CONVERSION_TO_INTEGER = auto()
     WASMTIME_TRAP_CODE_UNREACHABLE_CODE_REACHED = auto()
     WASMTIME_TRAP_CODE_INTERRUPT = auto()
-    WASMTIME_TRAP_CODE_ALWAYS_TRAP_ADAPTER = auto()
     WASMTIME_TRAP_CODE_OUT_OF_FUEL = auto()
     WASMTIME_TRAP_CODE_ATOMIC_WAIT_NON_SHARED_MEMORY = auto()
     WASMTIME_TRAP_CODE_NULL_REFERENCE = auto()
@@ -3399,7 +3398,21 @@ class wasmtime_trap_code_enum(Enum):
     WASMTIME_TRAP_CODE_CAST_FAILURE = auto()
     WASMTIME_TRAP_CODE_CANNOT_ENTER_COMPONENT = auto()
     WASMTIME_TRAP_CODE_NO_ASYNC_RESULT = auto()
+    WASMTIME_TRAP_CODE_UNHANDLED_TAG = auto()
+    WASMTIME_TRAP_CODE_CONTINUATION_ALREADY_CONSUMED = auto()
     WASMTIME_TRAP_CODE_DISABLED_OPCODE = auto()
+    WASMTIME_TRAP_CODE_ASYNC_DEADLOCK = auto()
+    WASMTIME_TRAP_CODE_CANNOT_LEAVE_COMPONENT = auto()
+    WASMTIME_TRAP_CODE_CANNOT_BLOCK_SYNC_TASK = auto()
+    WASMTIME_TRAP_CODE_INVALID_CHAR = auto()
+    WASMTIME_TRAP_CODE_DEBUG_ASSERT_STRING_ENCODING_FINISHED = auto()
+    WASMTIME_TRAP_CODE_DEBUG_ASSERT_EQUAL_CODE_UNITS = auto()
+    WASMTIME_TRAP_CODE_DEBUG_ASSERT_POINTER_ALIGNED = auto()
+    WASMTIME_TRAP_CODE_DEBUG_ASSERT_UPPER_BITS_UNSET = auto()
+    WASMTIME_TRAP_CODE_STRING_OUT_OF_BOUNDS = auto()
+    WASMTIME_TRAP_CODE_LIST_OUT_OF_BOUNDS = auto()
+    WASMTIME_TRAP_CODE_INVALID_DISCRIMINANT = auto()
+    WASMTIME_TRAP_CODE_UNALIGNED_POINTER = auto()
 
 _wasmtime_trap_new = dll.wasmtime_trap_new
 _wasmtime_trap_new.restype = ctypes.POINTER(wasm_trap_t)
@@ -3430,12 +3443,6 @@ _wasmtime_frame_module_name.restype = ctypes.POINTER(wasm_name_t)
 _wasmtime_frame_module_name.argtypes = [ctypes.POINTER(wasm_frame_t)]
 def wasmtime_frame_module_name(arg0: Any) -> ctypes._Pointer:
     return _wasmtime_frame_module_name(arg0)  # type: ignore
-
-_wasmtime_config_async_support_set = dll.wasmtime_config_async_support_set
-_wasmtime_config_async_support_set.restype = None
-_wasmtime_config_async_support_set.argtypes = [ctypes.POINTER(wasm_config_t), ctypes.c_bool]
-def wasmtime_config_async_support_set(arg0: Any, arg1: Any) -> None:
-    return _wasmtime_config_async_support_set(arg0, arg1)  # type: ignore
 
 _wasmtime_config_async_stack_size_set = dll.wasmtime_config_async_stack_size_set
 _wasmtime_config_async_stack_size_set.restype = None
