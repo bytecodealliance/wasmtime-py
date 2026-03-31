@@ -2117,6 +2117,12 @@ _wasmtime_config_wasm_gc_set.argtypes = [ctypes.POINTER(wasm_config_t), ctypes.c
 def wasmtime_config_wasm_gc_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_wasm_gc_set(arg0, arg1)  # type: ignore
 
+_wasmtime_config_gc_support_set = dll.wasmtime_config_gc_support_set
+_wasmtime_config_gc_support_set.restype = None
+_wasmtime_config_gc_support_set.argtypes = [ctypes.POINTER(wasm_config_t), ctypes.c_bool]
+def wasmtime_config_gc_support_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_gc_support_set(arg0, arg1)  # type: ignore
+
 _wasmtime_config_wasm_simd_set = dll.wasmtime_config_wasm_simd_set
 _wasmtime_config_wasm_simd_set.restype = None
 _wasmtime_config_wasm_simd_set.argtypes = [ctypes.POINTER(wasm_config_t), ctypes.c_bool]
@@ -2475,6 +2481,12 @@ _wasmtime_config_wasm_component_model_set.restype = None
 _wasmtime_config_wasm_component_model_set.argtypes = [ctypes.POINTER(wasm_config_t), ctypes.c_bool]
 def wasmtime_config_wasm_component_model_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_wasm_component_model_set(arg0, arg1)  # type: ignore
+
+_wasmtime_config_concurrency_support_set = dll.wasmtime_config_concurrency_support_set
+_wasmtime_config_concurrency_support_set.restype = None
+_wasmtime_config_concurrency_support_set.argtypes = [ctypes.POINTER(wasm_config_t), ctypes.c_bool]
+def wasmtime_config_concurrency_support_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_concurrency_support_set(arg0, arg1)  # type: ignore
 
 _wasmtime_engine_clone = dll.wasmtime_engine_clone
 _wasmtime_engine_clone.restype = ctypes.POINTER(wasm_engine_t)
@@ -3379,40 +3391,51 @@ def wasmtime_table_grow(store: Any, table: Any, delta: Any, init: Any, prev_size
 wasmtime_trap_code_t = ctypes.c_uint8
 
 class wasmtime_trap_code_enum(Enum):
-    WASMTIME_TRAP_CODE_STACK_OVERFLOW = auto()
-    WASMTIME_TRAP_CODE_MEMORY_OUT_OF_BOUNDS = auto()
-    WASMTIME_TRAP_CODE_HEAP_MISALIGNED = auto()
-    WASMTIME_TRAP_CODE_TABLE_OUT_OF_BOUNDS = auto()
-    WASMTIME_TRAP_CODE_INDIRECT_CALL_TO_NULL = auto()
-    WASMTIME_TRAP_CODE_BAD_SIGNATURE = auto()
-    WASMTIME_TRAP_CODE_INTEGER_OVERFLOW = auto()
-    WASMTIME_TRAP_CODE_INTEGER_DIVISION_BY_ZERO = auto()
-    WASMTIME_TRAP_CODE_BAD_CONVERSION_TO_INTEGER = auto()
-    WASMTIME_TRAP_CODE_UNREACHABLE_CODE_REACHED = auto()
-    WASMTIME_TRAP_CODE_INTERRUPT = auto()
-    WASMTIME_TRAP_CODE_OUT_OF_FUEL = auto()
-    WASMTIME_TRAP_CODE_ATOMIC_WAIT_NON_SHARED_MEMORY = auto()
-    WASMTIME_TRAP_CODE_NULL_REFERENCE = auto()
-    WASMTIME_TRAP_CODE_ARRAY_OUT_OF_BOUNDS = auto()
-    WASMTIME_TRAP_CODE_ALLOCATION_TOO_LARGE = auto()
-    WASMTIME_TRAP_CODE_CAST_FAILURE = auto()
-    WASMTIME_TRAP_CODE_CANNOT_ENTER_COMPONENT = auto()
-    WASMTIME_TRAP_CODE_NO_ASYNC_RESULT = auto()
-    WASMTIME_TRAP_CODE_UNHANDLED_TAG = auto()
-    WASMTIME_TRAP_CODE_CONTINUATION_ALREADY_CONSUMED = auto()
-    WASMTIME_TRAP_CODE_DISABLED_OPCODE = auto()
-    WASMTIME_TRAP_CODE_ASYNC_DEADLOCK = auto()
-    WASMTIME_TRAP_CODE_CANNOT_LEAVE_COMPONENT = auto()
-    WASMTIME_TRAP_CODE_CANNOT_BLOCK_SYNC_TASK = auto()
-    WASMTIME_TRAP_CODE_INVALID_CHAR = auto()
-    WASMTIME_TRAP_CODE_DEBUG_ASSERT_STRING_ENCODING_FINISHED = auto()
-    WASMTIME_TRAP_CODE_DEBUG_ASSERT_EQUAL_CODE_UNITS = auto()
-    WASMTIME_TRAP_CODE_DEBUG_ASSERT_POINTER_ALIGNED = auto()
-    WASMTIME_TRAP_CODE_DEBUG_ASSERT_UPPER_BITS_UNSET = auto()
-    WASMTIME_TRAP_CODE_STRING_OUT_OF_BOUNDS = auto()
-    WASMTIME_TRAP_CODE_LIST_OUT_OF_BOUNDS = auto()
-    WASMTIME_TRAP_CODE_INVALID_DISCRIMINANT = auto()
-    WASMTIME_TRAP_CODE_UNALIGNED_POINTER = auto()
+    WASMTIME_TRAP_CODE_STACK_OVERFLOW = 0
+    WASMTIME_TRAP_CODE_MEMORY_OUT_OF_BOUNDS = 1
+    WASMTIME_TRAP_CODE_HEAP_MISALIGNED = 2
+    WASMTIME_TRAP_CODE_TABLE_OUT_OF_BOUNDS = 3
+    WASMTIME_TRAP_CODE_INDIRECT_CALL_TO_NULL = 4
+    WASMTIME_TRAP_CODE_BAD_SIGNATURE = 5
+    WASMTIME_TRAP_CODE_INTEGER_OVERFLOW = 6
+    WASMTIME_TRAP_CODE_INTEGER_DIVISION_BY_ZERO = 7
+    WASMTIME_TRAP_CODE_BAD_CONVERSION_TO_INTEGER = 8
+    WASMTIME_TRAP_CODE_UNREACHABLE_CODE_REACHED = 9
+    WASMTIME_TRAP_CODE_INTERRUPT = 10
+    WASMTIME_TRAP_CODE_OUT_OF_FUEL = 11
+    WASMTIME_TRAP_CODE_ATOMIC_WAIT_NON_SHARED_MEMORY = 12
+    WASMTIME_TRAP_CODE_NULL_REFERENCE = 13
+    WASMTIME_TRAP_CODE_ARRAY_OUT_OF_BOUNDS = 14
+    WASMTIME_TRAP_CODE_ALLOCATION_TOO_LARGE = 15
+    WASMTIME_TRAP_CODE_CAST_FAILURE = 16
+    WASMTIME_TRAP_CODE_CANNOT_ENTER_COMPONENT = 17
+    WASMTIME_TRAP_CODE_NO_ASYNC_RESULT = 18
+    WASMTIME_TRAP_CODE_UNHANDLED_TAG = 19
+    WASMTIME_TRAP_CODE_CONTINUATION_ALREADY_CONSUMED = 20
+    WASMTIME_TRAP_CODE_DISABLED_OPCODE = 21
+    WASMTIME_TRAP_CODE_ASYNC_DEADLOCK = 22
+    WASMTIME_TRAP_CODE_CANNOT_LEAVE_COMPONENT = 23
+    WASMTIME_TRAP_CODE_CANNOT_BLOCK_SYNC_TASK = 24
+    WASMTIME_TRAP_CODE_INVALID_CHAR = 25
+    WASMTIME_TRAP_CODE_DEBUG_ASSERT_STRING_ENCODING_FINISHED = 26
+    WASMTIME_TRAP_CODE_DEBUG_ASSERT_EQUAL_CODE_UNITS = 27
+    WASMTIME_TRAP_CODE_DEBUG_ASSERT_POINTER_ALIGNED = 28
+    WASMTIME_TRAP_CODE_DEBUG_ASSERT_UPPER_BITS_UNSET = 29
+    WASMTIME_TRAP_CODE_STRING_OUT_OF_BOUNDS = 30
+    WASMTIME_TRAP_CODE_LIST_OUT_OF_BOUNDS = 31
+    WASMTIME_TRAP_CODE_INVALID_DISCRIMINANT = 32
+    WASMTIME_TRAP_CODE_UNALIGNED_POINTER = 33
+    WASMTIME_TRAP_CODE_TASK_CANCEL_NOT_CANCELLED = 34
+    WASMTIME_TRAP_CODE_TASK_CANCEL_OR_RETURN_TWICE = 35
+    WASMTIME_TRAP_CODE_SUBTASK_CANCEL_AFTER_TERMINAL = 36
+    WASMTIME_TRAP_CODE_TASK_RETURN_INVALID = 37
+    WASMTIME_TRAP_CODE_WAITABLE_SET_DROP_HAS_WAITERS = 38
+    WASMTIME_TRAP_CODE_SUBTASK_DROP_NOT_RESOLVED = 39
+    WASMTIME_TRAP_CODE_THREAD_NEW_INDIRECT_INVALID_TYPE = 40
+    WASMTIME_TRAP_CODE_THREAD_NEW_INDIRECT_UNINITIALIZED = 41
+    WASMTIME_TRAP_CODE_BACKPRESSURE_OVERFLOW = 42
+    WASMTIME_TRAP_CODE_UNSUPPORTED_CALLBACK_CODE = 43
+    WASMTIME_TRAP_CODE_CANNOT_RESUME_THREAD = 44
 
 _wasmtime_trap_new = dll.wasmtime_trap_new
 _wasmtime_trap_new.restype = ctypes.POINTER(wasm_trap_t)
