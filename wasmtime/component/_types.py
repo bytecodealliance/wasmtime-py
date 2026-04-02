@@ -701,7 +701,7 @@ class Variant:
 case_test_cache: Set[type] = set()
 
 
-class VariantLikeType:
+class VariantLikeType(ValType):
     @abstractmethod
     def _cases(self) -> List[Tuple[str, Optional['ValType']]]:
         pass
@@ -776,7 +776,7 @@ class VariantLikeType:
         raise ValueError(f"tag {tag} not found in variant cases")
 
 
-class VariantType(Managed["ctypes._Pointer[ffi.wasmtime_component_variant_type_t]"], ValType, VariantLikeType):
+class VariantType(Managed["ctypes._Pointer[ffi.wasmtime_component_variant_type_t]"], VariantLikeType):
     def _delete(self, ptr: "ctypes._Pointer[ffi.wasmtime_component_variant_type_t]") -> None:
         ffi.wasmtime_component_variant_type_delete(ptr)
 
@@ -903,7 +903,7 @@ class EnumType(Managed["ctypes._Pointer[ffi.wasmtime_component_enum_type_t]"], V
         return ret
 
 
-class OptionType(Managed["ctypes._Pointer[ffi.wasmtime_component_option_type_t]"], ValType, VariantLikeType):
+class OptionType(Managed["ctypes._Pointer[ffi.wasmtime_component_option_type_t]"], VariantLikeType):
     def _delete(self, ptr: "ctypes._Pointer[ffi.wasmtime_component_option_type_t]") -> None:
         ffi.wasmtime_component_option_type_delete(ptr)
 
@@ -947,7 +947,7 @@ class OptionType(Managed["ctypes._Pointer[ffi.wasmtime_component_option_type_t]"
 
 
 
-class ResultType(Managed["ctypes._Pointer[ffi.wasmtime_component_result_type_t]"], ValType, VariantLikeType):
+class ResultType(Managed["ctypes._Pointer[ffi.wasmtime_component_result_type_t]"], VariantLikeType):
     def _delete(self, ptr: "ctypes._Pointer[ffi.wasmtime_component_result_type_t]") -> None:
         ffi.wasmtime_component_result_type_delete(ptr)
 
