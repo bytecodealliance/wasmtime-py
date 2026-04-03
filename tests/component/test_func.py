@@ -432,6 +432,12 @@ class TestFunc(unittest.TestCase):
         self.roundtrip_simple('(result)', 'i32', [Variant('ok'), Variant('err')])
 
 
+    def test_variant_add_classes(self):
+        from wasmtime.component._types import VariantType, OptionType, ResultType, VariantLikeType
+        for cls in [VariantType, OptionType, ResultType]:
+            self.assertTrue(issubclass(cls, VariantLikeType))
+            self.assertEqual(cls.add_classes, VariantLikeType.add_classes)
+
     # TODO: roundtrip future
     # TODO: roundtrip stream
     # TODO: roundtrip error-context
