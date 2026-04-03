@@ -2694,6 +2694,12 @@ _wasmtime_context_set_wasi.argtypes = [ctypes.POINTER(wasmtime_context_t), ctype
 def wasmtime_context_set_wasi(context: Any, wasi: Any) -> ctypes._Pointer:
     return _wasmtime_context_set_wasi(context, wasi)  # type: ignore
 
+_wasmtime_context_set_wasi_http = dll.wasmtime_context_set_wasi_http
+_wasmtime_context_set_wasi_http.restype = None
+_wasmtime_context_set_wasi_http.argtypes = [ctypes.POINTER(wasmtime_context_t)]
+def wasmtime_context_set_wasi_http(context: Any) -> None:
+    return _wasmtime_context_set_wasi_http(context)  # type: ignore
+
 _wasmtime_context_set_epoch_deadline = dll.wasmtime_context_set_epoch_deadline
 _wasmtime_context_set_epoch_deadline.restype = None
 _wasmtime_context_set_epoch_deadline.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.c_uint64]
@@ -4750,6 +4756,12 @@ _wasmtime_component_linker_add_wasip2.restype = ctypes.POINTER(wasmtime_error_t)
 _wasmtime_component_linker_add_wasip2.argtypes = [ctypes.POINTER(wasmtime_component_linker_t)]
 def wasmtime_component_linker_add_wasip2(linker: Any) -> ctypes._Pointer:
     return _wasmtime_component_linker_add_wasip2(linker)  # type: ignore
+
+_wasmtime_component_linker_add_wasi_http = dll.wasmtime_component_linker_add_wasi_http
+_wasmtime_component_linker_add_wasi_http.restype = ctypes.POINTER(wasmtime_error_t)
+_wasmtime_component_linker_add_wasi_http.argtypes = [ctypes.POINTER(wasmtime_component_linker_t)]
+def wasmtime_component_linker_add_wasi_http(linker: Any) -> ctypes._Pointer:
+    return _wasmtime_component_linker_add_wasi_http(linker)  # type: ignore
 
 wasmtime_component_resource_destructor_t = ctypes.CFUNCTYPE(ctypes.c_size_t, ctypes.c_void_p, ctypes.POINTER(wasmtime_context_t), ctypes.c_uint32)
 
