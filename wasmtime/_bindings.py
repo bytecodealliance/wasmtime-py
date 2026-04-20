@@ -468,6 +468,41 @@ _wasm_memorytype_limits.argtypes = [ctypes.POINTER(wasm_memorytype_t)]
 def wasm_memorytype_limits(arg0: Any) -> ctypes._Pointer:
     return _wasm_memorytype_limits(arg0)  # type: ignore
 
+class wasm_tagtype_t(ctypes.Structure):
+    pass
+
+_wasm_tagtype_delete = dll.wasm_tagtype_delete
+_wasm_tagtype_delete.restype = None
+_wasm_tagtype_delete.argtypes = [ctypes.POINTER(wasm_tagtype_t)]
+def wasm_tagtype_delete(arg0: Any) -> None:
+    return _wasm_tagtype_delete(arg0)  # type: ignore
+
+class wasm_tagtype_vec_t(ctypes.Structure):
+    _fields_ = [
+        ("size", ctypes.c_size_t),
+        ("data", ctypes.POINTER(ctypes.POINTER(wasm_tagtype_t))),
+    ]
+    size: int
+    data: ctypes._Pointer
+
+_wasm_tagtype_copy = dll.wasm_tagtype_copy
+_wasm_tagtype_copy.restype = ctypes.POINTER(wasm_tagtype_t)
+_wasm_tagtype_copy.argtypes = [ctypes.POINTER(wasm_tagtype_t)]
+def wasm_tagtype_copy(arg0: Any) -> ctypes._Pointer:
+    return _wasm_tagtype_copy(arg0)  # type: ignore
+
+_wasm_tagtype_new = dll.wasm_tagtype_new
+_wasm_tagtype_new.restype = ctypes.POINTER(wasm_tagtype_t)
+_wasm_tagtype_new.argtypes = [ctypes.POINTER(wasm_functype_t)]
+def wasm_tagtype_new(arg0: Any) -> ctypes._Pointer:
+    return _wasm_tagtype_new(arg0)  # type: ignore
+
+_wasm_tagtype_functype = dll.wasm_tagtype_functype
+_wasm_tagtype_functype.restype = ctypes.POINTER(wasm_functype_t)
+_wasm_tagtype_functype.argtypes = [ctypes.POINTER(wasm_tagtype_t)]
+def wasm_tagtype_functype(arg0: Any) -> ctypes._Pointer:
+    return _wasm_tagtype_functype(arg0)  # type: ignore
+
 class wasm_externtype_t(ctypes.Structure):
     pass
 
@@ -528,6 +563,7 @@ class wasm_externkind_enum(Enum):
     WASM_EXTERN_GLOBAL = auto()
     WASM_EXTERN_TABLE = auto()
     WASM_EXTERN_MEMORY = auto()
+    WASM_EXTERN_TAG = auto()
 
 _wasm_externtype_kind = dll.wasm_externtype_kind
 _wasm_externtype_kind.restype = wasm_externkind_t
@@ -559,6 +595,12 @@ _wasm_memorytype_as_externtype.argtypes = [ctypes.POINTER(wasm_memorytype_t)]
 def wasm_memorytype_as_externtype(arg0: Any) -> ctypes._Pointer:
     return _wasm_memorytype_as_externtype(arg0)  # type: ignore
 
+_wasm_tagtype_as_externtype = dll.wasm_tagtype_as_externtype
+_wasm_tagtype_as_externtype.restype = ctypes.POINTER(wasm_externtype_t)
+_wasm_tagtype_as_externtype.argtypes = [ctypes.POINTER(wasm_tagtype_t)]
+def wasm_tagtype_as_externtype(arg0: Any) -> ctypes._Pointer:
+    return _wasm_tagtype_as_externtype(arg0)  # type: ignore
+
 _wasm_externtype_as_functype = dll.wasm_externtype_as_functype
 _wasm_externtype_as_functype.restype = ctypes.POINTER(wasm_functype_t)
 _wasm_externtype_as_functype.argtypes = [ctypes.POINTER(wasm_externtype_t)]
@@ -582,6 +624,12 @@ _wasm_externtype_as_memorytype.restype = ctypes.POINTER(wasm_memorytype_t)
 _wasm_externtype_as_memorytype.argtypes = [ctypes.POINTER(wasm_externtype_t)]
 def wasm_externtype_as_memorytype(arg0: Any) -> ctypes._Pointer:
     return _wasm_externtype_as_memorytype(arg0)  # type: ignore
+
+_wasm_externtype_as_tagtype = dll.wasm_externtype_as_tagtype
+_wasm_externtype_as_tagtype.restype = ctypes.POINTER(wasm_tagtype_t)
+_wasm_externtype_as_tagtype.argtypes = [ctypes.POINTER(wasm_externtype_t)]
+def wasm_externtype_as_tagtype(arg0: Any) -> ctypes._Pointer:
+    return _wasm_externtype_as_tagtype(arg0)  # type: ignore
 
 _wasm_functype_as_externtype_const = dll.wasm_functype_as_externtype_const
 _wasm_functype_as_externtype_const.restype = ctypes.POINTER(wasm_externtype_t)
@@ -607,6 +655,12 @@ _wasm_memorytype_as_externtype_const.argtypes = [ctypes.POINTER(wasm_memorytype_
 def wasm_memorytype_as_externtype_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_memorytype_as_externtype_const(arg0)  # type: ignore
 
+_wasm_tagtype_as_externtype_const = dll.wasm_tagtype_as_externtype_const
+_wasm_tagtype_as_externtype_const.restype = ctypes.POINTER(wasm_externtype_t)
+_wasm_tagtype_as_externtype_const.argtypes = [ctypes.POINTER(wasm_tagtype_t)]
+def wasm_tagtype_as_externtype_const(arg0: Any) -> ctypes._Pointer:
+    return _wasm_tagtype_as_externtype_const(arg0)  # type: ignore
+
 _wasm_externtype_as_functype_const = dll.wasm_externtype_as_functype_const
 _wasm_externtype_as_functype_const.restype = ctypes.POINTER(wasm_functype_t)
 _wasm_externtype_as_functype_const.argtypes = [ctypes.POINTER(wasm_externtype_t)]
@@ -630,6 +684,12 @@ _wasm_externtype_as_memorytype_const.restype = ctypes.POINTER(wasm_memorytype_t)
 _wasm_externtype_as_memorytype_const.argtypes = [ctypes.POINTER(wasm_externtype_t)]
 def wasm_externtype_as_memorytype_const(arg0: Any) -> ctypes._Pointer:
     return _wasm_externtype_as_memorytype_const(arg0)  # type: ignore
+
+_wasm_externtype_as_tagtype_const = dll.wasm_externtype_as_tagtype_const
+_wasm_externtype_as_tagtype_const.restype = ctypes.POINTER(wasm_tagtype_t)
+_wasm_externtype_as_tagtype_const.argtypes = [ctypes.POINTER(wasm_externtype_t)]
+def wasm_externtype_as_tagtype_const(arg0: Any) -> ctypes._Pointer:
+    return _wasm_externtype_as_tagtype_const(arg0)  # type: ignore
 
 class wasm_importtype_t(ctypes.Structure):
     pass
@@ -2488,6 +2548,12 @@ _wasmtime_config_concurrency_support_set.argtypes = [ctypes.POINTER(wasm_config_
 def wasmtime_config_concurrency_support_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_concurrency_support_set(arg0, arg1)  # type: ignore
 
+_wasmtime_config_wasm_component_model_map_set = dll.wasmtime_config_wasm_component_model_map_set
+_wasmtime_config_wasm_component_model_map_set.restype = None
+_wasmtime_config_wasm_component_model_map_set.argtypes = [ctypes.POINTER(wasm_config_t), ctypes.c_bool]
+def wasmtime_config_wasm_component_model_map_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_wasm_component_model_map_set(arg0, arg1)  # type: ignore
+
 _wasmtime_engine_clone = dll.wasmtime_engine_clone
 _wasmtime_engine_clone.restype = ctypes.POINTER(wasm_engine_t)
 _wasmtime_engine_clone.argtypes = [ctypes.POINTER(wasm_engine_t)]
@@ -2505,6 +2571,132 @@ _wasmtime_engine_is_pulley.restype = ctypes.c_bool
 _wasmtime_engine_is_pulley.argtypes = [ctypes.POINTER(wasm_engine_t)]
 def wasmtime_engine_is_pulley(engine: Any) -> bool:
     return _wasmtime_engine_is_pulley(engine)  # type: ignore
+
+class wasmtime_store(ctypes.Structure):
+    pass
+
+wasmtime_store_t = wasmtime_store
+
+class wasmtime_context(ctypes.Structure):
+    pass
+
+wasmtime_context_t = wasmtime_context
+
+_wasmtime_store_new = dll.wasmtime_store_new
+_wasmtime_store_new.restype = ctypes.POINTER(wasmtime_store_t)
+_wasmtime_store_new.argtypes = [ctypes.POINTER(wasm_engine_t), ctypes.c_void_p, ctypes.CFUNCTYPE(None, ctypes.c_void_p)]
+def wasmtime_store_new(engine: Any, data: Any, finalizer: Any) -> ctypes._Pointer:
+    return _wasmtime_store_new(engine, data, finalizer)  # type: ignore
+
+_wasmtime_store_context = dll.wasmtime_store_context
+_wasmtime_store_context.restype = ctypes.POINTER(wasmtime_context_t)
+_wasmtime_store_context.argtypes = [ctypes.POINTER(wasmtime_store_t)]
+def wasmtime_store_context(store: Any) -> ctypes._Pointer:
+    return _wasmtime_store_context(store)  # type: ignore
+
+_wasmtime_store_limiter = dll.wasmtime_store_limiter
+_wasmtime_store_limiter.restype = None
+_wasmtime_store_limiter.argtypes = [ctypes.POINTER(wasmtime_store_t), ctypes.c_int64, ctypes.c_int64, ctypes.c_int64, ctypes.c_int64, ctypes.c_int64]
+def wasmtime_store_limiter(store: Any, memory_size: Any, table_elements: Any, instances: Any, tables: Any, memories: Any) -> None:
+    return _wasmtime_store_limiter(store, memory_size, table_elements, instances, tables, memories)  # type: ignore
+
+_wasmtime_store_delete = dll.wasmtime_store_delete
+_wasmtime_store_delete.restype = None
+_wasmtime_store_delete.argtypes = [ctypes.POINTER(wasmtime_store_t)]
+def wasmtime_store_delete(store: Any) -> None:
+    return _wasmtime_store_delete(store)  # type: ignore
+
+_wasmtime_context_get_data = dll.wasmtime_context_get_data
+_wasmtime_context_get_data.restype = ctypes.c_void_p
+_wasmtime_context_get_data.argtypes = [ctypes.POINTER(wasmtime_context_t)]
+def wasmtime_context_get_data(context: Any) -> ctypes._Pointer:
+    return _wasmtime_context_get_data(context)  # type: ignore
+
+_wasmtime_context_set_data = dll.wasmtime_context_set_data
+_wasmtime_context_set_data.restype = None
+_wasmtime_context_set_data.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.c_void_p]
+def wasmtime_context_set_data(context: Any, data: Any) -> None:
+    return _wasmtime_context_set_data(context, data)  # type: ignore
+
+_wasmtime_context_gc = dll.wasmtime_context_gc
+_wasmtime_context_gc.restype = ctypes.POINTER(wasmtime_error_t)
+_wasmtime_context_gc.argtypes = [ctypes.POINTER(wasmtime_context_t)]
+def wasmtime_context_gc(context: Any) -> ctypes._Pointer:
+    return _wasmtime_context_gc(context)  # type: ignore
+
+_wasmtime_context_set_fuel = dll.wasmtime_context_set_fuel
+_wasmtime_context_set_fuel.restype = ctypes.POINTER(wasmtime_error_t)
+_wasmtime_context_set_fuel.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.c_uint64]
+def wasmtime_context_set_fuel(store: Any, fuel: Any) -> ctypes._Pointer:
+    return _wasmtime_context_set_fuel(store, fuel)  # type: ignore
+
+_wasmtime_context_get_fuel = dll.wasmtime_context_get_fuel
+_wasmtime_context_get_fuel.restype = ctypes.POINTER(wasmtime_error_t)
+_wasmtime_context_get_fuel.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(ctypes.c_uint64)]
+def wasmtime_context_get_fuel(context: Any, fuel: Any) -> ctypes._Pointer:
+    return _wasmtime_context_get_fuel(context, fuel)  # type: ignore
+
+_wasmtime_context_set_wasi = dll.wasmtime_context_set_wasi
+_wasmtime_context_set_wasi.restype = ctypes.POINTER(wasmtime_error_t)
+_wasmtime_context_set_wasi.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasi_config_t)]
+def wasmtime_context_set_wasi(context: Any, wasi: Any) -> ctypes._Pointer:
+    return _wasmtime_context_set_wasi(context, wasi)  # type: ignore
+
+_wasmtime_context_set_wasi_http = dll.wasmtime_context_set_wasi_http
+_wasmtime_context_set_wasi_http.restype = None
+_wasmtime_context_set_wasi_http.argtypes = [ctypes.POINTER(wasmtime_context_t)]
+def wasmtime_context_set_wasi_http(context: Any) -> None:
+    return _wasmtime_context_set_wasi_http(context)  # type: ignore
+
+_wasmtime_context_set_epoch_deadline = dll.wasmtime_context_set_epoch_deadline
+_wasmtime_context_set_epoch_deadline.restype = None
+_wasmtime_context_set_epoch_deadline.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.c_uint64]
+def wasmtime_context_set_epoch_deadline(context: Any, ticks_beyond_current: Any) -> None:
+    return _wasmtime_context_set_epoch_deadline(context, ticks_beyond_current)  # type: ignore
+
+wasmtime_update_deadline_kind_t = ctypes.c_uint8
+
+_wasmtime_store_epoch_deadline_callback = dll.wasmtime_store_epoch_deadline_callback
+_wasmtime_store_epoch_deadline_callback.restype = None
+_wasmtime_store_epoch_deadline_callback.argtypes = [ctypes.POINTER(wasmtime_store_t), ctypes.CFUNCTYPE(ctypes.c_size_t, ctypes.POINTER(wasmtime_context_t), ctypes.c_void_p, ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(wasmtime_update_deadline_kind_t)), ctypes.c_void_p, ctypes.CFUNCTYPE(None, ctypes.c_void_p)]
+def wasmtime_store_epoch_deadline_callback(store: Any, func: Any, data: Any, finalizer: Any) -> None:
+    return _wasmtime_store_epoch_deadline_callback(store, func, data, finalizer)  # type: ignore
+
+
+class wasmtime_tag_anon_0(ctypes.Structure):
+    _fields_ = [
+        ("store_id", ctypes.c_uint64),
+        ("__private1", ctypes.c_uint32),
+    ]
+    store_id: int
+    __private1: int
+class wasmtime_tag(ctypes.Structure):
+    _fields_ = [
+        ("_anon_1", wasmtime_tag_anon_0),
+        ("__private2", ctypes.c_uint32),
+    ]
+    _anon_1: wasmtime_tag_anon_0
+    __private2: int
+
+wasmtime_tag_t = wasmtime_tag
+
+_wasmtime_tag_new = dll.wasmtime_tag_new
+_wasmtime_tag_new.restype = ctypes.POINTER(wasmtime_error_t)
+_wasmtime_tag_new.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasm_tagtype_t), ctypes.POINTER(wasmtime_tag_t)]
+def wasmtime_tag_new(store: Any, tt: Any, ret: Any) -> ctypes._Pointer:
+    return _wasmtime_tag_new(store, tt, ret)  # type: ignore
+
+_wasmtime_tag_type = dll.wasmtime_tag_type
+_wasmtime_tag_type.restype = ctypes.POINTER(wasm_tagtype_t)
+_wasmtime_tag_type.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_tag_t)]
+def wasmtime_tag_type(store: Any, tag: Any) -> ctypes._Pointer:
+    return _wasmtime_tag_type(store, tag)  # type: ignore
+
+_wasmtime_tag_eq = dll.wasmtime_tag_eq
+_wasmtime_tag_eq.restype = ctypes.c_bool
+_wasmtime_tag_eq.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_tag_t), ctypes.POINTER(wasmtime_tag_t)]
+def wasmtime_tag_eq(store: Any, a: Any, b: Any) -> bool:
+    return _wasmtime_tag_eq(store, a, b)  # type: ignore
 
 class wasmtime_module(ctypes.Structure):
     pass
@@ -2624,90 +2816,6 @@ _wasmtime_sharedmemory_grow.argtypes = [ctypes.POINTER(wasmtime_sharedmemory_t),
 def wasmtime_sharedmemory_grow(memory: Any, delta: Any, prev_size: Any) -> ctypes._Pointer:
     return _wasmtime_sharedmemory_grow(memory, delta, prev_size)  # type: ignore
 
-class wasmtime_store(ctypes.Structure):
-    pass
-
-wasmtime_store_t = wasmtime_store
-
-class wasmtime_context(ctypes.Structure):
-    pass
-
-wasmtime_context_t = wasmtime_context
-
-_wasmtime_store_new = dll.wasmtime_store_new
-_wasmtime_store_new.restype = ctypes.POINTER(wasmtime_store_t)
-_wasmtime_store_new.argtypes = [ctypes.POINTER(wasm_engine_t), ctypes.c_void_p, ctypes.CFUNCTYPE(None, ctypes.c_void_p)]
-def wasmtime_store_new(engine: Any, data: Any, finalizer: Any) -> ctypes._Pointer:
-    return _wasmtime_store_new(engine, data, finalizer)  # type: ignore
-
-_wasmtime_store_context = dll.wasmtime_store_context
-_wasmtime_store_context.restype = ctypes.POINTER(wasmtime_context_t)
-_wasmtime_store_context.argtypes = [ctypes.POINTER(wasmtime_store_t)]
-def wasmtime_store_context(store: Any) -> ctypes._Pointer:
-    return _wasmtime_store_context(store)  # type: ignore
-
-_wasmtime_store_limiter = dll.wasmtime_store_limiter
-_wasmtime_store_limiter.restype = None
-_wasmtime_store_limiter.argtypes = [ctypes.POINTER(wasmtime_store_t), ctypes.c_int64, ctypes.c_int64, ctypes.c_int64, ctypes.c_int64, ctypes.c_int64]
-def wasmtime_store_limiter(store: Any, memory_size: Any, table_elements: Any, instances: Any, tables: Any, memories: Any) -> None:
-    return _wasmtime_store_limiter(store, memory_size, table_elements, instances, tables, memories)  # type: ignore
-
-_wasmtime_store_delete = dll.wasmtime_store_delete
-_wasmtime_store_delete.restype = None
-_wasmtime_store_delete.argtypes = [ctypes.POINTER(wasmtime_store_t)]
-def wasmtime_store_delete(store: Any) -> None:
-    return _wasmtime_store_delete(store)  # type: ignore
-
-_wasmtime_context_get_data = dll.wasmtime_context_get_data
-_wasmtime_context_get_data.restype = ctypes.c_void_p
-_wasmtime_context_get_data.argtypes = [ctypes.POINTER(wasmtime_context_t)]
-def wasmtime_context_get_data(context: Any) -> ctypes._Pointer:
-    return _wasmtime_context_get_data(context)  # type: ignore
-
-_wasmtime_context_set_data = dll.wasmtime_context_set_data
-_wasmtime_context_set_data.restype = None
-_wasmtime_context_set_data.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.c_void_p]
-def wasmtime_context_set_data(context: Any, data: Any) -> None:
-    return _wasmtime_context_set_data(context, data)  # type: ignore
-
-_wasmtime_context_gc = dll.wasmtime_context_gc
-_wasmtime_context_gc.restype = ctypes.POINTER(wasmtime_error_t)
-_wasmtime_context_gc.argtypes = [ctypes.POINTER(wasmtime_context_t)]
-def wasmtime_context_gc(context: Any) -> ctypes._Pointer:
-    return _wasmtime_context_gc(context)  # type: ignore
-
-_wasmtime_context_set_fuel = dll.wasmtime_context_set_fuel
-_wasmtime_context_set_fuel.restype = ctypes.POINTER(wasmtime_error_t)
-_wasmtime_context_set_fuel.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.c_uint64]
-def wasmtime_context_set_fuel(store: Any, fuel: Any) -> ctypes._Pointer:
-    return _wasmtime_context_set_fuel(store, fuel)  # type: ignore
-
-_wasmtime_context_get_fuel = dll.wasmtime_context_get_fuel
-_wasmtime_context_get_fuel.restype = ctypes.POINTER(wasmtime_error_t)
-_wasmtime_context_get_fuel.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(ctypes.c_uint64)]
-def wasmtime_context_get_fuel(context: Any, fuel: Any) -> ctypes._Pointer:
-    return _wasmtime_context_get_fuel(context, fuel)  # type: ignore
-
-_wasmtime_context_set_wasi = dll.wasmtime_context_set_wasi
-_wasmtime_context_set_wasi.restype = ctypes.POINTER(wasmtime_error_t)
-_wasmtime_context_set_wasi.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasi_config_t)]
-def wasmtime_context_set_wasi(context: Any, wasi: Any) -> ctypes._Pointer:
-    return _wasmtime_context_set_wasi(context, wasi)  # type: ignore
-
-_wasmtime_context_set_epoch_deadline = dll.wasmtime_context_set_epoch_deadline
-_wasmtime_context_set_epoch_deadline.restype = None
-_wasmtime_context_set_epoch_deadline.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.c_uint64]
-def wasmtime_context_set_epoch_deadline(context: Any, ticks_beyond_current: Any) -> None:
-    return _wasmtime_context_set_epoch_deadline(context, ticks_beyond_current)  # type: ignore
-
-wasmtime_update_deadline_kind_t = ctypes.c_uint8
-
-_wasmtime_store_epoch_deadline_callback = dll.wasmtime_store_epoch_deadline_callback
-_wasmtime_store_epoch_deadline_callback.restype = None
-_wasmtime_store_epoch_deadline_callback.argtypes = [ctypes.POINTER(wasmtime_store_t), ctypes.CFUNCTYPE(ctypes.c_size_t, ctypes.POINTER(wasmtime_context_t), ctypes.c_void_p, ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(wasmtime_update_deadline_kind_t)), ctypes.c_void_p, ctypes.CFUNCTYPE(None, ctypes.c_void_p)]
-def wasmtime_store_epoch_deadline_callback(store: Any, func: Any, data: Any, finalizer: Any) -> None:
-    return _wasmtime_store_epoch_deadline_callback(store, func, data, finalizer)  # type: ignore
-
 class wasmtime_func(ctypes.Structure):
     _fields_ = [
         ("store_id", ctypes.c_uint64),
@@ -2777,12 +2885,14 @@ class wasmtime_extern_union(ctypes.Union):
         ("table", wasmtime_table_t),
         ("memory", wasmtime_memory_t),
         ("sharedmemory", ctypes.POINTER(wasmtime_sharedmemory)),
+        ("tag", wasmtime_tag_t),
     ]
     func: wasmtime_func_t
     global_: wasmtime_global_t
     table: wasmtime_table_t
     memory: wasmtime_memory_t
     sharedmemory: ctypes._Pointer
+    tag: wasmtime_tag_t
 
 wasmtime_extern_union_t = wasmtime_extern_union
 
@@ -2807,6 +2917,12 @@ _wasmtime_extern_type.restype = ctypes.POINTER(wasm_externtype_t)
 _wasmtime_extern_type.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_extern_t)]
 def wasmtime_extern_type(context: Any, val: Any) -> ctypes._Pointer:
     return _wasmtime_extern_type(context, val)  # type: ignore
+
+class wasmtime_eqref(ctypes.Structure):
+    pass
+
+
+wasmtime_eqref_t = wasmtime_eqref
 
 class wasmtime_anyref(ctypes.Structure):
     _fields_ = [
@@ -2851,6 +2967,12 @@ _wasmtime_anyref_from_i31.restype = None
 _wasmtime_anyref_from_i31.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.c_uint32, ctypes.POINTER(wasmtime_anyref_t)]
 def wasmtime_anyref_from_i31(context: Any, i31val: Any, out: Any) -> None:
     return _wasmtime_anyref_from_i31(context, i31val, out)  # type: ignore
+
+_wasmtime_anyref_is_i31 = dll.wasmtime_anyref_is_i31
+_wasmtime_anyref_is_i31.restype = ctypes.c_bool
+_wasmtime_anyref_is_i31.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_anyref_t)]
+def wasmtime_anyref_is_i31(context: Any, anyref: Any) -> bool:
+    return _wasmtime_anyref_is_i31(context, anyref)  # type: ignore
 
 _wasmtime_anyref_i31_get_u = dll.wasmtime_anyref_i31_get_u
 _wasmtime_anyref_i31_get_u.restype = ctypes.c_bool
@@ -2914,6 +3036,32 @@ _wasmtime_externref_to_raw.argtypes = [ctypes.POINTER(wasmtime_context_t), ctype
 def wasmtime_externref_to_raw(context: Any, ref: Any) -> int:
     return _wasmtime_externref_to_raw(context, ref)  # type: ignore
 
+class wasmtime_exnref(ctypes.Structure):
+    _fields_ = [
+        ("store_id", ctypes.c_uint64),
+        ("__private1", ctypes.c_uint32),
+        ("__private2", ctypes.c_uint32),
+        ("__private3", ctypes.c_void_p),
+    ]
+    store_id: int
+    __private1: int
+    __private2: int
+    __private3: ctypes._Pointer
+
+wasmtime_exnref_t = wasmtime_exnref
+
+_wasmtime_exnref_clone = dll.wasmtime_exnref_clone
+_wasmtime_exnref_clone.restype = None
+_wasmtime_exnref_clone.argtypes = [ctypes.POINTER(wasmtime_exnref_t), ctypes.POINTER(wasmtime_exnref_t)]
+def wasmtime_exnref_clone(ref: Any, out: Any) -> None:
+    return _wasmtime_exnref_clone(ref, out)  # type: ignore
+
+_wasmtime_exnref_unroot = dll.wasmtime_exnref_unroot
+_wasmtime_exnref_unroot.restype = None
+_wasmtime_exnref_unroot.argtypes = [ctypes.POINTER(wasmtime_exnref_t)]
+def wasmtime_exnref_unroot(ref: Any) -> None:
+    return _wasmtime_exnref_unroot(ref)  # type: ignore
+
 wasmtime_valkind_t = ctypes.c_uint8
 
 wasmtime_v128 = ctypes.c_uint8 * 16
@@ -2926,6 +3074,7 @@ class wasmtime_valunion(ctypes.Union):
         ("f64", ctypes.c_double),
         ("anyref", wasmtime_anyref_t),
         ("externref", wasmtime_externref_t),
+        ("exnref", wasmtime_exnref_t),
         ("funcref", wasmtime_func_t),
         ("v128", wasmtime_v128),
     ]
@@ -2935,6 +3084,7 @@ class wasmtime_valunion(ctypes.Union):
     f64: float
     anyref: wasmtime_anyref_t
     externref: wasmtime_externref_t
+    exnref: wasmtime_exnref_t
     funcref: wasmtime_func_t
     v128: wasmtime_v128  # type: ignore
 
@@ -2983,6 +3133,59 @@ _wasmtime_val_clone.restype = None
 _wasmtime_val_clone.argtypes = [ctypes.POINTER(wasmtime_val_t), ctypes.POINTER(wasmtime_val_t)]
 def wasmtime_val_clone(src: Any, dst: Any) -> None:
     return _wasmtime_val_clone(src, dst)  # type: ignore
+
+class wasmtime_exn(ctypes.Structure):
+    pass
+
+wasmtime_exn_t = wasmtime_exn
+
+_wasmtime_exn_delete = dll.wasmtime_exn_delete
+_wasmtime_exn_delete.restype = None
+_wasmtime_exn_delete.argtypes = [ctypes.POINTER(wasmtime_exn_t)]
+def wasmtime_exn_delete(exn: Any) -> None:
+    return _wasmtime_exn_delete(exn)  # type: ignore
+
+_wasmtime_exn_new = dll.wasmtime_exn_new
+_wasmtime_exn_new.restype = ctypes.POINTER(wasmtime_error_t)
+_wasmtime_exn_new.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_tag_t), ctypes.POINTER(wasmtime_val_t), ctypes.c_size_t, ctypes.POINTER(ctypes.POINTER(wasmtime_exn_t))]
+def wasmtime_exn_new(store: Any, tag: Any, fields: Any, nfields: Any, exn_ret: Any) -> ctypes._Pointer:
+    return _wasmtime_exn_new(store, tag, fields, nfields, exn_ret)  # type: ignore
+
+_wasmtime_exn_tag = dll.wasmtime_exn_tag
+_wasmtime_exn_tag.restype = ctypes.POINTER(wasmtime_error_t)
+_wasmtime_exn_tag.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_exn_t), ctypes.POINTER(wasmtime_tag_t)]
+def wasmtime_exn_tag(store: Any, exn: Any, tag_ret: Any) -> ctypes._Pointer:
+    return _wasmtime_exn_tag(store, exn, tag_ret)  # type: ignore
+
+_wasmtime_exn_field_count = dll.wasmtime_exn_field_count
+_wasmtime_exn_field_count.restype = ctypes.c_size_t
+_wasmtime_exn_field_count.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_exn_t)]
+def wasmtime_exn_field_count(store: Any, exn: Any) -> int:
+    return _wasmtime_exn_field_count(store, exn)  # type: ignore
+
+_wasmtime_exn_field = dll.wasmtime_exn_field
+_wasmtime_exn_field.restype = ctypes.POINTER(wasmtime_error_t)
+_wasmtime_exn_field.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_exn_t), ctypes.c_size_t, ctypes.POINTER(wasmtime_val_t)]
+def wasmtime_exn_field(store: Any, exn: Any, index: Any, val_ret: Any) -> ctypes._Pointer:
+    return _wasmtime_exn_field(store, exn, index, val_ret)  # type: ignore
+
+_wasmtime_context_set_exception = dll.wasmtime_context_set_exception
+_wasmtime_context_set_exception.restype = ctypes.POINTER(wasm_trap_t)
+_wasmtime_context_set_exception.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_exn_t)]
+def wasmtime_context_set_exception(store: Any, exn: Any) -> ctypes._Pointer:
+    return _wasmtime_context_set_exception(store, exn)  # type: ignore
+
+_wasmtime_context_take_exception = dll.wasmtime_context_take_exception
+_wasmtime_context_take_exception.restype = ctypes.c_bool
+_wasmtime_context_take_exception.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(ctypes.POINTER(wasmtime_exn_t))]
+def wasmtime_context_take_exception(store: Any, exn_ret: Any) -> bool:
+    return _wasmtime_context_take_exception(store, exn_ret)  # type: ignore
+
+_wasmtime_context_has_exception = dll.wasmtime_context_has_exception
+_wasmtime_context_has_exception.restype = ctypes.c_bool
+_wasmtime_context_has_exception.argtypes = [ctypes.POINTER(wasmtime_context_t)]
+def wasmtime_context_has_exception(store: Any) -> bool:
+    return _wasmtime_context_has_exception(store)  # type: ignore
 
 class wasmtime_caller(ctypes.Structure):
     pass
@@ -3436,6 +3639,7 @@ class wasmtime_trap_code_enum(Enum):
     WASMTIME_TRAP_CODE_BACKPRESSURE_OVERFLOW = 42
     WASMTIME_TRAP_CODE_UNSUPPORTED_CALLBACK_CODE = 43
     WASMTIME_TRAP_CODE_CANNOT_RESUME_THREAD = 44
+    WASMTIME_TRAP_CODE_CONCURRENT_FUTURE_STREAM_OP = 45
 
 _wasmtime_trap_new = dll.wasmtime_trap_new
 _wasmtime_trap_new.restype = ctypes.POINTER(wasm_trap_t)
@@ -3466,6 +3670,314 @@ _wasmtime_frame_module_name.restype = ctypes.POINTER(wasm_name_t)
 _wasmtime_frame_module_name.argtypes = [ctypes.POINTER(wasm_frame_t)]
 def wasmtime_frame_module_name(arg0: Any) -> ctypes._Pointer:
     return _wasmtime_frame_module_name(arg0)  # type: ignore
+
+wasmtime_eqref._fields_ = [
+        ("store_id", ctypes.c_uint64),
+        ("__private1", ctypes.c_uint32),
+        ("__private2", ctypes.c_uint32),
+        ("__private3", ctypes.c_void_p),
+    ]
+
+
+_wasmtime_eqref_clone = dll.wasmtime_eqref_clone
+_wasmtime_eqref_clone.restype = None
+_wasmtime_eqref_clone.argtypes = [ctypes.POINTER(wasmtime_eqref_t), ctypes.POINTER(wasmtime_eqref_t)]
+def wasmtime_eqref_clone(eqref: Any, out: Any) -> None:
+    return _wasmtime_eqref_clone(eqref, out)  # type: ignore
+
+_wasmtime_eqref_unroot = dll.wasmtime_eqref_unroot
+_wasmtime_eqref_unroot.restype = None
+_wasmtime_eqref_unroot.argtypes = [ctypes.POINTER(wasmtime_eqref_t)]
+def wasmtime_eqref_unroot(ref: Any) -> None:
+    return _wasmtime_eqref_unroot(ref)  # type: ignore
+
+_wasmtime_eqref_to_anyref = dll.wasmtime_eqref_to_anyref
+_wasmtime_eqref_to_anyref.restype = None
+_wasmtime_eqref_to_anyref.argtypes = [ctypes.POINTER(wasmtime_eqref_t), ctypes.POINTER(wasmtime_anyref_t)]
+def wasmtime_eqref_to_anyref(eqref: Any, out: Any) -> None:
+    return _wasmtime_eqref_to_anyref(eqref, out)  # type: ignore
+
+_wasmtime_eqref_from_i31 = dll.wasmtime_eqref_from_i31
+_wasmtime_eqref_from_i31.restype = None
+_wasmtime_eqref_from_i31.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.c_uint32, ctypes.POINTER(wasmtime_eqref_t)]
+def wasmtime_eqref_from_i31(context: Any, i31val: Any, out: Any) -> None:
+    return _wasmtime_eqref_from_i31(context, i31val, out)  # type: ignore
+
+_wasmtime_eqref_is_i31 = dll.wasmtime_eqref_is_i31
+_wasmtime_eqref_is_i31.restype = ctypes.c_bool
+_wasmtime_eqref_is_i31.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_eqref_t)]
+def wasmtime_eqref_is_i31(context: Any, eqref: Any) -> bool:
+    return _wasmtime_eqref_is_i31(context, eqref)  # type: ignore
+
+_wasmtime_eqref_i31_get_u = dll.wasmtime_eqref_i31_get_u
+_wasmtime_eqref_i31_get_u.restype = ctypes.c_bool
+_wasmtime_eqref_i31_get_u.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_eqref_t), ctypes.POINTER(ctypes.c_uint32)]
+def wasmtime_eqref_i31_get_u(context: Any, eqref: Any, dst: Any) -> bool:
+    return _wasmtime_eqref_i31_get_u(context, eqref, dst)  # type: ignore
+
+_wasmtime_eqref_i31_get_s = dll.wasmtime_eqref_i31_get_s
+_wasmtime_eqref_i31_get_s.restype = ctypes.c_bool
+_wasmtime_eqref_i31_get_s.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_eqref_t), ctypes.POINTER(ctypes.c_int32)]
+def wasmtime_eqref_i31_get_s(context: Any, eqref: Any, dst: Any) -> bool:
+    return _wasmtime_eqref_i31_get_s(context, eqref, dst)  # type: ignore
+
+wasmtime_storage_kind_t = ctypes.c_uint8
+
+class wasmtime_field_type(ctypes.Structure):
+    _fields_ = [
+        ("kind", wasmtime_storage_kind_t),
+        ("mutable_", ctypes.c_bool),
+    ]
+    kind: wasmtime_storage_kind_t
+    mutable_: bool
+
+wasmtime_field_type_t = wasmtime_field_type
+
+class wasmtime_struct_type(ctypes.Structure):
+    pass
+
+wasmtime_struct_type_t = wasmtime_struct_type
+
+_wasmtime_struct_type_new = dll.wasmtime_struct_type_new
+_wasmtime_struct_type_new.restype = ctypes.POINTER(wasmtime_struct_type_t)
+_wasmtime_struct_type_new.argtypes = [ctypes.POINTER(wasm_engine_t), ctypes.POINTER(wasmtime_field_type_t), ctypes.c_size_t]
+def wasmtime_struct_type_new(engine: Any, fields: Any, nfields: Any) -> ctypes._Pointer:
+    return _wasmtime_struct_type_new(engine, fields, nfields)  # type: ignore
+
+_wasmtime_struct_type_delete = dll.wasmtime_struct_type_delete
+_wasmtime_struct_type_delete.restype = None
+_wasmtime_struct_type_delete.argtypes = [ctypes.POINTER(wasmtime_struct_type_t)]
+def wasmtime_struct_type_delete(ty: Any) -> None:
+    return _wasmtime_struct_type_delete(ty)  # type: ignore
+
+class wasmtime_struct_ref_pre(ctypes.Structure):
+    pass
+
+wasmtime_struct_ref_pre_t = wasmtime_struct_ref_pre
+
+_wasmtime_struct_ref_pre_new = dll.wasmtime_struct_ref_pre_new
+_wasmtime_struct_ref_pre_new.restype = ctypes.POINTER(wasmtime_struct_ref_pre_t)
+_wasmtime_struct_ref_pre_new.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_struct_type_t)]
+def wasmtime_struct_ref_pre_new(context: Any, ty: Any) -> ctypes._Pointer:
+    return _wasmtime_struct_ref_pre_new(context, ty)  # type: ignore
+
+_wasmtime_struct_ref_pre_delete = dll.wasmtime_struct_ref_pre_delete
+_wasmtime_struct_ref_pre_delete.restype = None
+_wasmtime_struct_ref_pre_delete.argtypes = [ctypes.POINTER(wasmtime_struct_ref_pre_t)]
+def wasmtime_struct_ref_pre_delete(pre: Any) -> None:
+    return _wasmtime_struct_ref_pre_delete(pre)  # type: ignore
+
+class wasmtime_structref(ctypes.Structure):
+    _fields_ = [
+        ("store_id", ctypes.c_uint64),
+        ("__private1", ctypes.c_uint32),
+        ("__private2", ctypes.c_uint32),
+        ("__private3", ctypes.c_void_p),
+    ]
+    store_id: int
+    __private1: int
+    __private2: int
+    __private3: ctypes._Pointer
+
+wasmtime_structref_t = wasmtime_structref
+
+_wasmtime_structref_new = dll.wasmtime_structref_new
+_wasmtime_structref_new.restype = ctypes.POINTER(wasmtime_error_t)
+_wasmtime_structref_new.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_struct_ref_pre_t), ctypes.POINTER(wasmtime_val_t), ctypes.c_size_t, ctypes.POINTER(wasmtime_structref_t)]
+def wasmtime_structref_new(context: Any, pre: Any, fields: Any, nfields: Any, out: Any) -> ctypes._Pointer:
+    return _wasmtime_structref_new(context, pre, fields, nfields, out)  # type: ignore
+
+_wasmtime_structref_clone = dll.wasmtime_structref_clone
+_wasmtime_structref_clone.restype = None
+_wasmtime_structref_clone.argtypes = [ctypes.POINTER(wasmtime_structref_t), ctypes.POINTER(wasmtime_structref_t)]
+def wasmtime_structref_clone(structref: Any, out: Any) -> None:
+    return _wasmtime_structref_clone(structref, out)  # type: ignore
+
+_wasmtime_structref_unroot = dll.wasmtime_structref_unroot
+_wasmtime_structref_unroot.restype = None
+_wasmtime_structref_unroot.argtypes = [ctypes.POINTER(wasmtime_structref_t)]
+def wasmtime_structref_unroot(ref: Any) -> None:
+    return _wasmtime_structref_unroot(ref)  # type: ignore
+
+_wasmtime_structref_to_anyref = dll.wasmtime_structref_to_anyref
+_wasmtime_structref_to_anyref.restype = None
+_wasmtime_structref_to_anyref.argtypes = [ctypes.POINTER(wasmtime_structref_t), ctypes.POINTER(wasmtime_anyref_t)]
+def wasmtime_structref_to_anyref(structref: Any, out: Any) -> None:
+    return _wasmtime_structref_to_anyref(structref, out)  # type: ignore
+
+_wasmtime_structref_to_eqref = dll.wasmtime_structref_to_eqref
+_wasmtime_structref_to_eqref.restype = None
+_wasmtime_structref_to_eqref.argtypes = [ctypes.POINTER(wasmtime_structref_t), ctypes.POINTER(wasmtime_eqref_t)]
+def wasmtime_structref_to_eqref(structref: Any, out: Any) -> None:
+    return _wasmtime_structref_to_eqref(structref, out)  # type: ignore
+
+_wasmtime_structref_field = dll.wasmtime_structref_field
+_wasmtime_structref_field.restype = ctypes.POINTER(wasmtime_error_t)
+_wasmtime_structref_field.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_structref_t), ctypes.c_size_t, ctypes.POINTER(wasmtime_val_t)]
+def wasmtime_structref_field(context: Any, structref: Any, index: Any, out: Any) -> ctypes._Pointer:
+    return _wasmtime_structref_field(context, structref, index, out)  # type: ignore
+
+_wasmtime_structref_set_field = dll.wasmtime_structref_set_field
+_wasmtime_structref_set_field.restype = ctypes.POINTER(wasmtime_error_t)
+_wasmtime_structref_set_field.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_structref_t), ctypes.c_size_t, ctypes.POINTER(wasmtime_val_t)]
+def wasmtime_structref_set_field(context: Any, structref: Any, index: Any, val: Any) -> ctypes._Pointer:
+    return _wasmtime_structref_set_field(context, structref, index, val)  # type: ignore
+
+_wasmtime_eqref_is_struct = dll.wasmtime_eqref_is_struct
+_wasmtime_eqref_is_struct.restype = ctypes.c_bool
+_wasmtime_eqref_is_struct.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_eqref_t)]
+def wasmtime_eqref_is_struct(context: Any, eqref: Any) -> bool:
+    return _wasmtime_eqref_is_struct(context, eqref)  # type: ignore
+
+_wasmtime_eqref_as_struct = dll.wasmtime_eqref_as_struct
+_wasmtime_eqref_as_struct.restype = ctypes.c_bool
+_wasmtime_eqref_as_struct.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_eqref_t), ctypes.POINTER(wasmtime_structref_t)]
+def wasmtime_eqref_as_struct(context: Any, eqref: Any, out: Any) -> bool:
+    return _wasmtime_eqref_as_struct(context, eqref, out)  # type: ignore
+
+class wasmtime_array_type(ctypes.Structure):
+    pass
+
+wasmtime_array_type_t = wasmtime_array_type
+
+_wasmtime_array_type_new = dll.wasmtime_array_type_new
+_wasmtime_array_type_new.restype = ctypes.POINTER(wasmtime_array_type_t)
+_wasmtime_array_type_new.argtypes = [ctypes.POINTER(wasm_engine_t), ctypes.POINTER(wasmtime_field_type_t)]
+def wasmtime_array_type_new(engine: Any, field: Any) -> ctypes._Pointer:
+    return _wasmtime_array_type_new(engine, field)  # type: ignore
+
+_wasmtime_array_type_delete = dll.wasmtime_array_type_delete
+_wasmtime_array_type_delete.restype = None
+_wasmtime_array_type_delete.argtypes = [ctypes.POINTER(wasmtime_array_type_t)]
+def wasmtime_array_type_delete(ty: Any) -> None:
+    return _wasmtime_array_type_delete(ty)  # type: ignore
+
+class wasmtime_array_ref_pre(ctypes.Structure):
+    pass
+
+wasmtime_array_ref_pre_t = wasmtime_array_ref_pre
+
+_wasmtime_array_ref_pre_new = dll.wasmtime_array_ref_pre_new
+_wasmtime_array_ref_pre_new.restype = ctypes.POINTER(wasmtime_array_ref_pre_t)
+_wasmtime_array_ref_pre_new.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_array_type_t)]
+def wasmtime_array_ref_pre_new(context: Any, ty: Any) -> ctypes._Pointer:
+    return _wasmtime_array_ref_pre_new(context, ty)  # type: ignore
+
+_wasmtime_array_ref_pre_delete = dll.wasmtime_array_ref_pre_delete
+_wasmtime_array_ref_pre_delete.restype = None
+_wasmtime_array_ref_pre_delete.argtypes = [ctypes.POINTER(wasmtime_array_ref_pre_t)]
+def wasmtime_array_ref_pre_delete(pre: Any) -> None:
+    return _wasmtime_array_ref_pre_delete(pre)  # type: ignore
+
+class wasmtime_arrayref(ctypes.Structure):
+    _fields_ = [
+        ("store_id", ctypes.c_uint64),
+        ("__private1", ctypes.c_uint32),
+        ("__private2", ctypes.c_uint32),
+        ("__private3", ctypes.c_void_p),
+    ]
+    store_id: int
+    __private1: int
+    __private2: int
+    __private3: ctypes._Pointer
+
+wasmtime_arrayref_t = wasmtime_arrayref
+
+_wasmtime_arrayref_new = dll.wasmtime_arrayref_new
+_wasmtime_arrayref_new.restype = ctypes.POINTER(wasmtime_error_t)
+_wasmtime_arrayref_new.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_array_ref_pre_t), ctypes.POINTER(wasmtime_val_t), ctypes.c_uint32, ctypes.POINTER(wasmtime_arrayref_t)]
+def wasmtime_arrayref_new(context: Any, pre: Any, elem: Any, len: Any, out: Any) -> ctypes._Pointer:
+    return _wasmtime_arrayref_new(context, pre, elem, len, out)  # type: ignore
+
+_wasmtime_arrayref_clone = dll.wasmtime_arrayref_clone
+_wasmtime_arrayref_clone.restype = None
+_wasmtime_arrayref_clone.argtypes = [ctypes.POINTER(wasmtime_arrayref_t), ctypes.POINTER(wasmtime_arrayref_t)]
+def wasmtime_arrayref_clone(arrayref: Any, out: Any) -> None:
+    return _wasmtime_arrayref_clone(arrayref, out)  # type: ignore
+
+_wasmtime_arrayref_unroot = dll.wasmtime_arrayref_unroot
+_wasmtime_arrayref_unroot.restype = None
+_wasmtime_arrayref_unroot.argtypes = [ctypes.POINTER(wasmtime_arrayref_t)]
+def wasmtime_arrayref_unroot(ref: Any) -> None:
+    return _wasmtime_arrayref_unroot(ref)  # type: ignore
+
+_wasmtime_arrayref_to_anyref = dll.wasmtime_arrayref_to_anyref
+_wasmtime_arrayref_to_anyref.restype = None
+_wasmtime_arrayref_to_anyref.argtypes = [ctypes.POINTER(wasmtime_arrayref_t), ctypes.POINTER(wasmtime_anyref_t)]
+def wasmtime_arrayref_to_anyref(arrayref: Any, out: Any) -> None:
+    return _wasmtime_arrayref_to_anyref(arrayref, out)  # type: ignore
+
+_wasmtime_arrayref_to_eqref = dll.wasmtime_arrayref_to_eqref
+_wasmtime_arrayref_to_eqref.restype = None
+_wasmtime_arrayref_to_eqref.argtypes = [ctypes.POINTER(wasmtime_arrayref_t), ctypes.POINTER(wasmtime_eqref_t)]
+def wasmtime_arrayref_to_eqref(arrayref: Any, out: Any) -> None:
+    return _wasmtime_arrayref_to_eqref(arrayref, out)  # type: ignore
+
+_wasmtime_arrayref_len = dll.wasmtime_arrayref_len
+_wasmtime_arrayref_len.restype = ctypes.POINTER(wasmtime_error_t)
+_wasmtime_arrayref_len.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_arrayref_t), ctypes.POINTER(ctypes.c_uint32)]
+def wasmtime_arrayref_len(context: Any, arrayref: Any, out: Any) -> ctypes._Pointer:
+    return _wasmtime_arrayref_len(context, arrayref, out)  # type: ignore
+
+_wasmtime_arrayref_get = dll.wasmtime_arrayref_get
+_wasmtime_arrayref_get.restype = ctypes.POINTER(wasmtime_error_t)
+_wasmtime_arrayref_get.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_arrayref_t), ctypes.c_uint32, ctypes.POINTER(wasmtime_val_t)]
+def wasmtime_arrayref_get(context: Any, arrayref: Any, index: Any, out: Any) -> ctypes._Pointer:
+    return _wasmtime_arrayref_get(context, arrayref, index, out)  # type: ignore
+
+_wasmtime_arrayref_set = dll.wasmtime_arrayref_set
+_wasmtime_arrayref_set.restype = ctypes.POINTER(wasmtime_error_t)
+_wasmtime_arrayref_set.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_arrayref_t), ctypes.c_uint32, ctypes.POINTER(wasmtime_val_t)]
+def wasmtime_arrayref_set(context: Any, arrayref: Any, index: Any, val: Any) -> ctypes._Pointer:
+    return _wasmtime_arrayref_set(context, arrayref, index, val)  # type: ignore
+
+_wasmtime_eqref_is_array = dll.wasmtime_eqref_is_array
+_wasmtime_eqref_is_array.restype = ctypes.c_bool
+_wasmtime_eqref_is_array.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_eqref_t)]
+def wasmtime_eqref_is_array(context: Any, eqref: Any) -> bool:
+    return _wasmtime_eqref_is_array(context, eqref)  # type: ignore
+
+_wasmtime_eqref_as_array = dll.wasmtime_eqref_as_array
+_wasmtime_eqref_as_array.restype = ctypes.c_bool
+_wasmtime_eqref_as_array.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_eqref_t), ctypes.POINTER(wasmtime_arrayref_t)]
+def wasmtime_eqref_as_array(context: Any, eqref: Any, out: Any) -> bool:
+    return _wasmtime_eqref_as_array(context, eqref, out)  # type: ignore
+
+_wasmtime_anyref_is_eqref = dll.wasmtime_anyref_is_eqref
+_wasmtime_anyref_is_eqref.restype = ctypes.c_bool
+_wasmtime_anyref_is_eqref.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_anyref_t)]
+def wasmtime_anyref_is_eqref(context: Any, anyref: Any) -> bool:
+    return _wasmtime_anyref_is_eqref(context, anyref)  # type: ignore
+
+_wasmtime_anyref_as_eqref = dll.wasmtime_anyref_as_eqref
+_wasmtime_anyref_as_eqref.restype = ctypes.c_bool
+_wasmtime_anyref_as_eqref.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_anyref_t), ctypes.POINTER(wasmtime_eqref_t)]
+def wasmtime_anyref_as_eqref(context: Any, anyref: Any, out: Any) -> bool:
+    return _wasmtime_anyref_as_eqref(context, anyref, out)  # type: ignore
+
+_wasmtime_anyref_is_struct = dll.wasmtime_anyref_is_struct
+_wasmtime_anyref_is_struct.restype = ctypes.c_bool
+_wasmtime_anyref_is_struct.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_anyref_t)]
+def wasmtime_anyref_is_struct(context: Any, anyref: Any) -> bool:
+    return _wasmtime_anyref_is_struct(context, anyref)  # type: ignore
+
+_wasmtime_anyref_as_struct = dll.wasmtime_anyref_as_struct
+_wasmtime_anyref_as_struct.restype = ctypes.c_bool
+_wasmtime_anyref_as_struct.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_anyref_t), ctypes.POINTER(wasmtime_structref_t)]
+def wasmtime_anyref_as_struct(context: Any, anyref: Any, out: Any) -> bool:
+    return _wasmtime_anyref_as_struct(context, anyref, out)  # type: ignore
+
+_wasmtime_anyref_is_array = dll.wasmtime_anyref_is_array
+_wasmtime_anyref_is_array.restype = ctypes.c_bool
+_wasmtime_anyref_is_array.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_anyref_t)]
+def wasmtime_anyref_is_array(context: Any, anyref: Any) -> bool:
+    return _wasmtime_anyref_is_array(context, anyref)  # type: ignore
+
+_wasmtime_anyref_as_array = dll.wasmtime_anyref_as_array
+_wasmtime_anyref_as_array.restype = ctypes.c_bool
+_wasmtime_anyref_as_array.argtypes = [ctypes.POINTER(wasmtime_context_t), ctypes.POINTER(wasmtime_anyref_t), ctypes.POINTER(wasmtime_arrayref_t)]
+def wasmtime_anyref_as_array(context: Any, anyref: Any, out: Any) -> bool:
+    return _wasmtime_anyref_as_array(context, anyref, out)  # type: ignore
 
 _wasmtime_config_async_stack_size_set = dll.wasmtime_config_async_stack_size_set
 _wasmtime_config_async_stack_size_set.restype = None
@@ -3932,6 +4444,41 @@ _wasmtime_component_stream_type_ty.argtypes = [ctypes.POINTER(wasmtime_component
 def wasmtime_component_stream_type_ty(ty: Any, type_ret: Any) -> bool:
     return _wasmtime_component_stream_type_ty(ty, type_ret)  # type: ignore
 
+class wasmtime_component_map_type(ctypes.Structure):
+    pass
+
+wasmtime_component_map_type_t = wasmtime_component_map_type
+
+_wasmtime_component_map_type_clone = dll.wasmtime_component_map_type_clone
+_wasmtime_component_map_type_clone.restype = ctypes.POINTER(wasmtime_component_map_type_t)
+_wasmtime_component_map_type_clone.argtypes = [ctypes.POINTER(wasmtime_component_map_type_t)]
+def wasmtime_component_map_type_clone(ty: Any) -> ctypes._Pointer:
+    return _wasmtime_component_map_type_clone(ty)  # type: ignore
+
+_wasmtime_component_map_type_equal = dll.wasmtime_component_map_type_equal
+_wasmtime_component_map_type_equal.restype = ctypes.c_bool
+_wasmtime_component_map_type_equal.argtypes = [ctypes.POINTER(wasmtime_component_map_type_t), ctypes.POINTER(wasmtime_component_map_type_t)]
+def wasmtime_component_map_type_equal(a: Any, b: Any) -> bool:
+    return _wasmtime_component_map_type_equal(a, b)  # type: ignore
+
+_wasmtime_component_map_type_delete = dll.wasmtime_component_map_type_delete
+_wasmtime_component_map_type_delete.restype = None
+_wasmtime_component_map_type_delete.argtypes = [ctypes.POINTER(wasmtime_component_map_type_t)]
+def wasmtime_component_map_type_delete(ptr: Any) -> None:
+    return _wasmtime_component_map_type_delete(ptr)  # type: ignore
+
+_wasmtime_component_map_type_key = dll.wasmtime_component_map_type_key
+_wasmtime_component_map_type_key.restype = None
+_wasmtime_component_map_type_key.argtypes = [ctypes.POINTER(wasmtime_component_map_type_t), ctypes.POINTER(wasmtime_component_valtype_t)]
+def wasmtime_component_map_type_key(ty: Any, type_ret: Any) -> None:
+    return _wasmtime_component_map_type_key(ty, type_ret)  # type: ignore
+
+_wasmtime_component_map_type_value = dll.wasmtime_component_map_type_value
+_wasmtime_component_map_type_value.restype = None
+_wasmtime_component_map_type_value.argtypes = [ctypes.POINTER(wasmtime_component_map_type_t), ctypes.POINTER(wasmtime_component_valtype_t)]
+def wasmtime_component_map_type_value(ty: Any, type_ret: Any) -> None:
+    return _wasmtime_component_map_type_value(ty, type_ret)  # type: ignore
+
 wasmtime_component_valtype_kind_t = ctypes.c_uint8
 
 class wasmtime_component_valtype_union(ctypes.Union):
@@ -3948,6 +4495,7 @@ class wasmtime_component_valtype_union(ctypes.Union):
         ("borrow", ctypes.POINTER(wasmtime_component_resource_type_t)),
         ("future", ctypes.POINTER(wasmtime_component_future_type_t)),
         ("stream", ctypes.POINTER(wasmtime_component_stream_type_t)),
+        ("map", ctypes.POINTER(wasmtime_component_map_type_t)),
     ]
     list: ctypes._Pointer
     record: ctypes._Pointer
@@ -3961,6 +4509,7 @@ class wasmtime_component_valtype_union(ctypes.Union):
     borrow: ctypes._Pointer
     future: ctypes._Pointer
     stream: ctypes._Pointer
+    map: ctypes._Pointer
 
 wasmtime_component_valtype_union_t = wasmtime_component_valtype_union
 
@@ -4357,6 +4906,9 @@ class wasmtime_component_val(ctypes.Structure):
 class wasmtime_component_valrecord_entry(ctypes.Structure):
     pass
 
+class wasmtime_component_valmap_entry(ctypes.Structure):
+    pass
+
 class wasmtime_component_vallist(ctypes.Structure):
     _fields_ = [
         ("size", ctypes.c_size_t),
@@ -4517,6 +5069,46 @@ _wasmtime_component_valflags_delete.argtypes = [ctypes.POINTER(wasmtime_componen
 def wasmtime_component_valflags_delete(value: Any) -> None:
     return _wasmtime_component_valflags_delete(value)  # type: ignore
 
+class wasmtime_component_valmap(ctypes.Structure):
+    _fields_ = [
+        ("size", ctypes.c_size_t),
+        ("data", ctypes.POINTER(wasmtime_component_valmap_entry)),
+    ]
+    size: int
+    data: ctypes._Pointer
+
+wasmtime_component_valmap_t = wasmtime_component_valmap
+
+_wasmtime_component_valmap_new = dll.wasmtime_component_valmap_new
+_wasmtime_component_valmap_new.restype = None
+_wasmtime_component_valmap_new.argtypes = [ctypes.POINTER(wasmtime_component_valmap_t), ctypes.c_size_t, ctypes.POINTER(wasmtime_component_valmap_entry)]
+def wasmtime_component_valmap_new(out: Any, size: Any, ptr: Any) -> None:
+    return _wasmtime_component_valmap_new(out, size, ptr)  # type: ignore
+
+_wasmtime_component_valmap_new_empty = dll.wasmtime_component_valmap_new_empty
+_wasmtime_component_valmap_new_empty.restype = None
+_wasmtime_component_valmap_new_empty.argtypes = [ctypes.POINTER(wasmtime_component_valmap_t)]
+def wasmtime_component_valmap_new_empty(out: Any) -> None:
+    return _wasmtime_component_valmap_new_empty(out)  # type: ignore
+
+_wasmtime_component_valmap_new_uninit = dll.wasmtime_component_valmap_new_uninit
+_wasmtime_component_valmap_new_uninit.restype = None
+_wasmtime_component_valmap_new_uninit.argtypes = [ctypes.POINTER(wasmtime_component_valmap_t), ctypes.c_size_t]
+def wasmtime_component_valmap_new_uninit(out: Any, size: Any) -> None:
+    return _wasmtime_component_valmap_new_uninit(out, size)  # type: ignore
+
+_wasmtime_component_valmap_copy = dll.wasmtime_component_valmap_copy
+_wasmtime_component_valmap_copy.restype = None
+_wasmtime_component_valmap_copy.argtypes = [ctypes.POINTER(wasmtime_component_valmap_t), ctypes.POINTER(wasmtime_component_valmap_t)]
+def wasmtime_component_valmap_copy(dst: Any, src: Any) -> None:
+    return _wasmtime_component_valmap_copy(dst, src)  # type: ignore
+
+_wasmtime_component_valmap_delete = dll.wasmtime_component_valmap_delete
+_wasmtime_component_valmap_delete.restype = None
+_wasmtime_component_valmap_delete.argtypes = [ctypes.POINTER(wasmtime_component_valmap_t)]
+def wasmtime_component_valmap_delete(value: Any) -> None:
+    return _wasmtime_component_valmap_delete(value)  # type: ignore
+
 class wasmtime_component_valvariant(ctypes.Structure):
     _fields_ = [
         ("discriminant", wasm_name_t),
@@ -4560,6 +5152,7 @@ class wasmtime_component_valunion(ctypes.Union):
         ("option", ctypes.POINTER(wasmtime_component_val)),
         ("result", wasmtime_component_valresult_t),
         ("flags", wasmtime_component_valflags_t),
+        ("map", wasmtime_component_valmap_t),
         ("resource", ctypes.POINTER(wasmtime_component_resource_any_t)),
     ]
     boolean: bool
@@ -4583,6 +5176,7 @@ class wasmtime_component_valunion(ctypes.Union):
     option: ctypes._Pointer
     result: wasmtime_component_valresult_t
     flags: wasmtime_component_valflags_t
+    map: wasmtime_component_valmap_t
     resource: ctypes._Pointer
 
 wasmtime_component_valunion_t = wasmtime_component_valunion
@@ -4600,6 +5194,13 @@ wasmtime_component_valrecord_entry._fields_ = [
     ]
 
 wasmtime_component_valrecord_entry_t = wasmtime_component_valrecord_entry
+
+wasmtime_component_valmap_entry._fields_ = [
+        ("key", wasmtime_component_val_t),
+        ("value", wasmtime_component_val_t),
+    ]
+
+wasmtime_component_valmap_entry_t = wasmtime_component_valmap_entry
 
 _wasmtime_component_val_new = dll.wasmtime_component_val_new
 _wasmtime_component_val_new.restype = ctypes.POINTER(wasmtime_component_val_t)
@@ -4750,6 +5351,12 @@ _wasmtime_component_linker_add_wasip2.restype = ctypes.POINTER(wasmtime_error_t)
 _wasmtime_component_linker_add_wasip2.argtypes = [ctypes.POINTER(wasmtime_component_linker_t)]
 def wasmtime_component_linker_add_wasip2(linker: Any) -> ctypes._Pointer:
     return _wasmtime_component_linker_add_wasip2(linker)  # type: ignore
+
+_wasmtime_component_linker_add_wasi_http = dll.wasmtime_component_linker_add_wasi_http
+_wasmtime_component_linker_add_wasi_http.restype = ctypes.POINTER(wasmtime_error_t)
+_wasmtime_component_linker_add_wasi_http.argtypes = [ctypes.POINTER(wasmtime_component_linker_t)]
+def wasmtime_component_linker_add_wasi_http(linker: Any) -> ctypes._Pointer:
+    return _wasmtime_component_linker_add_wasi_http(linker)  # type: ignore
 
 wasmtime_component_resource_destructor_t = ctypes.CFUNCTYPE(ctypes.c_size_t, ctypes.c_void_p, ctypes.POINTER(wasmtime_context_t), ctypes.c_uint32)
 
