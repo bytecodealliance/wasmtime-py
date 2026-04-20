@@ -21,6 +21,7 @@ class Visitor(c_ast.NodeVisitor):
         self.ret += 'from typing import Any\n'
         self.ret += 'from enum import Enum, auto\n'
         self.ret += 'from ._ffi import dll, wasm_val_t, wasm_ref_t\n'
+        self.typedefs = {}
         self.forward_declared = {}
 
     # Skip all function definitions, we don't bind those
@@ -37,6 +38,8 @@ class Visitor(c_ast.NodeVisitor):
 
         self.ret += "\n"
         if not node.decls:
+            if node.name in self.forward_declared:
+                return
             self.forward_declared[node.name] = True
             self.ret += "class {}(ctypes.Structure):\n".format(node.name)
             self.ret += "    pass\n"
@@ -99,6 +102,9 @@ class Visitor(c_ast.NodeVisitor):
         if not node.name or not node.name.startswith('was'):
             return
 
+        if node.name in self.forward_declared and node.name == 'wasmtime_eqref':
+            return
+
         # Given anonymous structs in typedefs names by default.
         if isinstance(node.type, c_ast.TypeDecl):
             if isinstance(node.type.type, c_ast.Struct) or \
@@ -114,6 +120,9 @@ class Visitor(c_ast.NodeVisitor):
             if isinstance(node.type, c_ast.ArrayDecl):
                 self.ret += "{} = {} * {}\n".format(node.name, type_name(node.type.type), node.type.dim.value)
             else:
+                if node.name in self.typedefs:
+                    return
+                self.typedefs[node.name] = type_name(node.type)
                 self.ret += "{} = {}\n".format(node.name, type_name(node.type))
 
     def visit_FuncDecl(self, node):
@@ -135,6 +144,20 @@ class Visitor(c_ast.NodeVisitor):
         # with this binding generator, but for now this isn't used anyway so
         # just skip it.
         if name == 'wasm_frame_instance':
+            return
+
+        # FIXME(bytecodealliance/wasmtime#13149)
+        if name == 'wasm_tagtype_vec_new_empty':
+            return
+        if name == 'wasm_tagtype_vec_new_uninitialized':
+            return
+        if name == 'wasm_tagtype_vec_new':
+            return
+        if name == 'wasm_tagtype_vec_copy':
+            return
+        if name == 'wasm_tagtype_vec_delete':
+            return
+        if name == 'wasmtime_anyref_to_eqref':
             return
 
         ret = ty.type
