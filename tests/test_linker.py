@@ -159,3 +159,63 @@ class TestLinker(unittest.TestCase):
         assert(called['hits'] == 1)
         linker.instantiate(Store(engine), module)
         assert(called['hits'] == 2)
+
+    def test_define_unknown_imports_as_traps(self):
+        engine = Engine()
+        linker = Linker(engine)
+        module = Module(engine, """
+            (module
+                (import "env" "missing" (func))
+            )
+        """)
+        linker.define_unknown_imports_as_traps(module)
+        store = Store(engine)
+        instance = linker.instantiate(store, module)
+        self.assertIsNotNone(instance)
+
+        with self.assertRaises(TypeError):
+            linker.define_unknown_imports_as_traps("not a module")  # type: ignore
+
+    def test_define_unknown_imports_as_default_values(self):
+        engine = Engine()
+        linker = Linker(engine)
+        module = Module(engine, """
+            (module
+                (import "env" "missing" (func (result i32)))
+            )
+        """)
+        store = Store(engine)
+        linker.define_unknown_imports_as_default_values(store, module)
+        instance = linker.instantiate(store, module)
+        self.assertIsNotNone(instance)
+
+        with self.assertRaises(TypeError):
+            linker.define_unknown_imports_as_default_values(store, "not a module")  # type: ignore
+
+    def test_instantiate_pre(self):
+        engine = Engine()
+        linker = Linker(engine)
+        module = Module(engine, """
+            (module
+                (func (export "f") (result i32)
+                    i32.const 42
+                )
+            )
+        """)
+        pre = linker.instantiate_pre(module)
+        self.assertIsNotNone(pre)
+
+        store1 = Store(engine)
+        instance1 = pre.instantiate(store1)
+        f1 = instance1.exports(store1)["f"]
+        assert isinstance(f1, Func)
+        self.assertEqual(f1(store1), 42)
+
+        store2 = Store(engine)
+        instance2 = pre.instantiate(store2)
+        f2 = instance2.exports(store2)["f"]
+        assert isinstance(f2, Func)
+        self.assertEqual(f2(store2), 42)
+
+        with self.assertRaises(TypeError):
+            linker.instantiate_pre("not a module")  # type: ignore
