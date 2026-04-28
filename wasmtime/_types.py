@@ -346,6 +346,22 @@ class MemoryType(Managed["ctypes._Pointer[ffi.wasm_memorytype_t]"]):
         """
         return ffi.wasmtime_memorytype_isshared(self.ptr())
 
+    @property
+    def page_size(self) -> int:
+        """
+        Returns the page size, in bytes, of this memory type.
+
+        Defaults to 65536 (64 KiB). The custom-page-sizes proposal allows
+        opting into a page size of 1.
+        """
+        return ffi.wasmtime_memorytype_page_size(self.ptr())
+
+    @property
+    def page_size_log2(self) -> int:
+        """
+        Returns the log2 of this memory type's page size, in bytes.
+        """
+        return int(ffi.wasmtime_memorytype_page_size_log2(self.ptr()))
 
     def _as_extern(self) -> "ctypes._Pointer[ffi.wasm_externtype_t]":
         return ffi.wasm_memorytype_as_externtype_const(self.ptr())

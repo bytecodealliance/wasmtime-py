@@ -141,6 +141,23 @@ class Memory:
 
         return ffi.wasmtime_memory_data_size(store._context(), ctypes.byref(self._memory))
 
+    def page_size(self, store: Storelike) -> int:
+        """
+        Returns the page size, in bytes, for this memory.
+
+        WebAssembly memories are made up of a whole number of pages, so the
+        byte size is always a multiple of the page size. Defaults to 65536
+        (64 KiB). The custom-page-sizes proposal allows opting into a page
+        size of 1.
+        """
+        return ffi.wasmtime_memory_page_size(store._context(), ctypes.byref(self._memory))
+
+    def page_size_log2(self, store: Storelike) -> int:
+        """
+        Returns the log2 of this memory's page size, in bytes.
+        """
+        return int(ffi.wasmtime_memory_page_size_log2(store._context(), ctypes.byref(self._memory)))
+
     def _as_extern(self) -> ffi.wasmtime_extern_t:
         union = ffi.wasmtime_extern_union(memory=self._memory)
         return ffi.wasmtime_extern_t(ffi.WASMTIME_EXTERN_MEMORY, union)
