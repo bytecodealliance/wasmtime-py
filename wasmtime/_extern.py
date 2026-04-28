@@ -5,7 +5,7 @@ from wasmtime import WasmtimeError, Managed
 
 
 def wrap_extern(ptr: ffi.wasmtime_extern_t) -> AsExtern:
-    from wasmtime import Func, Table, Global, Memory, SharedMemory
+    from wasmtime import Func, Table, Global, Memory, SharedMemory, Tag
 
     if ptr.kind == ffi.WASMTIME_EXTERN_FUNC.value:
         return Func._from_raw(ptr.of.func)
@@ -17,11 +17,13 @@ def wrap_extern(ptr: ffi.wasmtime_extern_t) -> AsExtern:
         return Memory._from_raw(ptr.of.memory)
     if ptr.kind == ffi.WASMTIME_EXTERN_SHAREDMEMORY.value:
         return SharedMemory._from_ptr(ptr.of.sharedmemory)
+    if ptr.kind == ffi.WASMTIME_EXTERN_TAG.value:
+        return Tag._from_raw(ptr.of.tag)
     raise WasmtimeError("unknown extern")
 
 
 def get_extern_ptr(item: AsExtern) -> ffi.wasmtime_extern_t:
-    from wasmtime import Func, Table, Global, Memory, SharedMemory
+    from wasmtime import Func, Table, Global, Memory, SharedMemory, Tag
 
     if isinstance(item, Func):
         return item._as_extern()
@@ -31,10 +33,12 @@ def get_extern_ptr(item: AsExtern) -> ffi.wasmtime_extern_t:
         return item._as_extern()
     elif isinstance(item, SharedMemory):
         return item._as_extern()
+    elif isinstance(item, Tag):
+        return item._as_extern()
     elif isinstance(item, Table):
         return item._as_extern()
     else:
-        raise TypeError("expected a Func, Global, Memory, or Table")
+        raise TypeError("expected a Func, Global, Memory, SharedMemory, Tag, or Table")
 
 
 class Extern(Managed["ctypes._Pointer[ffi.wasm_extern_t]"]):

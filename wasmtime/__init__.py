@@ -19,7 +19,7 @@ from ._config import Config
 from ._engine import Engine
 from ._store import Store, Storelike, StoreContext
 from ._types import FuncType, GlobalType, MemoryType, TableType
-from ._types import ValType, Limits, ImportType, ExportType
+from ._types import ValType, Limits, ImportType, ExportType, TagType
 from ._wat2wasm import wat2wasm
 from ._module import Module
 from ._value import Val
@@ -31,6 +31,7 @@ from ._memory import Memory
 from ._instance import Instance
 from ._wasi import WasiConfig, FilePerms, DirPerms
 from ._linker import Linker
+from ._tag import Tag
 from ._instance_pre import InstancePre
 from ._sharedmemory import SharedMemory
 
@@ -66,5 +67,7 @@ __all__ = [
     'Linker',
     'WasmtimeError',
     'StoreContext',
+    'TagType',
+    'Tag',
     'InstancePre',
 ]
