@@ -29,6 +29,76 @@ class TrapCode(Enum):
     UNREACHABLE = 9
     # Execution has potentially run too long and may be interrupted.
     INTERRUPT = 10
+    # Execution has run out of the configured fuel amount.
+    OUT_OF_FUEL = 11
+    # Atomic wait on non-shared memory.
+    ATOMIC_WAIT_NON_SHARED_MEMORY = 12
+    # Call to a null reference.
+    NULL_REFERENCE = 13
+    # Attempt to access beyond the bounds of an array.
+    ARRAY_OUT_OF_BOUNDS = 14
+    # Attempted an allocation that was too large to succeed.
+    ALLOCATION_TOO_LARGE = 15
+    # Attempted to cast a reference to a type that it is not an instance of.
+    CAST_FAILURE = 16
+    # A component tried to call another component in violation of the reentrance rules.
+    CANNOT_ENTER_COMPONENT = 17
+    # Async-lifted export failed to produce a result before returning STATUS_DONE.
+    NO_ASYNC_RESULT = 18
+    # Suspending to a tag for which there is no active handler.
+    UNHANDLED_TAG = 19
+    # Attempt to resume a continuation twice.
+    CONTINUATION_ALREADY_CONSUMED = 20
+    # A Pulley opcode was executed that was disabled at compile time.
+    DISABLED_OPCODE = 21
+    # Async event loop deadlocked.
+    ASYNC_DEADLOCK = 22
+    # A component tried to call an import when it was not allowed to.
+    CANNOT_LEAVE_COMPONENT = 23
+    # A synchronous task attempted a potentially blocking call before returning.
+    CANNOT_BLOCK_SYNC_TASK = 24
+    # A component tried to lift a char with an invalid bit pattern.
+    INVALID_CHAR = 25
+    # Debug assertion: string encoding not finished.
+    DEBUG_ASSERT_STRING_ENCODING_FINISHED = 26
+    # Debug assertion: equal code units.
+    DEBUG_ASSERT_EQUAL_CODE_UNITS = 27
+    # Debug assertion: pointer aligned.
+    DEBUG_ASSERT_POINTER_ALIGNED = 28
+    # Debug assertion: upper bits unset.
+    DEBUG_ASSERT_UPPER_BITS_UNSET = 29
+    # A component tried to lift or lower a string past the end of its memory.
+    STRING_OUT_OF_BOUNDS = 30
+    # A component tried to lift or lower a list past the end of its memory.
+    LIST_OUT_OF_BOUNDS = 31
+    # A component used an invalid discriminant when lowering a variant value.
+    INVALID_DISCRIMINANT = 32
+    # A component passed an unaligned pointer when lifting or lowering a value.
+    UNALIGNED_POINTER = 33
+    # task.cancel invoked in an invalid way.
+    TASK_CANCEL_NOT_CANCELLED = 34
+    # task.cancel or task.return called too many times.
+    TASK_CANCEL_OR_RETURN_TWICE = 35
+    # subtask.cancel invoked after the subtask already finished.
+    SUBTASK_CANCEL_AFTER_TERMINAL = 36
+    # task.return invoked with an invalid type.
+    TASK_RETURN_INVALID = 37
+    # waitable-set.drop invoked on a waitable set with waiters.
+    WAITABLE_SET_DROP_HAS_WAITERS = 38
+    # subtask.drop invoked on a subtask that hasn't resolved yet.
+    SUBTASK_DROP_NOT_RESOLVED = 39
+    # thread.new-indirect invoked with a function that has an invalid type.
+    THREAD_NEW_INDIRECT_INVALID_TYPE = 40
+    # thread.new-indirect invoked with an uninitialized function reference.
+    THREAD_NEW_INDIRECT_UNINITIALIZED = 41
+    # Backpressure-related intrinsics overflowed the built-in counter.
+    BACKPRESSURE_OVERFLOW = 42
+    # Invalid code returned from the callback of an async-lifted function.
+    UNSUPPORTED_CALLBACK_CODE = 43
+    # Cannot resume a thread which is not suspended.
+    CANNOT_RESUME_THREAD = 44
+    # Cannot issue a read/write on a future/stream while there is a pending operation.
+    CONCURRENT_FUTURE_STREAM_OP = 45
 
 
 class Trap(Exception, Managed["ctypes._Pointer[ffi.wasm_trap_t]"]):
