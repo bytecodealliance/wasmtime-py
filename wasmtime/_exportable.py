@@ -6,5 +6,6 @@ if typing.TYPE_CHECKING:
     from ._memory import Memory
     from ._sharedmemory import SharedMemory
     from ._table import Table
+    from ._tag import Tag
 
-AsExtern = typing.Union["Func", "Table", "Memory", "SharedMemory",  "Global"]
+AsExtern = typing.Union["Func", "Table", "Memory", "SharedMemory", "Global", "Tag"]

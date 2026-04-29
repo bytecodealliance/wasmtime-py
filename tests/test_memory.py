@@ -104,3 +104,23 @@ class TestMemory(unittest.TestCase):
         self.assertEqual(memory.write(store, ba, -ba_size), ba_size)
         out = memory.read(store, -ba_size)
         self.assertEqual(ba, out)
+
+    def test_page_size_default(self):
+        store = Store()
+        ty = MemoryType(Limits(1, None))
+        self.assertEqual(ty.page_size, 65536)
+        self.assertEqual(ty.page_size_log2, 16)
+        memory = Memory(store, ty)
+        self.assertEqual(memory.page_size(store), 65536)
+        self.assertEqual(memory.page_size_log2(store), 16)
+
+    def test_page_size_custom(self):
+        config = Config()
+        config.wasm_custom_page_sizes = True
+        store = Store(Engine(config))
+        ty = MemoryType(Limits(1, None), page_size_log2=0)
+        self.assertEqual(ty.page_size, 1)
+        self.assertEqual(ty.page_size_log2, 0)
+        memory = Memory(store, ty)
+        self.assertEqual(memory.page_size(store), 1)
+        self.assertEqual(memory.page_size_log2(store), 0)

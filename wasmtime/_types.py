@@ -346,6 +346,22 @@ class MemoryType(Managed["ctypes._Pointer[ffi.wasm_memorytype_t]"]):
         """
         return ffi.wasmtime_memorytype_isshared(self.ptr())
 
+    @property
+    def page_size(self) -> int:
+        """
+        Returns the page size, in bytes, of this memory type.
+
+        Defaults to 65536 (64 KiB). The custom-page-sizes proposal allows
+        opting into a page size of 1.
+        """
+        return ffi.wasmtime_memorytype_page_size(self.ptr())
+
+    @property
+    def page_size_log2(self) -> int:
+        """
+        Returns the log2 of this memory type's page size, in bytes.
+        """
+        return int(ffi.wasmtime_memorytype_page_size_log2(self.ptr()))
 
     def _as_extern(self) -> "ctypes._Pointer[ffi.wasm_externtype_t]":
         return ffi.wasm_memorytype_as_externtype_const(self.ptr())
@@ -366,6 +382,9 @@ def wrap_externtype(ptr: "ctypes._Pointer[ffi.wasm_externtype_t]", owner: Option
     val = ffi.wasm_externtype_as_memorytype(ptr)
     if val:
         return MemoryType._from_ptr(val, owner)
+    val = ffi.wasm_externtype_as_tagtype(ptr)
+    if val:
+        return TagType._from_ptr(val, owner)
     raise WasmtimeError("unknown extern type")
 
 
@@ -448,4 +467,49 @@ class ExportType(Managed["ctypes._Pointer[ffi.wasm_exporttype_t]"]):
         return wrap_externtype(ptr, self._owner or self)
 
 
-AsExternType = Union[FuncType, TableType, MemoryType, GlobalType]
+class TagType(Managed["ctypes._Pointer[ffi.wasm_tagtype_t]"]):
+    """
+    Represents the type of a WebAssembly tag (used in exception handling and
+    stack-switching).
+
+    A `TagType` wraps a function type that describes the payload of exceptions
+    of this tag or types for stack switching.
+    """
+    _owner: Optional[Any]
+
+    def __init__(self, functype: FuncType) -> None:
+        if not isinstance(functype, FuncType):
+            raise TypeError("expected a FuncType")
+        ptr = ffi.wasm_tagtype_new(functype._consume())
+        if not ptr:
+            raise WasmtimeError("failed to allocate TagType")
+        self._set_ptr(ptr)
+        self._owner = None
+
+    def _delete(self, ptr: "ctypes._Pointer[ffi.wasm_tagtype_t]") -> None:
+        if self._owner is None:
+            ffi.wasm_tagtype_delete(ptr)
+
+    @classmethod
+    def _from_ptr(cls, ptr: "ctypes._Pointer[ffi.wasm_tagtype_t]", owner: Optional[Any] = None) -> "TagType":
+        if not isinstance(ptr, POINTER(ffi.wasm_tagtype_t)):
+            raise TypeError("wrong pointer type")
+        ty: "TagType" = cls.__new__(cls)
+        ty._set_ptr(ptr)
+        ty._owner = owner
+        return ty
+
+    def ptr(self) -> "ctypes._Pointer[ffi.wasm_tagtype_t]":
+        return super().ptr()
+
+    @property
+    def functype(self) -> FuncType:
+        """Returns the function type that describes the tag's payload."""
+        ptr = ffi.wasm_tagtype_functype(self.ptr())
+        return FuncType._from_ptr(ptr, self)
+
+    def _as_extern(self) -> "ctypes._Pointer[ffi.wasm_externtype_t]":
+        return ffi.wasm_tagtype_as_externtype_const(self.ptr())
+
+
+AsExternType = Union[FuncType, TableType, MemoryType, GlobalType, TagType]

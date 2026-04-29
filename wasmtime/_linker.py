@@ -9,6 +9,7 @@ from ._exportable import AsExtern
 from ._store import Storelike
 from ._func import enter_wasm, trampoline, FUNCTIONS, finalize
 from typing import Callable
+from ._instance_pre import InstancePre
 
 
 class Linker(Managed["ctypes._Pointer[ffi.wasmtime_linker_t]"]):
@@ -205,3 +206,55 @@ class Linker(Managed["ctypes._Pointer[ffi.wasmtime_linker_t]"]):
         if ok:
             return wrap_extern(item)
         raise WasmtimeError("item not defined in linker")
+
+    def define_unknown_imports_as_traps(self, module: Module) -> None:
+        """
+        Defines all currently-unknown imports of `module` as functions that
+        unconditionally trap when called.
+
+        This is useful when you want to instantiate a module whose imports
+        aren't fully known yet and are willing to trap on any call to an
+        unresolved import.
+        """
+        if not isinstance(module, Module):
+            raise TypeError("expected a `Module`")
+        error = ffi.wasmtime_linker_define_unknown_imports_as_traps(
+            self.ptr(), module.ptr())
+        if error:
+            raise WasmtimeError._from_ptr(error)
+
+    def define_unknown_imports_as_default_values(self, store: Storelike, module: Module) -> None:
+        """
+        Defines all currently-unknown imports of `module` as default values
+        (zero for numerics, null for references, etc.).
+
+        This is similar to `define_unknown_imports_as_traps` but instead
+        of trapping the imported functions return appropriate zero/default
+        values.
+        """
+        if not isinstance(module, Module):
+            raise TypeError("expected a `Module`")
+        error = ffi.wasmtime_linker_define_unknown_imports_as_default_values(
+            self.ptr(), store._context(), module.ptr())
+        if error:
+            raise WasmtimeError._from_ptr(error)
+
+    def instantiate_pre(self, module: Module) -> InstancePre:
+        """
+        Pre-instantiates `module` by resolving all of its imports from the
+        definitions in this linker.
+
+        Returns an `InstancePre` that can be used to cheaply
+        create multiple instances of the same module without repeating import
+        resolution.
+
+        Raises `WasmtimeError` if any imports are unresolvable.
+        """
+        if not isinstance(module, Module):
+            raise TypeError("expected a `Module`")
+        ptr = ctypes.POINTER(ffi.wasmtime_instance_pre_t)()
+        error = ffi.wasmtime_linker_instantiate_pre(
+            self.ptr(), module.ptr(), ctypes.byref(ptr))
+        if error:
+            raise WasmtimeError._from_ptr(error)
+        return InstancePre._from_ptr(ptr)
