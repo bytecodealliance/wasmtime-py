@@ -85,6 +85,39 @@ class TestFunc(unittest.TestCase):
         with self.assertRaises(Exception, msg="hello"):
             func(store)
 
+    def test_host_base_exception(self):
+        # Regression test for #336: a BaseException subclass raised from a
+        # host callback (KeyboardInterrupt, SystemExit, custom BaseException
+        # subclasses) used to escape the trampoline's `except Exception`
+        # handler and abort the process inside Rust's array_call_trampoline
+        # with a libmalloc SIGABRT. It must propagate cleanly to the caller.
+        store = Store()
+        ty = FuncType([], [])
+
+        def raise_keyboard_interrupt():
+            raise KeyboardInterrupt
+
+        func = Func(store, ty, raise_keyboard_interrupt)
+        with self.assertRaises(KeyboardInterrupt):
+            func(store)
+
+        def raise_system_exit():
+            raise SystemExit(0)
+
+        func = Func(store, ty, raise_system_exit)
+        with self.assertRaises(SystemExit):
+            func(store)
+
+        class CustomBaseException(BaseException):
+            pass
+
+        def raise_custom():
+            raise CustomBaseException("custom")
+
+        func = Func(store, ty, raise_custom)
+        with self.assertRaises(CustomBaseException):
+            func(store)
+
     def test_type(self):
         store = Store()
         i32 = ValType.i32()

@@ -209,7 +209,7 @@ def trampoline(idx, caller, params, nparams, results, nresults):  # type: ignore
             for i, result in enumerate(pyresults):
                 results[i] = Val._convert_to_raw(caller, result_tys[i], result)
         return 0
-    except Exception as e:
+    except BaseException as e:
         global LAST_EXCEPTION
         LAST_EXCEPTION = e
         trap = Trap("python exception")._consume()
