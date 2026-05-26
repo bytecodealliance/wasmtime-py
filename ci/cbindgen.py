@@ -286,6 +286,7 @@ def run():
         cpp_path='gcc',
         cpp_args=[
             '-E',
+            '-std=c99',
             '-I./wasmtime/include',
             '-D__attribute__(x)=',
             '-D__asm__(x)=',
