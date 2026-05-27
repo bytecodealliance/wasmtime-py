@@ -1,6 +1,6 @@
 import unittest
 
-from wasmtime import Engine, WasmtimeError, Module, Store
+from wasmtime import Engine, WasiConfig, WasmtimeError, Module, Store
 from wasmtime.component import Linker, Component, LinkerInstance
 
 
@@ -142,6 +142,34 @@ class TestLinker(unittest.TestCase):
         linker.allow_shadowing = True
         with linker.root() as l:
             l.add_func('x', lambda: None)
+
+    def test_add_wasi_http(self):
+        engine = Engine()
+        linker = Linker(engine)
+        linker.add_wasip2()
+        linker.add_wasi_http()
+
+        with linker.root():
+            with self.assertRaises(WasmtimeError):
+                linker.add_wasi_http()
+
+        linker.close()
+
+        with Linker(engine) as l2:
+            l2.add_wasip2()
+            l2.add_wasi_http()
+            with self.assertRaises(WasmtimeError):
+                l2.add_wasi_http()
+            l2.allow_shadowing = True
+            l2.add_wasi_http()
+
+    def test_set_wasi_http(self):
+        engine = Engine()
+        store = Store(engine)
+        wasi = WasiConfig()
+        wasi.inherit_stdout()
+        store.set_wasi(wasi)
+        store.set_wasi_http()
 
     def test_define_unknown_imports_as_traps(self):
         engine = Engine()
