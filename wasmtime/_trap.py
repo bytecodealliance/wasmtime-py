@@ -8,97 +8,105 @@ from wasmtime import Managed
 
 class TrapCode(Enum):
     # The current stack space was exhausted.
-    STACK_OVERFLOW = 0
+    STACK_OVERFLOW = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_STACK_OVERFLOW.value
     # An out-of-bounds memory access.
-    MEMORY_OUT_OF_BOUNDS = 1
+    MEMORY_OUT_OF_BOUNDS = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_MEMORY_OUT_OF_BOUNDS.value
     # A wasm atomic operation was presented with a not-naturally-aligned linear-memory address.
-    HEAP_MISALIGNED = 2
+    HEAP_MISALIGNED = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_HEAP_MISALIGNED.value
     # An out-of-bounds access to a table.
-    TABLE_OUT_OF_BOUNDS = 3
+    TABLE_OUT_OF_BOUNDS = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_TABLE_OUT_OF_BOUNDS.value
     # Indirect call to a null table entry.
-    INDIRECT_CALL_TO_NULL = 4
+    INDIRECT_CALL_TO_NULL = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_INDIRECT_CALL_TO_NULL.value
     # Signature mismatch on indirect call.
-    BAD_SIGNATURE = 5
+    BAD_SIGNATURE = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_BAD_SIGNATURE.value
     # An integer arithmetic operation caused an overflow.
-    INTEGER_OVERFLOW = 6
+    INTEGER_OVERFLOW = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_INTEGER_OVERFLOW.value
     # An integer division by zero.
-    INTEGER_DIVISION_BY_ZERO = 7
+    INTEGER_DIVISION_BY_ZERO = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_INTEGER_DIVISION_BY_ZERO.value
     # Failed float-to-int conversion.
-    BAD_CONVERSION_TO_INTEGER = 8
+    BAD_CONVERSION_TO_INTEGER = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_BAD_CONVERSION_TO_INTEGER.value
     # Code that was supposed to have been unreachable was reached.
-    UNREACHABLE = 9
+    UNREACHABLE = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_UNREACHABLE_CODE_REACHED.value
     # Execution has potentially run too long and may be interrupted.
-    INTERRUPT = 10
+    INTERRUPT = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_INTERRUPT.value
     # Execution has run out of the configured fuel amount.
-    OUT_OF_FUEL = 11
+    OUT_OF_FUEL = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_OUT_OF_FUEL.value
     # Atomic wait on non-shared memory.
-    ATOMIC_WAIT_NON_SHARED_MEMORY = 12
+    ATOMIC_WAIT_NON_SHARED_MEMORY = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_ATOMIC_WAIT_NON_SHARED_MEMORY.value
     # Call to a null reference.
-    NULL_REFERENCE = 13
+    NULL_REFERENCE = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_NULL_REFERENCE.value
     # Attempt to access beyond the bounds of an array.
-    ARRAY_OUT_OF_BOUNDS = 14
+    ARRAY_OUT_OF_BOUNDS = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_ARRAY_OUT_OF_BOUNDS.value
     # Attempted an allocation that was too large to succeed.
-    ALLOCATION_TOO_LARGE = 15
+    ALLOCATION_TOO_LARGE = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_ALLOCATION_TOO_LARGE.value
     # Attempted to cast a reference to a type that it is not an instance of.
-    CAST_FAILURE = 16
+    CAST_FAILURE = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_CAST_FAILURE.value
     # A component tried to call another component in violation of the reentrance rules.
-    CANNOT_ENTER_COMPONENT = 17
+    CANNOT_ENTER_COMPONENT = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_CANNOT_ENTER_COMPONENT.value
     # Async-lifted export failed to produce a result before returning STATUS_DONE.
-    NO_ASYNC_RESULT = 18
+    NO_ASYNC_RESULT = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_NO_ASYNC_RESULT.value
     # Suspending to a tag for which there is no active handler.
-    UNHANDLED_TAG = 19
+    UNHANDLED_TAG = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_UNHANDLED_TAG.value
     # Attempt to resume a continuation twice.
-    CONTINUATION_ALREADY_CONSUMED = 20
+    CONTINUATION_ALREADY_CONSUMED = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_CONTINUATION_ALREADY_CONSUMED.value
     # A Pulley opcode was executed that was disabled at compile time.
-    DISABLED_OPCODE = 21
+    DISABLED_OPCODE = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_DISABLED_OPCODE.value
     # Async event loop deadlocked.
-    ASYNC_DEADLOCK = 22
+    ASYNC_DEADLOCK = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_ASYNC_DEADLOCK.value
     # A component tried to call an import when it was not allowed to.
-    CANNOT_LEAVE_COMPONENT = 23
+    CANNOT_LEAVE_COMPONENT = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_CANNOT_LEAVE_COMPONENT.value
     # A synchronous task attempted a potentially blocking call before returning.
-    CANNOT_BLOCK_SYNC_TASK = 24
+    CANNOT_BLOCK_SYNC_TASK = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_CANNOT_BLOCK_SYNC_TASK.value
     # A component tried to lift a char with an invalid bit pattern.
-    INVALID_CHAR = 25
+    INVALID_CHAR = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_INVALID_CHAR.value
     # Debug assertion: string encoding not finished.
-    DEBUG_ASSERT_STRING_ENCODING_FINISHED = 26
+    DEBUG_ASSERT_STRING_ENCODING_FINISHED = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_DEBUG_ASSERT_STRING_ENCODING_FINISHED.value
     # Debug assertion: equal code units.
-    DEBUG_ASSERT_EQUAL_CODE_UNITS = 27
+    DEBUG_ASSERT_EQUAL_CODE_UNITS = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_DEBUG_ASSERT_EQUAL_CODE_UNITS.value
     # Debug assertion: pointer aligned.
-    DEBUG_ASSERT_POINTER_ALIGNED = 28
+    DEBUG_ASSERT_POINTER_ALIGNED = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_DEBUG_ASSERT_POINTER_ALIGNED.value
     # Debug assertion: upper bits unset.
-    DEBUG_ASSERT_UPPER_BITS_UNSET = 29
+    DEBUG_ASSERT_UPPER_BITS_UNSET = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_DEBUG_ASSERT_UPPER_BITS_UNSET.value
     # A component tried to lift or lower a string past the end of its memory.
-    STRING_OUT_OF_BOUNDS = 30
+    STRING_OUT_OF_BOUNDS = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_STRING_OUT_OF_BOUNDS.value
     # A component tried to lift or lower a list past the end of its memory.
-    LIST_OUT_OF_BOUNDS = 31
+    LIST_OUT_OF_BOUNDS = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_LIST_OUT_OF_BOUNDS.value
     # A component used an invalid discriminant when lowering a variant value.
-    INVALID_DISCRIMINANT = 32
+    INVALID_DISCRIMINANT = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_INVALID_DISCRIMINANT.value
     # A component passed an unaligned pointer when lifting or lowering a value.
-    UNALIGNED_POINTER = 33
+    UNALIGNED_POINTER = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_UNALIGNED_POINTER.value
     # task.cancel invoked in an invalid way.
-    TASK_CANCEL_NOT_CANCELLED = 34
+    TASK_CANCEL_NOT_CANCELLED = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_TASK_CANCEL_NOT_CANCELLED.value
     # task.cancel or task.return called too many times.
-    TASK_CANCEL_OR_RETURN_TWICE = 35
+    TASK_CANCEL_OR_RETURN_TWICE = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_TASK_CANCEL_OR_RETURN_TWICE.value
     # subtask.cancel invoked after the subtask already finished.
-    SUBTASK_CANCEL_AFTER_TERMINAL = 36
+    SUBTASK_CANCEL_AFTER_TERMINAL = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_SUBTASK_CANCEL_AFTER_TERMINAL.value
     # task.return invoked with an invalid type.
-    TASK_RETURN_INVALID = 37
+    TASK_RETURN_INVALID = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_TASK_RETURN_INVALID.value
     # waitable-set.drop invoked on a waitable set with waiters.
-    WAITABLE_SET_DROP_HAS_WAITERS = 38
+    WAITABLE_SET_DROP_HAS_WAITERS = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_WAITABLE_SET_DROP_HAS_WAITERS.value
     # subtask.drop invoked on a subtask that hasn't resolved yet.
-    SUBTASK_DROP_NOT_RESOLVED = 39
+    SUBTASK_DROP_NOT_RESOLVED = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_SUBTASK_DROP_NOT_RESOLVED.value
     # thread.new-indirect invoked with a function that has an invalid type.
-    THREAD_NEW_INDIRECT_INVALID_TYPE = 40
+    THREAD_NEW_INDIRECT_INVALID_TYPE = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_THREAD_NEW_INDIRECT_INVALID_TYPE.value
     # thread.new-indirect invoked with an uninitialized function reference.
-    THREAD_NEW_INDIRECT_UNINITIALIZED = 41
+    THREAD_NEW_INDIRECT_UNINITIALIZED = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_THREAD_NEW_INDIRECT_UNINITIALIZED.value
     # Backpressure-related intrinsics overflowed the built-in counter.
-    BACKPRESSURE_OVERFLOW = 42
+    BACKPRESSURE_OVERFLOW = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_BACKPRESSURE_OVERFLOW.value
     # Invalid code returned from the callback of an async-lifted function.
-    UNSUPPORTED_CALLBACK_CODE = 43
+    UNSUPPORTED_CALLBACK_CODE = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_UNSUPPORTED_CALLBACK_CODE.value
     # Cannot resume a thread which is not suspended.
-    CANNOT_RESUME_THREAD = 44
+    CANNOT_RESUME_THREAD = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_CANNOT_RESUME_THREAD.value
     # Cannot issue a read/write on a future/stream while there is a pending operation.
-    CONCURRENT_FUTURE_STREAM_OP = 45
+    CONCURRENT_FUTURE_STREAM_OP = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_CONCURRENT_FUTURE_STREAM_OP.value
+    # A reference count overflowed the built-in counter.
+    REFERENCE_COUNT_OVERFLOW = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_REFERENCE_COUNT_OVERFLOW.value
+    # A stream operation was performed with a buffer that was too large.
+    STREAM_OP_TOO_BIG = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_STREAM_OP_TOO_BIG.value
+    # A waitable was used both synchronously and asynchronously.
+    WAITABLE_SYNC_AND_ASYNC = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_WAITABLE_SYNC_AND_ASYNC.value
+    # An exception was thrown and never caught.
+    UNCAUGHT_EXCEPTION = ffi.wasmtime_trap_code_enum.WASMTIME_TRAP_CODE_UNCAUGHT_EXCEPTION.value
 
 
 class Trap(Exception, Managed["ctypes._Pointer[ffi.wasm_trap_t]"]):

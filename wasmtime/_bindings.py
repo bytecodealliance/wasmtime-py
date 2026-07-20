@@ -5659,6 +5659,7 @@ class wasmtime_trap_code_enum(Enum):
     WASMTIME_TRAP_CODE_REFERENCE_COUNT_OVERFLOW = 46
     WASMTIME_TRAP_CODE_STREAM_OP_TOO_BIG = 47
     WASMTIME_TRAP_CODE_WAITABLE_SYNC_AND_ASYNC = 48
+    WASMTIME_TRAP_CODE_UNCAUGHT_EXCEPTION = 49
 
 _wasmtime_trap_new = dll.wasmtime_trap_new
 _wasmtime_trap_new.restype = ctypes.POINTER(wasm_trap_t)
