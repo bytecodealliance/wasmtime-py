@@ -21,16 +21,6 @@ def _encode_path(path: Union[str, bytes, PathLike]) -> bytes:
         return path2
     return path2.encode('utf8')
 
-class DirPerms(Enum):
-    READ_ONLY = ffi.wasi_dir_perms_flags.WASMTIME_WASI_DIR_PERMS_READ.value
-    WRITE_ONLY = ffi.wasi_dir_perms_flags.WASMTIME_WASI_DIR_PERMS_WRITE.value
-    READ_WRITE = ffi.wasi_dir_perms_flags.WASMTIME_WASI_DIR_PERMS_READ.value | ffi.wasi_dir_perms_flags.WASMTIME_WASI_DIR_PERMS_WRITE.value
-
-class FilePerms(Enum):
-    READ_ONLY = ffi.wasi_file_perms_flags.WASMTIME_WASI_FILE_PERMS_READ.value
-    WRITE_ONLY = ffi.wasi_file_perms_flags.WASMTIME_WASI_FILE_PERMS_WRITE.value
-    READ_WRITE = ffi.wasi_file_perms_flags.WASMTIME_WASI_FILE_PERMS_READ.value | ffi.wasi_file_perms_flags.WASMTIME_WASI_FILE_PERMS_WRITE.value
-
 
 CustomOutput = Callable[[bytes], Union[int, None]]
 CUSTOM_OUTPUTS: Slab[CustomOutput] = Slab()
@@ -179,7 +169,7 @@ class WasiConfig(Managed["ctypes._Pointer[ffi.wasi_config_t]"]):
         """
         ffi.wasi_config_inherit_stderr(self.ptr())
 
-    def preopen_dir(self, path: str, guest_path: str, dir_perms: DirPerms = DirPerms.READ_WRITE, file_perms: FilePerms = FilePerms.READ_WRITE) -> None:
+    def preopen_dir(self, path: str, guest_path: str, fs_mutable: bool = True) -> None:
         """
         Allows the WASI program to access the directory at `path` using the
         path `guest_path` within the WASI program.
@@ -193,7 +183,7 @@ class WasiConfig(Managed["ctypes._Pointer[ffi.wasi_config_t]"]):
         """
         path_ptr = c_char_p(path.encode('utf-8'))
         guest_path_ptr = c_char_p(guest_path.encode('utf-8'))
-        if not ffi.wasi_config_preopen_dir(self.ptr(), path_ptr, guest_path_ptr, dir_perms.value, file_perms.value):
+        if not ffi.wasi_config_preopen_dir(self.ptr(), path_ptr, guest_path_ptr, fs_mutable):
             raise WasmtimeError('failed to add preopen dir')
 
 
