@@ -34,8 +34,10 @@ class TestLinker(unittest.TestCase):
                 pass
             with root.add_instance('y'):
                 pass
-            root.add_instance('x')
-            root.add_instance('y')
+            with root.add_instance('x'):
+                pass
+            with root.add_instance('y'):
+                pass
             with root.add_instance('z'):
                 pass
 
