@@ -29,7 +29,7 @@ from ._globals import Global
 from ._table import Table
 from ._memory import Memory
 from ._instance import Instance
-from ._wasi import WasiConfig, FilePerms, DirPerms
+from ._wasi import WasiConfig
 from ._linker import Linker
 from ._tag import Tag
 from ._instance_pre import InstancePre
@@ -62,8 +62,6 @@ __all__ = [
     'Module',
     'Instance',
     'WasiConfig',
-    'FilePerms',
-    'DirPerms',
     'Linker',
     'WasmtimeError',
     'StoreContext',

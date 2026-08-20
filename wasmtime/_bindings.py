@@ -2055,23 +2055,13 @@ _wasi_config_set_stderr_custom.argtypes = [ctypes.POINTER(wasi_config_t), ctypes
 def wasi_config_set_stderr_custom(config: Any, callback: Any, data: Any, finalizer: Any) -> None:
     return _wasi_config_set_stderr_custom(config, callback, data, finalizer)  # type: ignore
 
-class wasi_dir_perms_flags(Enum):
-    WASMTIME_WASI_DIR_PERMS_READ = 1
-    WASMTIME_WASI_DIR_PERMS_WRITE = 2
-
-wasi_dir_perms = ctypes.c_size_t
-
-class wasi_file_perms_flags(Enum):
-    WASMTIME_WASI_FILE_PERMS_READ = 1
-    WASMTIME_WASI_FILE_PERMS_WRITE = 2
-
 wasi_file_perms = ctypes.c_size_t
 
 _wasi_config_preopen_dir = dll.wasi_config_preopen_dir
 _wasi_config_preopen_dir.restype = ctypes.c_bool
-_wasi_config_preopen_dir.argtypes = [ctypes.POINTER(wasi_config_t), ctypes.POINTER(ctypes.c_char), ctypes.POINTER(ctypes.c_char), wasi_dir_perms, wasi_file_perms]
-def wasi_config_preopen_dir(config: Any, host_path: Any, guest_path: Any, dir_perms: Any, file_perms: Any) -> bool:
-    return _wasi_config_preopen_dir(config, host_path, guest_path, dir_perms, file_perms)  # type: ignore
+_wasi_config_preopen_dir.argtypes = [ctypes.POINTER(wasi_config_t), ctypes.POINTER(ctypes.c_char), ctypes.POINTER(ctypes.c_char), ctypes.c_bool]
+def wasi_config_preopen_dir(config: Any, host_path: Any, guest_path: Any, fs_mutable: Any) -> bool:
+    return _wasi_config_preopen_dir(config, host_path, guest_path, fs_mutable)  # type: ignore
 
 wasmtime_storage_type_kind_t = ctypes.c_uint8
 

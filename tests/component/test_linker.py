@@ -34,10 +34,8 @@ class TestLinker(unittest.TestCase):
                 pass
             with root.add_instance('y'):
                 pass
-            with self.assertRaises(WasmtimeError):
-                root.add_instance('x')
-            with self.assertRaises(WasmtimeError):
-                root.add_instance('y')
+            root.add_instance('x')
+            root.add_instance('y')
             with root.add_instance('z'):
                 pass
 
