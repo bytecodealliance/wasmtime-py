@@ -179,6 +179,16 @@ class Config(Managed["ctypes._Pointer[ffi.wasm_config_t]"]):
         ffi.wasmtime_config_wasm_component_model_map_set(self.ptr(), enable)
 
     @setter_property
+    def wasm_component_model_implements(self, enable: bool) -> None:
+        """
+        Configures whether the WebAssembly component model implements proposal
+        is enabled.
+        """
+        if not isinstance(enable, bool):
+            raise TypeError("expected a bool")
+        ffi.wasmtime_config_wasm_component_model_implements_set(self.ptr(), enable)
+
+    @setter_property
     def wasm_exceptions(self, enable: bool) -> None:
         """
         Configures whether the wasm [exceptions proposal] is enabled.

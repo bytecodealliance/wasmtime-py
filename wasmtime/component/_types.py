@@ -24,7 +24,7 @@ class ComponentType(Managed["ctypes._Pointer[ffi.wasmtime_component_type_t]"]):
         ty._set_ptr(ptr)
         return ty
 
-    def imports(self, engine: Engine) -> Dict[str, "ComponentItem"]:
+    def imports(self, engine: Engine) -> Dict[str, "ComponentExtern"]:
         """
         Returns a dictionary of the imports of this component type.
         """
@@ -33,7 +33,7 @@ class ComponentType(Managed["ctypes._Pointer[ffi.wasmtime_component_type_t]"]):
         for i in range(n):
             name_ptr = ctypes.POINTER(ctypes.c_char)()
             name_len = ctypes.c_size_t()
-            item = ffi.wasmtime_component_item_t()
+            item = ctypes.POINTER(ffi.wasmtime_component_extern_t)()
             found = ffi.wasmtime_component_type_import_nth(self.ptr(),
                                                            engine.ptr(),
                                                            i,
@@ -42,10 +42,10 @@ class ComponentType(Managed["ctypes._Pointer[ffi.wasmtime_component_type_t]"]):
                                                            byref(item))
             assert(found)
             name = ctypes.string_at(name_ptr, name_len.value).decode('utf-8')
-            items[name] = component_item_from_ptr(item)
+            items[name] = ComponentExtern._from_ptr(item)
         return items
 
-    def exports(self, engine: Engine) -> Dict[str, "ComponentItem"]:
+    def exports(self, engine: Engine) -> Dict[str, "ComponentExtern"]:
         """
         Returns a dictionary of the exports of this component type.
         """
@@ -54,7 +54,7 @@ class ComponentType(Managed["ctypes._Pointer[ffi.wasmtime_component_type_t]"]):
         for i in range(n):
             name_ptr = ctypes.POINTER(ctypes.c_char)()
             name_len = ctypes.c_size_t()
-            item = ffi.wasmtime_component_item_t()
+            item = ctypes.POINTER(ffi.wasmtime_component_extern_t)()
             found = ffi.wasmtime_component_type_export_nth(self.ptr(),
                                                            engine.ptr(),
                                                            i,
@@ -63,7 +63,7 @@ class ComponentType(Managed["ctypes._Pointer[ffi.wasmtime_component_type_t]"]):
                                                            byref(item))
             assert(found)
             name = ctypes.string_at(name_ptr, name_len.value).decode('utf-8')
-            items[name] = component_item_from_ptr(item)
+            items[name] = ComponentExtern._from_ptr(item)
         return items
 
 
@@ -82,7 +82,7 @@ class ComponentInstanceType(Managed["ctypes._Pointer[ffi.wasmtime_component_inst
         ty._set_ptr(ptr)
         return ty
 
-    def exports(self, engine: Engine) -> Dict[str, "ComponentItem"]:
+    def exports(self, engine: Engine) -> Dict[str, "ComponentExtern"]:
         """
         Returns a dictionary of the exports of this component instance type.
         """
@@ -91,7 +91,7 @@ class ComponentInstanceType(Managed["ctypes._Pointer[ffi.wasmtime_component_inst
         for i in range(n):
             name_ptr = ctypes.POINTER(ctypes.c_char)()
             name_len = ctypes.c_size_t()
-            item = ffi.wasmtime_component_item_t()
+            item = ctypes.POINTER(ffi.wasmtime_component_extern_t)()
             found = ffi.wasmtime_component_instance_type_export_nth(self.ptr(),
                                                            engine.ptr(),
                                                            i,
@@ -99,7 +99,7 @@ class ComponentInstanceType(Managed["ctypes._Pointer[ffi.wasmtime_component_inst
                                                            byref(name_len),
                                                            byref(item))
             name = ctypes.string_at(name_ptr, name_len.value).decode('utf-8')
-            items[name] = component_item_from_ptr(item)
+            items[name] = ComponentExtern._from_ptr(item)
             assert(found)
         return items
 
@@ -1179,6 +1179,63 @@ class BorrowType(ValType):
         return ResourceAny._from_ptr(ffi.take_pointer(c.of, 'resource'))
 
 
+class ComponentExtern(Managed["ctypes._Pointer[ffi.wasmtime_component_extern_t]"]):
+    def __init__(self) -> None:
+        raise WasmtimeError("Cannot directly construct a `ComponentExtern`")
+
+    def _delete(self, ptr: "ctypes._Pointer[ffi.wasmtime_component_extern_t]") -> None:
+        ffi.wasmtime_component_extern_delete(ptr)
+
+    @classmethod
+    def _from_ptr(cls, ptr: "ctypes._Pointer[ffi.wasmtime_component_extern_t]") -> "ComponentExtern":
+        if not isinstance(ptr, POINTER(ffi.wasmtime_component_extern_t)):
+            raise TypeError("wrong pointer type")
+        ty: "ComponentExtern" = cls.__new__(cls)
+        ty._set_ptr(ptr)
+        return ty
+
+    @property
+    def ty(self) -> 'ComponentItem':
+        ptr = ffi.wasmtime_component_item_t()
+        ffi.wasmtime_component_extern_type(self.ptr(), byref(ptr))
+        if ptr.kind == ffi.WASMTIME_COMPONENT_ITEM_COMPONENT.value:
+            return ComponentType._from_ptr(ptr.of.component)
+        elif ptr.kind == ffi.WASMTIME_COMPONENT_ITEM_MODULE.value:
+            return ModuleType._from_ptr(ptr.of.module)
+        elif ptr.kind == ffi.WASMTIME_COMPONENT_ITEM_COMPONENT_INSTANCE.value:
+            return ComponentInstanceType._from_ptr(ptr.of.component_instance)
+        elif ptr.kind == ffi.WASMTIME_COMPONENT_ITEM_RESOURCE.value:
+            return ResourceType._from_ptr(ptr.of.resource)
+        elif ptr.kind == ffi.WASMTIME_COMPONENT_ITEM_COMPONENT_FUNC.value:
+            return FuncType._from_ptr(ptr.of.component_func)
+        elif ptr.kind == ffi.WASMTIME_COMPONENT_ITEM_TYPE.value:
+            return valtype_from_ptr(ptr.of.type)
+        else:
+            ffi.wasmtime_component_item_delete(byref(ptr))
+            raise TypeError("unknown component item kind")
+
+    @property
+    def implements(self) -> Optional[str]:
+        len = ctypes.c_size_t()
+        ptr = ffi.wasmtime_component_extern_implements(self.ptr(), byref(len))
+        if not ptr:
+            return None
+        return ctypes.string_at(ptr, len.value).decode('utf-8')
+
+    def is_implements(self, s: str) -> bool:
+        s_bytes = s.encode('utf-8')
+        s_buf = ctypes.create_string_buffer(s_bytes)
+        return ffi.wasmtime_component_extern_is_implements(self.ptr(), s_buf, len(s_bytes))
+
+    @property
+    def external_id(self) -> Optional[str]:
+        len = ctypes.c_size_t()
+        ptr = ffi.wasmtime_component_extern_external_id(self.ptr(), byref(len))
+        if not ptr:
+            return None
+        return ctypes.string_at(ptr, len.value).decode('utf-8')
+
+
 ComponentItem = Union[
     ComponentType,
     ModuleType,
@@ -1187,24 +1244,6 @@ ComponentItem = Union[
     ValType,
     FuncType,
 ]
-
-
-def component_item_from_ptr(ptr: ffi.wasmtime_component_item_t) -> ComponentItem:
-    if ptr.kind == ffi.WASMTIME_COMPONENT_ITEM_COMPONENT.value:
-        return ComponentType._from_ptr(ptr.of.component)
-    elif ptr.kind == ffi.WASMTIME_COMPONENT_ITEM_MODULE.value:
-        return ModuleType._from_ptr(ptr.of.module)
-    elif ptr.kind == ffi.WASMTIME_COMPONENT_ITEM_COMPONENT_INSTANCE.value:
-        return ComponentInstanceType._from_ptr(ptr.of.component_instance)
-    elif ptr.kind == ffi.WASMTIME_COMPONENT_ITEM_RESOURCE.value:
-        return ResourceType._from_ptr(ptr.of.resource)
-    elif ptr.kind == ffi.WASMTIME_COMPONENT_ITEM_COMPONENT_FUNC.value:
-        return FuncType._from_ptr(ptr.of.component_func)
-    elif ptr.kind == ffi.WASMTIME_COMPONENT_ITEM_TYPE.value:
-        return valtype_from_ptr(ptr.of.type)
-    else:
-        ffi.wasmtime_component_item_delete(byref(ptr))
-        raise TypeError("unknown component item kind")
 
 
 def valtype_from_ptr(ptr: ffi.wasmtime_component_valtype_t) -> ValType:
