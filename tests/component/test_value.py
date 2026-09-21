@@ -75,6 +75,7 @@ class TestValue(unittest.TestCase):
         with self.assertRaises(WasmtimeError):
             f(store, ResourceHost.own(1, 2))
 
+        store = Store(store.engine)
         instance = linker.instantiate(store, component)
         f = instance.get_func(store, 'drop')
         assert(f is not None)

@@ -1,6 +1,6 @@
 import unittest
 
-from wasmtime import Engine, FuncType as CoreFuncType, GlobalType, WasmtimeError
+from wasmtime import Engine, FuncType as CoreFuncType, GlobalType, WasmtimeError, Config
 from wasmtime.component import *
 
 def simplety(name):
@@ -10,7 +10,7 @@ def simplety(name):
       (import "a" (func (result {name})))
     )
     """)
-    fty = c.type.imports(engine)['a']
+    fty = c.type.imports(engine)['a'].ty
     assert(isinstance(fty, FuncType))
     return fty.result
 
@@ -23,7 +23,7 @@ def namedty(contents):
       (import "a" (func (result $t)))
     )
     """)
-    fty = c.type.imports(engine)['a']
+    fty = c.type.imports(engine)['a'].ty
     assert(isinstance(fty, FuncType))
     return fty.result
 
@@ -41,9 +41,9 @@ class TestTypes(unittest.TestCase):
         )
         """).type
         self.assertEqual(len(ty.imports(engine)), 1)
-        self.assertIsInstance(ty.imports(engine)['a'], ModuleType)
+        self.assertIsInstance(ty.imports(engine)['a'].ty, ModuleType)
         self.assertEqual(len(ty.exports(engine)), 1)
-        self.assertIsInstance(ty.exports(engine)['g'], ModuleType)
+        self.assertIsInstance(ty.exports(engine)['g'].ty, ModuleType)
 
         with self.assertRaises(WasmtimeError):
             ComponentType()
@@ -58,7 +58,7 @@ class TestTypes(unittest.TestCase):
           ))
         )
         """)
-        mty = c.type.imports(engine)['a']
+        mty = c.type.imports(engine)['a'].ty
         assert(isinstance(mty, ModuleType))
         imports = mty.imports(engine)
         self.assertEqual(len(imports), 1)
@@ -85,9 +85,9 @@ class TestTypes(unittest.TestCase):
           (export "b" (type $t2))
         )
         """)
-        a1 = c.type.imports(engine)['a']
-        a2 = c.type.exports(engine)['a']
-        b = c.type.exports(engine)['b']
+        a1 = c.type.imports(engine)['a'].ty
+        a2 = c.type.exports(engine)['a'].ty
+        b = c.type.exports(engine)['b'].ty
         assert(isinstance(a1, ResourceType))
         assert(isinstance(a2, ResourceType))
         assert(isinstance(b, ResourceType))
@@ -110,14 +110,14 @@ class TestTypes(unittest.TestCase):
           (import "b" (instance))
         )
         """).type
-        a = cty.imports(engine)['a']
-        b = cty.imports(engine)['b']
+        a = cty.imports(engine)['a'].ty
+        b = cty.imports(engine)['b'].ty
         assert(isinstance(a, ComponentInstanceType))
         assert(isinstance(b, ComponentInstanceType))
         exports = a.exports(engine)
         self.assertEqual(len(exports), 2)
-        self.assertIsInstance(exports['a'], FuncType)
-        self.assertIsInstance(exports['b'], ModuleType)
+        self.assertIsInstance(exports['a'].ty, FuncType)
+        self.assertIsInstance(exports['b'].ty, ModuleType)
 
         self.assertEqual(len(b.exports(engine)), 0)
 
@@ -134,10 +134,10 @@ class TestTypes(unittest.TestCase):
           (import "d" (func (param "a" u8) (param "b" u16) (result u32)))
         )
         """).type
-        a = cty.imports(engine)['a']
-        b = cty.imports(engine)['b']
-        c = cty.imports(engine)['c']
-        d = cty.imports(engine)['d']
+        a = cty.imports(engine)['a'].ty
+        b = cty.imports(engine)['b'].ty
+        c = cty.imports(engine)['c'].ty
+        d = cty.imports(engine)['d'].ty
         assert(isinstance(a, FuncType))
         assert(isinstance(b, FuncType))
         assert(isinstance(c, FuncType))
@@ -249,10 +249,36 @@ class TestTypes(unittest.TestCase):
             (import "a" (func (param "x" (borrow $r)) (result (own $r))))
         )
         """)
-        fty = c.type.imports(engine)['a']
+        fty = c.type.imports(engine)['a'].ty
         assert(isinstance(fty, FuncType))
         _, param = fty.params[0]
         result = fty.result
         assert(isinstance(param, BorrowType))
         assert(isinstance(result, OwnType))
         self.assertEqual(param.ty, result.ty)
+
+    def test_implements(self):
+        config = Config()
+        config.wasm_component_model_implements = True
+        engine = Engine(config)
+        c = Component(engine, f"""
+        (component
+            (import "a" (func))
+            (import "b" (external-id "hi") (func))
+            (import "c" (implements "a:b/c") (instance))
+        )
+        """)
+        imports = c.type.imports(engine)
+        ia = imports['a']
+        ib = imports['b']
+        ic = imports['c']
+        self.assertFalse(ia.implements)
+        self.assertFalse(ia.external_id)
+
+        self.assertFalse(ib.implements)
+        self.assertEqual(ib.external_id, 'hi')
+
+        self.assertEqual(ic.implements, 'a:b/c')
+        self.assertTrue(ic.is_implements('a:b/c'))
+        self.assertFalse(ic.is_implements('a:b/c2'))
+        self.assertFalse(ic.external_id)

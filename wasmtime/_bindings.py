@@ -3487,6 +3487,12 @@ _wasmtime_config_wasm_component_model_map_set.argtypes = [ctypes.POINTER(wasm_co
 def wasmtime_config_wasm_component_model_map_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_wasm_component_model_map_set(arg0, arg1)  # type: ignore
 
+_wasmtime_config_wasm_component_model_implements_set = dll.wasmtime_config_wasm_component_model_implements_set
+_wasmtime_config_wasm_component_model_implements_set.restype = None
+_wasmtime_config_wasm_component_model_implements_set.argtypes = [ctypes.POINTER(wasm_config_t), ctypes.c_bool]
+def wasmtime_config_wasm_component_model_implements_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_wasm_component_model_implements_set(arg0, arg1)  # type: ignore
+
 _wasmtime_config_wasm_component_model_async_set = dll.wasmtime_config_wasm_component_model_async_set
 _wasmtime_config_wasm_component_model_async_set.restype = None
 _wasmtime_config_wasm_component_model_async_set.argtypes = [ctypes.POINTER(wasm_config_t), ctypes.c_bool]
@@ -4316,7 +4322,7 @@ _wasmtime_component_func_type_result.argtypes = [ctypes.POINTER(wasmtime_compone
 def wasmtime_component_func_type_result(ty: Any, type_ret: Any) -> bool:
     return _wasmtime_component_func_type_result(ty, type_ret)  # type: ignore
 
-class wasmtime_component_item_t(ctypes.Structure):
+class wasmtime_component_extern_t(ctypes.Structure):
     pass
 
 class wasmtime_component_instance_type(ctypes.Structure):
@@ -4344,15 +4350,15 @@ def wasmtime_component_instance_type_export_count(ty: Any, engine: Any) -> int:
 
 _wasmtime_component_instance_type_export_get = dll.wasmtime_component_instance_type_export_get
 _wasmtime_component_instance_type_export_get.restype = ctypes.c_bool
-_wasmtime_component_instance_type_export_get.argtypes = [ctypes.POINTER(wasmtime_component_instance_type_t), ctypes.POINTER(wasm_engine_t), ctypes.POINTER(ctypes.c_char), ctypes.c_size_t, ctypes.POINTER(wasmtime_component_item_t)]
+_wasmtime_component_instance_type_export_get.argtypes = [ctypes.POINTER(wasmtime_component_instance_type_t), ctypes.POINTER(wasm_engine_t), ctypes.POINTER(ctypes.c_char), ctypes.c_size_t, ctypes.POINTER(ctypes.POINTER(wasmtime_component_extern_t))]
 def wasmtime_component_instance_type_export_get(ty: Any, engine: Any, name: Any, name_len: Any, ret: Any) -> bool:
     return _wasmtime_component_instance_type_export_get(ty, engine, name, name_len, ret)  # type: ignore
 
 _wasmtime_component_instance_type_export_nth = dll.wasmtime_component_instance_type_export_nth
 _wasmtime_component_instance_type_export_nth.restype = ctypes.c_bool
-_wasmtime_component_instance_type_export_nth.argtypes = [ctypes.POINTER(wasmtime_component_instance_type_t), ctypes.POINTER(wasm_engine_t), ctypes.c_size_t, ctypes.POINTER(ctypes.POINTER(ctypes.c_char)), ctypes.POINTER(ctypes.c_size_t), ctypes.POINTER(wasmtime_component_item_t)]
-def wasmtime_component_instance_type_export_nth(ty: Any, engine: Any, nth: Any, name_ret: Any, name_len_ret: Any, type_ret: Any) -> bool:
-    return _wasmtime_component_instance_type_export_nth(ty, engine, nth, name_ret, name_len_ret, type_ret)  # type: ignore
+_wasmtime_component_instance_type_export_nth.argtypes = [ctypes.POINTER(wasmtime_component_instance_type_t), ctypes.POINTER(wasm_engine_t), ctypes.c_size_t, ctypes.POINTER(ctypes.POINTER(ctypes.c_char)), ctypes.POINTER(ctypes.c_size_t), ctypes.POINTER(ctypes.POINTER(wasmtime_component_extern_t))]
+def wasmtime_component_instance_type_export_nth(ty: Any, engine: Any, nth: Any, name_ret: Any, name_len_ret: Any, ret: Any) -> bool:
+    return _wasmtime_component_instance_type_export_nth(ty, engine, nth, name_ret, name_len_ret, ret)  # type: ignore
 
 class wasmtime_module_type(ctypes.Structure):
     pass
@@ -4418,15 +4424,15 @@ def wasmtime_component_type_import_count(ty: Any, engine: Any) -> int:
 
 _wasmtime_component_type_import_get = dll.wasmtime_component_type_import_get
 _wasmtime_component_type_import_get.restype = ctypes.c_bool
-_wasmtime_component_type_import_get.argtypes = [ctypes.POINTER(wasmtime_component_type_t), ctypes.POINTER(wasm_engine_t), ctypes.POINTER(ctypes.c_char), ctypes.c_size_t, ctypes.POINTER(wasmtime_component_item_t)]
+_wasmtime_component_type_import_get.argtypes = [ctypes.POINTER(wasmtime_component_type_t), ctypes.POINTER(wasm_engine_t), ctypes.POINTER(ctypes.c_char), ctypes.c_size_t, ctypes.POINTER(ctypes.POINTER(wasmtime_component_extern_t))]
 def wasmtime_component_type_import_get(ty: Any, engine: Any, name: Any, name_len: Any, ret: Any) -> bool:
     return _wasmtime_component_type_import_get(ty, engine, name, name_len, ret)  # type: ignore
 
 _wasmtime_component_type_import_nth = dll.wasmtime_component_type_import_nth
 _wasmtime_component_type_import_nth.restype = ctypes.c_bool
-_wasmtime_component_type_import_nth.argtypes = [ctypes.POINTER(wasmtime_component_type_t), ctypes.POINTER(wasm_engine_t), ctypes.c_size_t, ctypes.POINTER(ctypes.POINTER(ctypes.c_char)), ctypes.POINTER(ctypes.c_size_t), ctypes.POINTER(wasmtime_component_item_t)]
-def wasmtime_component_type_import_nth(ty: Any, engine: Any, nth: Any, name_ret: Any, name_len_ret: Any, type_ret: Any) -> bool:
-    return _wasmtime_component_type_import_nth(ty, engine, nth, name_ret, name_len_ret, type_ret)  # type: ignore
+_wasmtime_component_type_import_nth.argtypes = [ctypes.POINTER(wasmtime_component_type_t), ctypes.POINTER(wasm_engine_t), ctypes.c_size_t, ctypes.POINTER(ctypes.POINTER(ctypes.c_char)), ctypes.POINTER(ctypes.c_size_t), ctypes.POINTER(ctypes.POINTER(wasmtime_component_extern_t))]
+def wasmtime_component_type_import_nth(ty: Any, engine: Any, nth: Any, name_ret: Any, name_len_ret: Any, ret: Any) -> bool:
+    return _wasmtime_component_type_import_nth(ty, engine, nth, name_ret, name_len_ret, ret)  # type: ignore
 
 _wasmtime_component_type_export_count = dll.wasmtime_component_type_export_count
 _wasmtime_component_type_export_count.restype = ctypes.c_size_t
@@ -4436,15 +4442,15 @@ def wasmtime_component_type_export_count(ty: Any, engine: Any) -> int:
 
 _wasmtime_component_type_export_get = dll.wasmtime_component_type_export_get
 _wasmtime_component_type_export_get.restype = ctypes.c_bool
-_wasmtime_component_type_export_get.argtypes = [ctypes.POINTER(wasmtime_component_type_t), ctypes.POINTER(wasm_engine_t), ctypes.POINTER(ctypes.c_char), ctypes.c_size_t, ctypes.POINTER(wasmtime_component_item_t)]
+_wasmtime_component_type_export_get.argtypes = [ctypes.POINTER(wasmtime_component_type_t), ctypes.POINTER(wasm_engine_t), ctypes.POINTER(ctypes.c_char), ctypes.c_size_t, ctypes.POINTER(ctypes.POINTER(wasmtime_component_extern_t))]
 def wasmtime_component_type_export_get(ty: Any, engine: Any, name: Any, name_len: Any, ret: Any) -> bool:
     return _wasmtime_component_type_export_get(ty, engine, name, name_len, ret)  # type: ignore
 
 _wasmtime_component_type_export_nth = dll.wasmtime_component_type_export_nth
 _wasmtime_component_type_export_nth.restype = ctypes.c_bool
-_wasmtime_component_type_export_nth.argtypes = [ctypes.POINTER(wasmtime_component_type_t), ctypes.POINTER(wasm_engine_t), ctypes.c_size_t, ctypes.POINTER(ctypes.POINTER(ctypes.c_char)), ctypes.POINTER(ctypes.c_size_t), ctypes.POINTER(wasmtime_component_item_t)]
-def wasmtime_component_type_export_nth(ty: Any, engine: Any, nth: Any, name_ret: Any, name_len_ret: Any, type_ret: Any) -> bool:
-    return _wasmtime_component_type_export_nth(ty, engine, nth, name_ret, name_len_ret, type_ret)  # type: ignore
+_wasmtime_component_type_export_nth.argtypes = [ctypes.POINTER(wasmtime_component_type_t), ctypes.POINTER(wasm_engine_t), ctypes.c_size_t, ctypes.POINTER(ctypes.POINTER(ctypes.c_char)), ctypes.POINTER(ctypes.c_size_t), ctypes.POINTER(ctypes.POINTER(wasmtime_component_extern_t))]
+def wasmtime_component_type_export_nth(ty: Any, engine: Any, nth: Any, name_ret: Any, name_len_ret: Any, ret: Any) -> bool:
+    return _wasmtime_component_type_export_nth(ty, engine, nth, name_ret, name_len_ret, ret)  # type: ignore
 
 wasmtime_component_item_kind_t = ctypes.c_uint8
 
@@ -4468,10 +4474,13 @@ class wasmtime_component_item_union(ctypes.Union):
 
 wasmtime_component_item_union_t = wasmtime_component_item_union
 
-wasmtime_component_item_t._fields_ = [
+class wasmtime_component_item_t(ctypes.Structure):
+    _fields_ = [
         ("kind", wasmtime_component_item_kind_t),
         ("of", wasmtime_component_item_union_t),
     ]
+    kind: wasmtime_component_item_kind_t
+    of: wasmtime_component_item_union_t
 
 _wasmtime_component_item_clone = dll.wasmtime_component_item_clone
 _wasmtime_component_item_clone.restype = None
@@ -4484,6 +4493,43 @@ _wasmtime_component_item_delete.restype = None
 _wasmtime_component_item_delete.argtypes = [ctypes.POINTER(wasmtime_component_item_t)]
 def wasmtime_component_item_delete(ptr: Any) -> None:
     return _wasmtime_component_item_delete(ptr)  # type: ignore
+
+
+_wasmtime_component_extern_clone = dll.wasmtime_component_extern_clone
+_wasmtime_component_extern_clone.restype = ctypes.POINTER(wasmtime_component_extern_t)
+_wasmtime_component_extern_clone.argtypes = [ctypes.POINTER(wasmtime_component_extern_t)]
+def wasmtime_component_extern_clone(e: Any) -> ctypes._Pointer:
+    return _wasmtime_component_extern_clone(e)  # type: ignore
+
+_wasmtime_component_extern_type = dll.wasmtime_component_extern_type
+_wasmtime_component_extern_type.restype = None
+_wasmtime_component_extern_type.argtypes = [ctypes.POINTER(wasmtime_component_extern_t), ctypes.POINTER(wasmtime_component_item_t)]
+def wasmtime_component_extern_type(e: Any, ret: Any) -> None:
+    return _wasmtime_component_extern_type(e, ret)  # type: ignore
+
+_wasmtime_component_extern_implements = dll.wasmtime_component_extern_implements
+_wasmtime_component_extern_implements.restype = ctypes.POINTER(ctypes.c_char)
+_wasmtime_component_extern_implements.argtypes = [ctypes.POINTER(wasmtime_component_extern_t), ctypes.POINTER(ctypes.c_size_t)]
+def wasmtime_component_extern_implements(e: Any, len: Any) -> ctypes._Pointer:
+    return _wasmtime_component_extern_implements(e, len)  # type: ignore
+
+_wasmtime_component_extern_is_implements = dll.wasmtime_component_extern_is_implements
+_wasmtime_component_extern_is_implements.restype = ctypes.c_bool
+_wasmtime_component_extern_is_implements.argtypes = [ctypes.POINTER(wasmtime_component_extern_t), ctypes.POINTER(ctypes.c_char), ctypes.c_size_t]
+def wasmtime_component_extern_is_implements(e: Any, name: Any, len: Any) -> bool:
+    return _wasmtime_component_extern_is_implements(e, name, len)  # type: ignore
+
+_wasmtime_component_extern_external_id = dll.wasmtime_component_extern_external_id
+_wasmtime_component_extern_external_id.restype = ctypes.POINTER(ctypes.c_char)
+_wasmtime_component_extern_external_id.argtypes = [ctypes.POINTER(wasmtime_component_extern_t), ctypes.POINTER(ctypes.c_size_t)]
+def wasmtime_component_extern_external_id(e: Any, len: Any) -> ctypes._Pointer:
+    return _wasmtime_component_extern_external_id(e, len)  # type: ignore
+
+_wasmtime_component_extern_delete = dll.wasmtime_component_extern_delete
+_wasmtime_component_extern_delete.restype = None
+_wasmtime_component_extern_delete.argtypes = [ctypes.POINTER(wasmtime_component_extern_t)]
+def wasmtime_component_extern_delete(ptr: Any) -> None:
+    return _wasmtime_component_extern_delete(ptr)  # type: ignore
 
 class wasmtime_component_t(ctypes.Structure):
     pass
@@ -4979,9 +5025,11 @@ class wasmtime_component_func(ctypes.Structure):
     _fields_ = [
         ("_anon_1", wasmtime_component_func_anon_0),
         ("__private2", ctypes.c_uint32),
+        ("__private3", ctypes.c_void_p),
     ]
     _anon_1: wasmtime_component_func_anon_0
     __private2: int
+    __private3: ctypes._Pointer
 
 wasmtime_component_func_t = wasmtime_component_func
 
