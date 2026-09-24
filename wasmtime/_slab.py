@@ -1,5 +1,4 @@
 import itertools
-import threading
 from typing import Dict, Generic, Iterator, TypeVar
 
 
@@ -17,14 +16,14 @@ class Slab(Generic[T]):
 
     Handles come from a monotonically increasing counter and are never reused,
     and the values live in a dict, so there is no free list whose invariant
-    spans several statements for a concurrent call to break. The only lock
-    guards the counter, and it is never held while a value is dropped, so a
-    finalizer that frees another handle cannot deadlock on it.
+    spans several statements for a concurrent call to break. Every step is a
+    single `next()` or dict operation, which the GIL makes atomic, so no lock
+    is needed, and a finalizer that frees another handle mid-call cannot
+    deadlock or see a half-updated slab.
     """
 
     handles: Dict[int, T]
     counter: Iterator[int]
-    lock: threading.Lock
 
     def __init__(self) -> None:
         # Counting from 1, never 0: callers round-trip a handle through a C
@@ -32,13 +31,9 @@ class Slab(Generic[T]):
         # indistinguishable from an absent one.
         self.handles = {}
         self.counter = itertools.count(1)
-        # `next()` on `itertools.count` is atomic under the GIL but not on
-        # free-threaded builds.
-        self.lock = threading.Lock()
 
     def allocate(self, val: T) -> int:
-        with self.lock:
-            idx = next(self.counter)
+        idx = next(self.counter)
         self.handles[idx] = val
         return idx
 
