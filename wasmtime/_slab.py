@@ -1,32 +1,46 @@
-from typing import Generic, List, Union, cast, TypeVar
+import itertools
+from typing import Dict, Generic, Iterator, TypeVar
 
 
 T = TypeVar('T')
 
 
 class Slab(Generic[T]):
-    list: List[Union[int, T]]
-    next: int
+    """Maps integer handles to Python objects, safe to use from many threads.
+
+    Wasmtime objects release their handles from finalizers, and the garbage
+    collector runs finalizers on whichever thread happens to trigger a
+    collection. An application that uses wasmtime from one thread can
+    therefore see `deallocate` run on another thread, concurrently with
+    `allocate`.
+
+    Handles come from a monotonically increasing counter and are never reused,
+    and the values live in a dict, so there is no free list whose invariant
+    spans several statements for a concurrent call to break. Every step is a
+    single `next()` or dict operation, which the GIL makes atomic, so no lock
+    is needed, and a finalizer that frees another handle mid-call cannot
+    deadlock or see a half-updated slab.
+    """
+
+    handles: Dict[int, T]
+    counter: Iterator[int]
 
     def __init__(self) -> None:
-        self.list = []
-        self.next = 0
+        # Counting from 1, never 0: callers round-trip a handle through a C
+        # `void *` and read a null one back as `idx or 0`, so a handle of 0 is
+        # indistinguishable from an absent one.
+        self.handles = {}
+        self.counter = itertools.count(1)
 
     def allocate(self, val: T) -> int:
-        idx = self.next
-
-        if len(self.list) == idx:
-            self.list.append(0)
-            self.next += 1
-        else:
-            self.next = cast(int, self.list[idx])
-
-        self.list[idx] = val
+        idx = next(self.counter)
+        self.handles[idx] = val
         return idx
 
     def get(self, idx: int) -> T:
-        return cast(T, self.list[idx])
+        return self.handles[idx]
 
     def deallocate(self, idx: int) -> None:
-        self.list[idx] = self.next
-        self.next = idx
+        # Idempotent: freeing a handle twice, or freeing one that was never
+        # handed out, leaves the live handles alone.
+        self.handles.pop(idx, None)
