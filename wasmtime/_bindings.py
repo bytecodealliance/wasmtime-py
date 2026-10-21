@@ -3170,6 +3170,12 @@ _wasmtime_config_wasm_custom_page_sizes_set.argtypes = [ctypes.POINTER(wasm_conf
 def wasmtime_config_wasm_custom_page_sizes_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_wasm_custom_page_sizes_set(arg0, arg1)  # type: ignore
 
+_wasmtime_config_wasm_compact_imports_set = dll.wasmtime_config_wasm_compact_imports_set
+_wasmtime_config_wasm_compact_imports_set.restype = None
+_wasmtime_config_wasm_compact_imports_set.argtypes = [ctypes.POINTER(wasm_config_t), ctypes.c_bool]
+def wasmtime_config_wasm_compact_imports_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_wasm_compact_imports_set(arg0, arg1)  # type: ignore
+
 _wasmtime_config_wasm_stack_switching_set = dll.wasmtime_config_wasm_stack_switching_set
 _wasmtime_config_wasm_stack_switching_set.restype = None
 _wasmtime_config_wasm_stack_switching_set.argtypes = [ctypes.POINTER(wasm_config_t), ctypes.c_bool]
@@ -3492,6 +3498,18 @@ _wasmtime_config_wasm_component_model_implements_set.restype = None
 _wasmtime_config_wasm_component_model_implements_set.argtypes = [ctypes.POINTER(wasm_config_t), ctypes.c_bool]
 def wasmtime_config_wasm_component_model_implements_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_wasm_component_model_implements_set(arg0, arg1)  # type: ignore
+
+_wasmtime_config_wasm_component_model_canonical_names_set = dll.wasmtime_config_wasm_component_model_canonical_names_set
+_wasmtime_config_wasm_component_model_canonical_names_set.restype = None
+_wasmtime_config_wasm_component_model_canonical_names_set.argtypes = [ctypes.POINTER(wasm_config_t), ctypes.c_bool]
+def wasmtime_config_wasm_component_model_canonical_names_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_wasm_component_model_canonical_names_set(arg0, arg1)  # type: ignore
+
+_wasmtime_config_wasm_component_model_accessors_set = dll.wasmtime_config_wasm_component_model_accessors_set
+_wasmtime_config_wasm_component_model_accessors_set.restype = None
+_wasmtime_config_wasm_component_model_accessors_set.argtypes = [ctypes.POINTER(wasm_config_t), ctypes.c_bool]
+def wasmtime_config_wasm_component_model_accessors_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_wasm_component_model_accessors_set(arg0, arg1)  # type: ignore
 
 _wasmtime_config_wasm_component_model_async_set = dll.wasmtime_config_wasm_component_model_async_set
 _wasmtime_config_wasm_component_model_async_set.restype = None
@@ -5698,6 +5716,10 @@ class wasmtime_trap_code_enum(Enum):
     WASMTIME_TRAP_CODE_STREAM_OP_TOO_BIG = 47
     WASMTIME_TRAP_CODE_WAITABLE_SYNC_AND_ASYNC = 48
     WASMTIME_TRAP_CODE_UNCAUGHT_EXCEPTION = 49
+    WASMTIME_TRAP_READ_FROM_DROPPED_STREAM = 50
+    WASMTIME_TRAP_WRITE_TO_DROPPED_STREAM = 51
+    WASMTIME_TRAP_WRITE_TO_DROPPED_FUTURE = 52
+    WASMTIME_TRAP_LIFT_DROPPED_STREAM = 53
 
 _wasmtime_trap_new = dll.wasmtime_trap_new
 _wasmtime_trap_new.restype = ctypes.POINTER(wasm_trap_t)
