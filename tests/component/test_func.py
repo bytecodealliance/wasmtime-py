@@ -36,15 +36,15 @@ def list_component(ty_wit: str):
                     i32.const 0)
             )
             (core func $x (canon lower (func $x)
-                (memory $libc "mem") (realloc (func $libc "realloc"))))
+                (memory (core memory $libc "mem")) (realloc (core func $libc "realloc"))))
             (core instance $a (instantiate $a
                 (with "" (instance
                     (export "x" (func $x))
                 ))
             ))
             (func (export "x") (param "x" {ty_wit}) (result {ty_wit})
-                (canon lift (core func $a "x") (memory $libc "mem")
-                (realloc (func $libc "realloc"))))
+                (canon lift (core func $a "x") (memory (core memory $libc "mem"))
+                (realloc (core func $libc "realloc"))))
         )
     """
 
@@ -65,14 +65,14 @@ def retptr_component(ty_wit: str, ty_wasm: str):
                     call 0
                     i32.const 0)
             )
-            (core func $x (canon lower (func $x) (memory $libc "mem")))
+            (core func $x (canon lower (func $x) (memory (core memory $libc "mem"))))
             (core instance $a (instantiate $a
                 (with "" (instance
                     (export "x" (func $x))
                 ))
             ))
             (func (export "x") (param "x" $t) (result $t)
-                (canon lift (core func $a "x") (memory $libc "mem")))
+                (canon lift (core func $a "x") (memory (core memory $libc "mem"))))
         )
     """
 
