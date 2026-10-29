@@ -6,7 +6,7 @@ import sys
 import platform
 import typing
 
-if sys.maxsize <= 2**32:
+if ctypes.sizeof(ctypes.c_void_p) != 8:
     raise RuntimeError("wasmtime only works on 64-bit platforms right now")
 
 sys_platform = sys.platform
