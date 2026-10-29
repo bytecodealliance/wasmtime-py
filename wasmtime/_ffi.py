@@ -6,7 +6,9 @@ import sys
 import platform
 import typing
 
-if sys.maxsize <= 2**32:
+# Check the pointer size itself: sys.maxsize is not the pointer width on every
+# interpreter, and GraalPy fails a sys.maxsize check on 64-bit platforms (#313).
+if ctypes.sizeof(ctypes.c_void_p) != 8:
     raise RuntimeError("wasmtime only works on 64-bit platforms right now")
 
 sys_platform = sys.platform
