@@ -28,7 +28,7 @@ jobs:
         - os: windows-latest
           python-version: pypy3
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
         with:
           python-version: ${{ matrix.python-version }}
@@ -37,7 +37,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         # Fetch history & tags so setuptools-git-versioning can generate a
         # unique .devN suffix on untagged builds uploaded to test.pypi.org.
@@ -92,7 +92,7 @@ jobs:
         git clean -fdx wasmtime build
         uv build --wheel -C=--wasmtime-py-mingw-any=
 
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: dists
         path: dist
@@ -100,10 +100,10 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - uses: ./.github/actions/setup
     - run: uv run --with pdoc3 pdoc --html wasmtime
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: generated-docs
         path: html/wasmtime
@@ -111,11 +111,11 @@ jobs:
   coverage:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - uses: ./.github/actions/setup
     - run: uv run --all-extras coverage run -m pytest
     - run: uv run --all-extras coverage html
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: coverage
         path: htmlcov
@@ -124,21 +124,21 @@ jobs:
     needs: [coverage, docs]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/download-artifact@v4
+    - uses: actions/checkout@v7
+    - uses: actions/download-artifact@v8
       with:
         name: coverage
         path: generated-docs/coverage
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v8
       with:
         name: generated-docs
         path: generated-docs
     - run: find .
 
     - if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      uses: actions/configure-pages@v5
+      uses: actions/configure-pages@v6
     - if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      uses: actions/upload-pages-artifact@v3
+      uses: actions/upload-pages-artifact@v5
       with:
         path: generated-docs
 
@@ -146,7 +146,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v8
       with:
         name: dists
         path: dist
@@ -180,4 +180,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
