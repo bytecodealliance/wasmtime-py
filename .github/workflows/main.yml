@@ -21,7 +21,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ['3.x', '3.9', 'pypy3.11']
+        python-version: ['3', '3.9', 'pypy3.11']
         exclude:
         # Looks like pypy on Windows is 32-bit, so don't test it since we
         # only work with 64-bit builds
@@ -44,41 +44,40 @@ jobs:
         # See `tool.setuptools-git-versioning` in `pyproject.toml`.
         fetch-depth: 0
     - uses: ./.github/actions/setup
-    - run: pip install build
     - name: Build sdist (source distribution)
       run: |
         git clean -fdx wasmtime build
-        python -m build --sdist
+        uv build --sdist
     - run: |
         git clean -fdx wasmtime build
-        python -m build --wheel -C=--build-option=--plat-name -C=--build-option=manylinux1-x86_64
+        uv build --wheel -C=--build-option=--plat-name -C=--build-option=manylinux1-x86_64
     - run: |
         git clean -fdx wasmtime build
-        python -m build --wheel -C=--build-option=--plat-name -C=--build-option=manylinux2014_aarch64
+        uv build --wheel -C=--build-option=--plat-name -C=--build-option=manylinux2014_aarch64
     - run: |
         git clean -fdx wasmtime build
-        python -m build --wheel -C=--build-option=--plat-name -C=--build-option=macosx-10-13-x86_64
+        uv build --wheel -C=--build-option=--plat-name -C=--build-option=macosx-10-13-x86_64
     - run: |
         git clean -fdx wasmtime build
-        python -m build --wheel -C=--build-option=--plat-name -C=--build-option=macosx-11-0-arm64
+        uv build --wheel -C=--build-option=--plat-name -C=--build-option=macosx-11-0-arm64
     - run: |
         git clean -fdx wasmtime build
-        python -m build --wheel -C=--build-option=--plat-name -C=--build-option=win-amd64
+        uv build --wheel -C=--build-option=--plat-name -C=--build-option=win-amd64
     - run: |
         git clean -fdx wasmtime build
-        python -m build --wheel -C=--build-option=--plat-name -C=--build-option=win-arm64
+        uv build --wheel -C=--build-option=--plat-name -C=--build-option=win-arm64
     - run: |
         git clean -fdx wasmtime build
-        python -m build --wheel -C=--build-option=--plat-name -C=--build-option=musllinux_1_2_x86_64
+        uv build --wheel -C=--build-option=--plat-name -C=--build-option=musllinux_1_2_x86_64
     - run: |
         git clean -fdx wasmtime build
-        python -m build --wheel -C=--build-option=--plat-name -C=--build-option=musllinux_1_2_aarch64
+        uv build --wheel -C=--build-option=--plat-name -C=--build-option=musllinux_1_2_aarch64
     - run: |
         git clean -fdx wasmtime build
-        python -m build --wheel -C=--build-option=--plat-name -C=--build-option=android_26_x86_64
+        uv build --wheel -C=--build-option=--plat-name -C=--build-option=android_26_x86_64
     - run: |
         git clean -fdx wasmtime build
-        python -m build --wheel -C=--build-option=--plat-name -C=--build-option=android_26_arm64_v8a
+        uv build --wheel -C=--build-option=--plat-name -C=--build-option=android_26_arm64_v8a
 
     # Build an "any" wheel with:
     #
@@ -91,7 +90,7 @@ jobs:
     # shared libraries.
     - run: |
         git clean -fdx wasmtime build
-        python -m build --wheel -C=--wasmtime-py-mingw-any
+        uv build --wheel -C=--wasmtime-py-mingw-any=
 
     - uses: actions/upload-artifact@v4
       with:
@@ -103,8 +102,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: ./.github/actions/setup
-    - run: pip install pdoc3
-    - run: pdoc --html wasmtime
+    - run: uv run --with pdoc3 pdoc --html wasmtime
     - uses: actions/upload-artifact@v4
       with:
         name: generated-docs
