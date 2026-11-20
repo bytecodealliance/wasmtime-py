@@ -3254,6 +3254,12 @@ _wasmtime_config_native_unwind_info_set.argtypes = [ctypes.POINTER(wasm_config_t
 def wasmtime_config_native_unwind_info_set(arg0: Any, arg1: Any) -> None:
     return _wasmtime_config_native_unwind_info_set(arg0, arg1)  # type: ignore
 
+_wasmtime_config_asan_compatible_code_set = dll.wasmtime_config_asan_compatible_code_set
+_wasmtime_config_asan_compatible_code_set.restype = None
+_wasmtime_config_asan_compatible_code_set.argtypes = [ctypes.POINTER(wasm_config_t), ctypes.c_bool]
+def wasmtime_config_asan_compatible_code_set(arg0: Any, arg1: Any) -> None:
+    return _wasmtime_config_asan_compatible_code_set(arg0, arg1)  # type: ignore
+
 _wasmtime_config_cache_config_load = dll.wasmtime_config_cache_config_load
 _wasmtime_config_cache_config_load.restype = ctypes.POINTER(wasmtime_error_t)
 _wasmtime_config_cache_config_load.argtypes = [ctypes.POINTER(wasm_config_t), ctypes.POINTER(ctypes.c_char)]
